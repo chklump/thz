@@ -4,6 +4,12 @@ from homeassistant.const import CONF_HOST, CONF_PORT, CONF_DEVICE # pyright: ign
 from homeassistant.data_entry_flow import FlowResult # pyright: ignore[reportMissingImports, reportMissingModuleSource]
 import serial.tools.list_ports # pyright: ignore[reportMissingModuleSource]
 import logging
+LOG_LEVELS = {
+    "Error": "error",
+    "Warning": "warning",
+    "Info": "info",
+    "Debug": "debug",
+}
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,19 +61,21 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         schema = vol.Schema({
             vol.Required(CONF_DEVICE, default=ports[0]): vol.In(ports),
             vol.Required(CONF_CONNECTION_TYPE, default=CONNECTION_USB): vol.In([CONNECTION_USB]),
+            vol.Required("Baudrate", default=DEFAULT_BAUDRATE): int,
         })
         return self.async_show_form(step_id="usb", data_schema=schema)
     
     async def async_step_log(self, user_input= None):
         """Handle log level configuration."""
         if user_input is not None:
-            return self.async_step_detect_blocks()
+            self.connection_data["log_level"] = LOG_LEVELS[user_input["log_level"]]
         
         schema = vol.Schema({
-            vol.Required("log_level", default="info"): vol.In(["debug", "info", "warning", "error"]),
+            vol.Required("log_level", default="Info"): vol.In(list(LOG_LEVELS.keys())),
         })
         return self.async_show_form(step_id="log", data_schema=schema)
     
+    #TODO Reconfigure Step richtig aufsetzen
     async def async_step_reconfigure(self, user_input: dict | None = None) -> FlowResult:
         """Handle reconfiguration initiated from the device UI."""
         entry_id = self.context.get("entry_id")
@@ -131,27 +139,34 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         data = self.connection_data
         conn_type = data["connection_type"]
 
-        # Temporäre Geräteinstanz aufbauen
         try:
-            device: THZDevice = await self.hass.async_add_executor_job(
-                lambda: THZDevice(
-                    connection_type=conn_type,
-                    host=data.get(CONF_HOST),
-                    port=data.get(CONF_PORT),
-                    device=data.get("device"),
-                )
-            )
+            def create_and_init_device():
+                if conn_type == "usb":
+                    return THZDevice(
+                        connection="usb",
+                        port=data.get(CONF_DEVICE),  # <-- HIER!
+                        baudrate=DEFAULT_BAUDRATE,
+                    )
+                else:
+                    return THZDevice(
+                        connection="ip",
+                        host=data.get(CONF_HOST),
+                        port=data.get(CONF_PORT, DEFAULT_PORT),
+                        baudrate=data.get("baudrate", DEFAULT_BAUDRATE)
+                    )
 
-            # Firmware lesen (liefert z. B. "759", "214" etc.)
+            device: THZDevice = await self.hass.async_add_executor_job(create_and_init_device)
+
+            await device.async_initialize(self.hass)
+
             firmware = device.firmware_version
             _LOGGER.info("Firmware erkannt: %s", firmware)
 
-            # Blöcke dynamisch abrufen (z. B. pxxFB, pxxParam, pxxConf …)
             blocks = device.available_reading_blocks
             _LOGGER.info("Verfügbare Blöcke: %s", blocks)
 
         except Exception as e:
-            _LOGGER.error("Fehler beim Lesen der Firmware/Blöcke: %s", e)
+            _LOGGER.exception("Fehler beim Lesen der Firmware/Blöcke: %s", e)
             return self.async_abort(reason="cannot_detect_blocks")
 
         self.blocks = blocks

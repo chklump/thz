@@ -18,7 +18,7 @@ class THZDevice:
         port: str | None = None,
         host: str | None = None,
         tcp_port: int | None = None,
-        baudrate: int = const.BAUDRATE,
+        baudrate: int = const.DEFAULT_BAUDRATE,
         read_timeout: float = const.TIMEOUT,
     ):
         """Nur Grundkonfiguration – noch keine Kommunikation."""
@@ -305,10 +305,13 @@ class THZDevice:
         footer = const.DATALINKESCAPE+const.ENDOFTEXT  # Standard Footer
 
         checksum = self.thz_checksum(header + b'\x00' + addr_bytes + payload_to_deliver)  # xx = Platzhalter für die Checksumme
+        # _LOGGER.debug(f"Berechnete Checksumme: {checksum.hex()} für Adresse {addr_bytes.hex()} mit Payload {payload_to_deliver.hex()}")
         telegram = self.construct_telegram(addr_bytes + payload_to_deliver, header, footer, checksum)
+        # _LOGGER.debug(f"Konstruiertes Telegramm: {telegram.hex()}")
         raw_response = self.send_request(telegram)
+        # _LOGGER.debug(f"Rohantwort erhalten: {raw_response.hex()}")
         payload = self.decode_response(raw_response)
-        #_LOGGER.debug("Payload dekodiert: %s", payload.hex())
+        # _LOGGER.debug("Payload dekodiert: %s", payload.hex())
         return payload
     
     def construct_telegram(self, addr_bytes: bytes, header: bytes, footer: bytes, checksum: bytes) -> bytes:
@@ -382,19 +385,19 @@ class THZDevice:
             return list(self.register_map_manager.get_all_registers().keys())
         return []
 
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator # pyright: ignore[reportMissingImports, reportMissingModuleSource]
-class THZCoordinator(DataUpdateCoordinator):
-    def __init__(self, hass, device, refresh_interval: int):
-        super().__init__(
-            hass,
-            _LOGGER,
-            name="THZ Coordinator",
-            update_interval= time.timedelta(seconds=refresh_interval),
-        )
-        self.device = device
+# from homeassistant.helpers.update_coordinator import DataUpdateCoordinator # pyright: ignore[reportMissingImports, reportMissingModuleSource]
+# class THZCoordinator(DataUpdateCoordinator):
+#     def __init__(self, hass, device, refresh_interval: int):
+#         super().__init__(
+#             hass,
+#             _LOGGER,
+#             name="THZ Coordinator",
+#             update_interval= time.timedelta(seconds=refresh_interval),
+#         )
+#         self.device = device
 
-    async def _async_update_data(self):
-        return await self.device.read_all()
+#     async def _async_update_data(self):
+#         return await self.device.read_all()
 
 
 
