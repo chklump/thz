@@ -1,9 +1,15 @@
+import logging
 import voluptuous as vol # pyright: ignore[reportMissingImports, reportMissingModuleSource]
 from homeassistant import config_entries # pyright: ignore[reportMissingImports, reportMissingModuleSource]
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_DEVICE # pyright: ignore[reportMissingImports, reportMissingModuleSource]
 from homeassistant.data_entry_flow import FlowResult # pyright: ignore[reportMissingImports, reportMissingModuleSource]
 import serial.tools.list_ports # pyright: ignore[reportMissingModuleSource]
-import logging
+
+
+from .thz_device import THZDevice
+
+from .const import DOMAIN, CONF_CONNECTION_TYPE, CONNECTION_USB, CONNECTION_IP, DEFAULT_BAUDRATE, DEFAULT_PORT, DEFAULT_UPDATE_INTERVAL
+
 LOG_LEVELS = {
     "Error": "error",
     "Warning": "warning",
@@ -12,11 +18,6 @@ LOG_LEVELS = {
 }
 
 _LOGGER = logging.getLogger(__name__)
-
-from .thz_device import THZDevice
-
-from .const import DOMAIN, CONF_CONNECTION_TYPE, CONNECTION_USB, CONNECTION_IP, DEFAULT_BAUDRATE, DEFAULT_PORT, DEFAULT_UPDATE_INTERVAL
-
 class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow für Stiebel Eltron THZ (LAN oder USB)."""
 
@@ -36,12 +37,31 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             }),
         })
         return self.async_show_form(step_id="user", data_schema=schema)
+    
+    async def async_step_name(self, user_input=None):
+        """Name der Verbindung festlegen."""
+        # ensure connection_data exists
+        self.connection_data = getattr(self, "connection_data", {}) or {}
+
+        if user_input is not None:
+           # save alias/area and continue
+            self.connection_data["alias"] = user_input.get("alias", "").strip()
+            self.connection_data["area"] = user_input.get("area", "").strip()
+            return await self.async_step_log()
+
+        schema_dict = {}
+        schema_dict[vol.Optional("alias", default=self.connection_data.get("alias", ""))] = str
+        schema_dict[vol.Optional("area", default=self.connection_data.get("area", ""))] = str
+
+        schema = vol.Schema(schema_dict)
+        return self.async_show_form(step_id="name", data_schema=schema)
+
 
     async def async_step_ip(self, user_input=None):
         """Eingabe für IP-Verbindung."""
         if user_input is not None:
             self.connection_data = user_input
-            return await self.async_step_log()
+            return await self.async_step_name()
 
         schema = vol.Schema({
             vol.Required(CONF_HOST): str,
@@ -54,7 +74,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Eingabe für serielle Verbindung."""
         if user_input is not None:
             self.connection_data = user_input
-            return await self.async_step_log()
+            return await self.async_step_name()
 
         ports = await self.get_ports()
 
@@ -188,8 +208,8 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         schema_dict = {}
         for block in blocks:
-            schema_dict[vol.Optional(f"refresh_{block}", default=30)] = vol.All(
-                int, vol.Range(min=5, max=600)
+            schema_dict[vol.Optional(f"refresh_{block}", default=600)] = vol.All(
+                int, vol.Range(min=5, max=86400)
             )
 
         schema = vol.Schema(schema_dict)
