@@ -5,6 +5,7 @@ from homeassistant.config_entries import ConfigEntry # pylint: ignore[reportMiss
 from homeassistant.core import HomeAssistant # pyright: ignore[reportMissingImports, reportMissingModuleSource]
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed # pyright: ignore[reportMissingImports, reportMissingModuleSource]
 from homeassistant.helpers.discovery import load_platform # pyright: ignore[reportMissingImports, reportMissingModuleSource]
+from homeassistant.helpers import device_registry as deviceRegistry
 
 from .const import DOMAIN
 from .thz_device import THZDevice
@@ -39,6 +40,24 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
     # 2. Firmware abfragen
     _LOGGER.info("THZ-Device vollständig initialisiert (FW %s)", device.firmware_version)
+
+    # --- create / update device in Home Assistant device registry using alias/area ---
+
+
+    dev_reg = deviceRegistry.async_get(hass)
+    # prefer a stable id from the device; fall back to conn info
+    unique_id = getattr(device, "unique_id", None) or getattr(device, "serial", None) or f"{conn_type}-{data.get('host') or data.get('device')}"
+    device_name = data.get("alias") or f"THZ {data.get('host') or data.get('device')}"
+    device_entry = dev_reg.async_get_or_create(
+        config_entry_id=config_entry.entry_id,
+        identifiers={(DOMAIN, unique_id)},
+        name=device_name,
+        manufacturer="", # could be "Stiebel Eltron"
+        model="", # could be e.g. "THZ 222"
+        sw_version=device.firmware_version,
+        suggested_area=data.get("area"),
+    )
+    _LOGGER.debug("Device registry entry created/updated: %s", device_entry.id)
 
     # # 3. Mapping laden
     hass.data.setdefault(DOMAIN, {})
