@@ -32,6 +32,38 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         
     async_add_entities(entities, True)
 class THZSwitch(SwitchEntity):
+    """
+    Represents a switch entity for a THZ device in Home Assistant.
+    This class provides asynchronous methods to control and monitor a switch on a THZ device.
+    It handles reading the switch state from the device, as well as turning the switch on and off
+    by sending the appropriate commands. Thread safety is ensured by acquiring a lock on the device
+    during communication operations.
+    Attributes:
+        _attr_should_poll (bool): Indicates if the entity should be polled for updates.
+        _attr_name (str): The name of the switch entity.
+        _command (str): The command code used to communicate with the device.
+        _device: The device instance used for communication.
+        _attr_icon (str): The icon representing the switch in the UI.
+        _attr_unique_id (str): A unique identifier for the switch entity.
+        _is_on (bool): The current state of the switch (on/off).
+        name (str): The name of the switch.
+        command (str): The command code for the switch.
+        min_value (int): Minimum value for the switch (unused in this implementation).
+        max_value (int): Maximum value for the switch (unused in this implementation).
+        step (int): Step value for the switch (unused in this implementation).
+        unit (str): Unit of measurement (unused in this implementation).
+        device_class (str): Device class for the switch (unused in this implementation).
+        device: The device instance for communication.
+        icon (str, optional): Icon for the switch. Defaults to "mdi:eye".
+        unique_id (str, optional): Unique identifier for the switch.
+    Properties:
+        is_on (bool): Returns the current state of the switch.
+    Methods:
+        async_update(): Asynchronously updates the state of the switch by reading its value from the device.
+        turn_on(**kwargs): Asynchronously turns on the switch by sending a command to the device.
+        turn_off(**kwargs): Asynchronously turns off the switch by sending a command to the device.
+    """
+
     _attr_should_poll = True
 
     def __init__(self, name, command, min_value, max_value, step, unit, device_class, device, icon=None, unique_id=None):
@@ -44,11 +76,35 @@ class THZSwitch(SwitchEntity):
 
     @property
     def is_on(self):
+        """
+        Return whether the switch is currently on.
+
+        Returns:
+            bool: True if the switch is on, False otherwise.
+
+        Note:
+            This property returns the entity's last known state and does not perform
+            any I/O or communicate with the underlying device. Call the entity's
+            update methods to refresh the state if necessary.
+        """
         return self._is_on
 
 
     #TODO debugging um die richtigen Werte zu bekommen
     async def async_update(self):
+        """
+        Asynchronously updates the state of the switch by reading its value from the device.
+
+        This method acquires a lock on the device to ensure thread safety, sends a read command to the device,
+        and interprets the returned value as an on/off state. It also includes a short pause to ensure the device
+        is ready for the next operation.
+
+        Side Effects:
+            - Updates the internal `_is_on` attribute based on the value read from the device.
+
+        Raises:
+            Any exceptions raised by the underlying device communication methods.
+        """
         # Read the value from the device and interpret as on/off
         _LOGGER.debug(f"Updating switch {self._attr_name} with command {self._command}")
         async with self._device.lock:
@@ -58,12 +114,43 @@ class THZSwitch(SwitchEntity):
         self._is_on = bool(value)
 
     async def turn_on(self, **kwargs):
+        """
+        Asynchronously turns on the switch by sending a command to the device.
+
+        Acquires the device lock to ensure thread safety, then writes the 'on' value (1)
+        to the device using the specified command. Updates the internal state to reflect
+        that the switch is now on.
+
+        Args:
+            **kwargs: Additional keyword arguments (not used).
+
+        Returns:
+            None
+        """
         value_int = 1
         async with self._device.lock:
             await self.hass.async_add_executor_job(self._device.write_value, bytes.fromhex(self._command), value_int.to_bytes(2, byteorder='big', signed=False))
         self._is_on = True
 
     async def turn_off(self, **kwargs):
+        """
+        Turn off the switch by writing a zero value to the device.
+
+        This method sends a command to the device to turn off the switch. It acquires
+        a lock to ensure thread-safe access to the device, then writes a zero integer
+        value (as 2 bytes in big-endian format) along with the command to the device.
+        After the write operation completes, the internal state is updated to reflect
+        that the switch is now off.
+
+        Args:
+            **kwargs: Additional keyword arguments (unused).
+
+        Returns:
+            None
+
+        Raises:
+            Any exceptions raised by self._device.write_value() will propagate.
+        """
         value_int = 0
         async with self._device.lock:
             await self.hass.async_add_executor_job(self._device.write_value, bytes.fromhex(self._command), value_int.to_bytes(2, byteorder='big', signed=False))
