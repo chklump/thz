@@ -1,4 +1,5 @@
 '''THZ Number Entity Platform'''
+import asyncio
 import logging
 
 from homeassistant.components.number import NumberEntity # pyright: ignore[reportMissingImports, reportMissingModuleSource]
@@ -30,14 +31,15 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                 device=device,
                 icon=entry.get("icon"),
                 unique_id=f"thz_{name.lower().replace(' ', '_')}",
+                decode_type=entry.get("decode_type"),
             )
             entities.append(entity)
-        
+
     async_add_entities(entities)
 class THZNumber(NumberEntity):
     """Representation of a THZ Number entity."""
-    def __init__(self, name:str, command:bytes, min_value,
-                 max_value, step, unit, device_class,
+    def __init__(self, name:str, command:str, min_value,
+                 max_value, step, unit, device_class, decode_type,
                  device, icon=None, unique_id=None):
         self._attr_name = name
         self._command = command
@@ -46,6 +48,7 @@ class THZNumber(NumberEntity):
         self._attr_native_step = float(step) if step != "" else 1
         self._attr_native_unit_of_measurement = unit
         self._attr_device_class = device_class
+        self._decode_type = decode_type
         self._device = device
         self._attr_icon = icon or "mdi:eye"
         self._attr_unique_id = unique_id or f"thz_set_{command.lower()}_{name.lower().replace(' ', '_')}"
@@ -56,18 +59,46 @@ class THZNumber(NumberEntity):
         '''Return the native value of the number.'''
         return self._attr_native_value
 
+    # async def async_update(self):
+    #     '''Fetch new state data for the number.'''
+    #     # _LOGGER.debug(f"Updating number {self._attr_name} with command {self._command}")
+    #     async with self._device.lock:
+    #         value_bytes = await self.hass.async_add_executor_job(self._device.read_value,
+    #                                                              bytes.fromhex(self._command), "get", 4, 2)
+    #     value = int.from_bytes(value_bytes, byteorder='big', signed=False)*self._attr_native_step
+    #     self._attr_native_value = value
+
     async def async_update(self):
         '''Fetch new state data for the number.'''
-        # _LOGGER.debug(f"Updating number {self._attr_name} with command {self._command}")
+        # _LOGGER.debug("Updating number %s with command %s", self._attr_name, self._command)
         async with self._device.lock:
-            value_bytes = await self.hass.async_add_executor_job(self._device.read_value, 
+            value_bytes = await self.hass.async_add_executor_job(self._device.read_value,
                                                                  bytes.fromhex(self._command), "get", 4, 2)
         value = int.from_bytes(value_bytes, byteorder='big', signed=False)*self._attr_native_step
+        _LOGGER.debug("Recv number %s with value %s", self._attr_name, value_bytes)
+        if self._attr_decode_type != "0clean":
+            value = int.from_bytes(value_bytes, byteorder='big', signed=True)*self._attr_native_step
+        else:
+            value = value_bytes[0]
+        _LOGGER.debug("Recv number %s with real value %s", self._attr_name, value)
         self._attr_native_value = value
+
+    # async def async_set_native_value(self, value: float):
+    #     '''Set new value for the number.'''
+    #     value_int = int(value)
+    #     async with self._device.lock:
+    #         await self.hass.async_add_executor_job(self._device.write_value, bytes.fromhex(self._command), value_int/self._attr_native_step)
+    #     self._attr_native_value = value
 
     async def async_set_native_value(self, value: float):
         '''Set new value for the number.'''
-        value_int = int(value)
+        value_int = int(value/self._attr_native_step)
+        _LOGGER.debug("Send number %s with real value %s", self._attr_name, value_int)
+        #value_bytes = value_int.to_bytes(2, byteorder='big', signed=True)) #_LOGGER.debug("Send number %s with value %s", self._attr_name, value_bytes)
         async with self._device.lock:
-            await self.hass.async_add_executor_job(self._device.write_value, bytes.fromhex(self._command), value_int/self._attr_native_step)
+            if self._attr_decode_type != "0clean":
+                await self.hass.async_add_executor_job(self._device.write_value, bytes.fromhex(self._command), value_int.to_bytes(2, byteorder='big', signed=True))
+            else:
+                await self.hass.async_add_executor_job(self._device.write_value, bytes.fromhex(self._command), value_int.to_bytes(1, byteorder='big', signed=True))
+            await asyncio.sleep(0.01)  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
         self._attr_native_value = value
