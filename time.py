@@ -11,7 +11,7 @@ from .thz_device import THZDevice
 
 _LOGGER = logging.getLogger(__name__)
 
-def time_to_quarters(t: time) -> int:
+def time_to_quarters(t: time|None) -> int:
     """Convert a time object to the number of 15-minute intervals since midnight.
 
     Parameters
@@ -114,6 +114,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                 unique_id=f"thz_{name.lower().replace(' ', '_')}",
             )
             entities.append(entity)
+
+            
 
     async_add_entities(entities, True)
 
