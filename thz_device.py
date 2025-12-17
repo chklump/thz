@@ -98,7 +98,7 @@ class THZDevice:
         self._cache[block] = (now, data)
         return data
 
-    def send_request(self, telegram: bytes) -> bytes:
+    def send_request(self, telegram: bytes, get_or_set: str) -> bytes:
         """Sende Anfrage über USB oder TCP, empfange Antwort."""
         is_socket = hasattr(self.ser, "recv")  # TCP Socket
         timeout = self.read_timeout
@@ -123,24 +123,25 @@ class THZDevice:
         if response != const.DATALINKESCAPE + const.STARTOFTEXT:
             raise ValueError(f"Handshake 2 fehlgeschlagen, erhalten: {response.hex()}")
 
-        # 5. Bestätigung senden (0x10)
-        self._write_bytes(const.DATALINKESCAPE)
+        if get_or_set == "set":
+            # 5. Bestätigung senden (0x10)
+            self._write_bytes(const.DATALINKESCAPE)
 
-        # 6. Daten-Telegramm empfangen bis 0x10 0x03
-        start_time = time.time()
-        while time.time() - start_time < timeout:
-            chunk = self._read_available()
-            if chunk:
-                data.extend(chunk)
-                if len(data) >= 8 and data[-2:] == const.DATALINKESCAPE + const.ENDOFTEXT:
-                    break
-            else:
-                time.sleep(0.01)
+            # 6. Daten-Telegramm empfangen bis 0x10 0x03
+            start_time = time.time()
+            while time.time() - start_time < timeout:
+                chunk = self._read_available()
+                if chunk:
+                    data.extend(chunk)
+                    if len(data) >= 8 and data[-2:] == const.DATALINKESCAPE + const.ENDOFTEXT:
+                        break
+                else:
+                    time.sleep(0.01)
 
-        # _LOGGER.info(f"Empfangene Rohdaten: {data.hex()}")
+            # _LOGGER.info(f"Empfangene Rohdaten: {data.hex()}")
 
-        if not (len(data) >= 8 and data[-2:] == const.DATALINKESCAPE + const.ENDOFTEXT):
-            raise ValueError("Keine gültige Antwort nach Datenanfrage erhalten")
+            if not (len(data) >= 8 and data[-2:] == const.DATALINKESCAPE + const.ENDOFTEXT):
+                raise ValueError("Keine gültige Antwort nach Datenanfrage erhalten")
 
         # 7. Ende der Kommunikation
         self._write_bytes(const.STARTOFTEXT)
@@ -308,7 +309,7 @@ class THZDevice:
         # _LOGGER.debug(f"Berechnete Checksumme: {checksum.hex()} für Adresse {addr_bytes.hex()} mit Payload {payload_to_deliver.hex()}")
         telegram = self.construct_telegram(addr_bytes + payload_to_deliver, header, footer, checksum)
         # _LOGGER.debug(f"Konstruiertes Telegramm: {telegram.hex()}")
-        raw_response = self.send_request(telegram)
+        raw_response = self.send_request(telegram, get_or_set)
         # _LOGGER.debug(f"Rohantwort erhalten: {raw_response.hex()}")
         payload = self.decode_response(raw_response)
         # _LOGGER.debug("Payload dekodiert: %s", payload.hex())
