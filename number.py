@@ -31,7 +31,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                 device=device,
                 icon=entry.get("icon"),
                 unique_id=f"thz_{name.lower().replace(' ', '_')}",
-                decode_type=entry.get("decode_type"),
+                decode_type=entry["decode_type"],
             )
             entities.append(entity)
 
