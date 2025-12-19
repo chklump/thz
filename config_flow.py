@@ -1,15 +1,23 @@
-import logging
-import voluptuous as vol # pyright: ignore[reportMissingImports, reportMissingModuleSource]
-from homeassistant import config_entries # pyright: ignore[reportMissingImports, reportMissingModuleSource]
-from homeassistant.const import CONF_HOST, CONF_PORT, CONF_DEVICE # pyright: ignore[reportMissingImports, reportMissingModuleSource]
-from homeassistant.helpers import area_registry
-from homeassistant.data_entry_flow import FlowResult # pyright: ignore[reportMissingImports, reportMissingModuleSource]
-import serial.tools.list_ports # pyright: ignore[reportMissingModuleSource]
+import logging  # noqa: D100
+from typing import Any
 
+import serial.tools.list_ports
+import voluptuous as vol
 
+from homeassistant import config_entries
+from homeassistant.const import CONF_DEVICE, CONF_HOST, CONF_PORT
+from homeassistant.helpers import area_registry as ar
+
+from .const import (
+    CONF_CONNECTION_TYPE,
+    CONNECTION_IP,
+    CONNECTION_USB,
+    DEFAULT_BAUDRATE,
+    DEFAULT_PORT,
+    DEFAULT_UPDATE_INTERVAL,
+    DOMAIN,
+)
 from .thz_device import THZDevice
-
-from .const import DOMAIN, CONF_CONNECTION_TYPE, CONNECTION_USB, CONNECTION_IP, DEFAULT_BAUDRATE, DEFAULT_PORT, DEFAULT_UPDATE_INTERVAL
 
 LOG_LEVELS = {
     "Error": "error",
@@ -19,110 +27,148 @@ LOG_LEVELS = {
 }
 
 _LOGGER = logging.getLogger(__name__)
+
+
 class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow für Stiebel Eltron THZ (LAN oder USB)."""
+    """Config flow für Stiebel Eltron THZ (LAN or USB)."""
 
     VERSION = 1
 
-    async def async_step_user(self, user_input=None):
-        """Erste Auswahl: Verbindungstyp."""
+    def __init__(self) -> None:
+        """Initialize the config flow."""
+        self.connection_data = {}
+        self.blocks = []
+
+    async def async_step_user(self, user_input=None) -> config_entries.ConfigFlowResult:
+        """First step, select connection type."""
         if user_input is not None:
             if user_input["connection_type"] == CONNECTION_IP:
-                return await self.async_step_ip()
-            return await self.async_step_usb()
+                return await self.async_step_setup_ip()
+            return await self.async_step_setup_usb()
 
-        schema = vol.Schema({
-            vol.Required(CONF_CONNECTION_TYPE, default=CONNECTION_IP): vol.In({
-                CONNECTION_IP: "Netzwerk (ser.net)",
-                CONNECTION_USB: "USB / Seriell",
-            }),
-        })
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_CONNECTION_TYPE, default=CONNECTION_IP): vol.In(
+                    {
+                        CONNECTION_IP: "Network (ser.net)",
+                        CONNECTION_USB: "USB / Serial",
+                    }
+                ),
+            }
+        )
         return self.async_show_form(step_id="user", data_schema=schema)
-    
-    async def async_step_name(self, user_input=None):
-        """Name der Verbindung festlegen."""
+
+    async def async_step_name(self, user_input=None) -> config_entries.ConfigFlowResult:
+        """Set connection name."""
         # ensure connection_data exists
         self.connection_data = getattr(self, "connection_data", {}) or {}
 
         if user_input is not None:
-           # save alias/area and continue
+            # save alias/area and continue
             self.connection_data["alias"] = user_input.get("alias", "").strip()
             self.connection_data["area"] = user_input.get("area", "").strip()
             return await self.async_step_log()
-        
+
         # Get available areas
-        ar = area_registry.async_get(self.hass)
-        areas = {area.id: area.name for area in ar.async_list_areas()}
+        area_registry = ar.async_get(self.hass)
+        areas = {area.id: area.name for area in area_registry.async_list_areas()}
         areas[""] = "-- No Area --"  # Add option for no area
 
         schema_dict = {}
-        schema_dict[vol.Optional("alias", default=self.connection_data.get("alias", ""))] = str
-        schema_dict[vol.Optional("area", default=self.connection_data.get("area", ""))] = str
+        schema_dict[
+            vol.Optional("alias", default=self.connection_data.get("alias", ""))
+        ] = str
+        schema_dict[
+            vol.Optional("area", default=self.connection_data.get("area", ""))
+        ] = str
 
         schema = vol.Schema(schema_dict)
         return self.async_show_form(step_id="name", data_schema=schema)
 
-
-    async def async_step_ip(self, user_input=None):
-        """Eingabe für IP-Verbindung."""
+    async def async_step_setup_ip(
+        self, user_input=None
+    ) -> config_entries.ConfigFlowResult:
+        """Input for IP connection."""
         if user_input is not None:
             self.connection_data = user_input
             return await self.async_step_name()
 
-        schema = vol.Schema({
-            vol.Required(CONF_HOST): str,
-            vol.Required(CONF_PORT, default=DEFAULT_PORT): int,
-            vol.Required(CONF_CONNECTION_TYPE, default=CONNECTION_IP): vol.In([CONNECTION_IP]),
-        })
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_HOST): str,
+                vol.Required(CONF_PORT, default=DEFAULT_PORT): int,
+                vol.Required(CONF_CONNECTION_TYPE, default=CONNECTION_IP): vol.In(
+                    [CONNECTION_IP]
+                ),
+            }
+        )
         return self.async_show_form(step_id="ip", data_schema=schema)
 
-    async def async_step_usb(self, user_input=None):
-        """Eingabe für serielle Verbindung."""
+    async def async_step_setup_usb(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Input for serial connection."""
         if user_input is not None:
             self.connection_data = user_input
             return await self.async_step_name()
 
         ports = await self.get_ports()
 
-        schema = vol.Schema({
-            vol.Required(CONF_DEVICE, default=ports[0]): vol.In(ports),
-            vol.Required(CONF_CONNECTION_TYPE, default=CONNECTION_USB): vol.In([CONNECTION_USB]),
-            vol.Required("Baudrate", default=DEFAULT_BAUDRATE): int,
-        })
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_DEVICE, default=ports[0]): vol.In(ports),
+                vol.Required(CONF_CONNECTION_TYPE, default=CONNECTION_USB): vol.In(
+                    [CONNECTION_USB]
+                ),
+                vol.Required("Baudrate", default=DEFAULT_BAUDRATE): int,
+            }
+        )
         return self.async_show_form(step_id="usb", data_schema=schema)
-    
-    async def async_step_log(self, user_input= None):
+
+    async def async_step_log(self, user_input=None) -> config_entries.ConfigFlowResult:
         """Handle log level configuration."""
         if user_input is not None:
             self.connection_data["log_level"] = LOG_LEVELS[user_input["log_level"]]
             return await self.async_step_detect_blocks()
-        
-        schema = vol.Schema({
-            vol.Required("log_level", default="Info"): vol.In(list(LOG_LEVELS.keys())),
-        })
+
+        schema = vol.Schema(
+            {
+                vol.Required("log_level", default="Info"): vol.In(
+                    list(LOG_LEVELS.keys())
+                ),
+            }
+        )
         return self.async_show_form(step_id="log", data_schema=schema)
-    
-    #TODO Reconfigure Step richtig aufsetzen
-    async def async_step_reconfigure(self, user_input: dict | None = None) -> FlowResult:
+
+    # TODO Reconfigure Step richtig aufsetzen
+    async def async_step_reconfigure(
+        self, user_input: dict | None = None
+    ) -> config_entries.ConfigFlowResult:
         """Handle reconfiguration initiated from the device UI."""
         entry_id = self.context.get("entry_id")
+        if entry_id is None:
+            return self.async_abort(reason="missing_entry_id")
         entry = self.hass.config_entries.async_get_entry(entry_id)
+        if entry is None:
+            return self.async_abort(reason="invalid_entry_id")
 
         if user_input is not None:
             level_name = user_input.get("log_level", "info").upper()
             level = getattr(logging, level_name, logging.INFO)
             logging.getLogger("custom_components.thz").setLevel(level)
-            # Update config entry with new values            
+            # Update config entry with new values
             self.hass.config_entries.async_update_entry(entry, data=user_input)
             # Reload integration to apply changes
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigured")
 
         # Prefill current values
-        data = entry.data
+        data = dict(entry.data)
+        if data is None:
+            return self.async_abort(reason="no_data_in_entry")
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema= await self.reconfigure_schema(data),
+            data_schema=await self.reconfigure_schema(data),
         )
 
     async def reconfigure_schema(self, defaults: dict | None = None) -> vol.Schema:
@@ -130,8 +176,8 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         defaults = defaults or {}
 
         ports = await self.get_ports()
-        ar = area_registry.async_get(self.hass)
-        areas = {area.id: area.name for area in ar.async_list_areas()}
+        area_registry = ar.async_get(self.hass)
+        areas = {area.id: area.name for area in area_registry.async_list_areas()}
         areas[""] = "-- No Area --"
 
         return vol.Schema(
@@ -148,20 +194,21 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     "update_interval",
                     default=defaults.get("update_interval", DEFAULT_UPDATE_INTERVAL),
                 ): int,
-               vol.Optional(
-                   "alias",
+                vol.Optional(
+                    "alias",
                     default=defaults.get("alias", ""),
                 ): str,
                 vol.Optional(
-                   "area",
+                    "area",
                     default=defaults.get("area", ""),
-               ): vol.In(areas),
+                ): vol.In(areas),
                 vol.Required(
                     "log_level",
                     default=defaults.get("log_level", "info"),
-                    ): vol.In(["debug", "info", "warning", "error"])
-            })
-    
+                ): vol.In(["debug", "info", "warning", "error"]),
+            }
+        )
+
     async def get_ports(self) -> list[str]:
         """Get available serial ports."""
         ports = await self.hass.async_add_executor_job(serial.tools.list_ports.comports)
@@ -170,13 +217,16 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         else:
             ports = ["/dev/ttyUSB0", "/dev/ttyACM0", "/dev/ttyAMA0"]
         return ports
-    
-    async def async_step_detect_blocks(self, user_input=None):
+
+    async def async_step_detect_blocks(
+        self, user_input=None
+    ) -> config_entries.ConfigFlowResult:
         """Liest dynamisch verfügbare Blöcke aus der Wärmepumpe."""
         data = self.connection_data
         conn_type = data["connection_type"]
 
         try:
+
             def create_and_init_device():
                 if conn_type == "usb":
                     return THZDevice(
@@ -184,15 +234,17 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         port=data.get(CONF_DEVICE),  # <-- HIER!
                         baudrate=DEFAULT_BAUDRATE,
                     )
-                else:
-                    return THZDevice(
-                        connection="ip",
-                        host=data.get(CONF_HOST),
-                        port=data.get(CONF_PORT, DEFAULT_PORT),
-                        baudrate=data.get("baudrate", DEFAULT_BAUDRATE)
-                    )
 
-            device: THZDevice = await self.hass.async_add_executor_job(create_and_init_device)
+                return THZDevice(
+                    connection="ip",
+                    host=data.get(CONF_HOST),
+                    port=data.get(CONF_PORT, DEFAULT_PORT),
+                    baudrate=data.get("baudrate", DEFAULT_BAUDRATE),
+                )
+
+            device: THZDevice = await self.hass.async_add_executor_job(
+                create_and_init_device
+            )
 
             await device.async_initialize(self.hass)
 
@@ -202,24 +254,24 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             blocks = device.available_reading_blocks
             _LOGGER.info("Verfügbare Blöcke: %s", blocks)
 
-        except Exception as e:
-            _LOGGER.exception("Fehler beim Lesen der Firmware/Blöcke: %s", e)
+        except Exception:
+            _LOGGER.exception("Fehler beim Lesen der Firmware/Blöcke")
             return self.async_abort(reason="cannot_detect_blocks")
 
         self.blocks = blocks
         self.connection_data["firmware"] = firmware
         return await self.async_step_refresh_blocks()
-    
-    async def async_step_refresh_blocks(self, user_input=None):
+
+    async def async_step_refresh_blocks(
+        self, user_input=None
+    ) -> config_entries.ConfigFlowResult:
         """Frage nach individuellen Refresh-Intervallen pro Block."""
         blocks = self.blocks
 
         if user_input is not None:
             refresh_intervals = {b: user_input[f"refresh_{b}"] for b in blocks}
             data = {**self.connection_data, "refresh_intervals": refresh_intervals}
-            title = (
-                f"THZ ({data['connection_type']}: {data.get('host') or data.get('device')})"
-            )
+            title = f"THZ ({data['connection_type']}: {data.get('host') or data.get('device')})"
             return self.async_create_entry(title=title, data=data)
 
         schema_dict = {}

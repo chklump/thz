@@ -1,9 +1,8 @@
-"""
-Module docstring for WRITE_MAP (firmware "439").
+"""Module docstring for WRITE_MAP (firmware "439").
 
 Purpose
 -------
-This module-level mapping defines writable device parameters for firmware version "539".
+This module-level mapping defines writable device parameters for firmware version "439".
 Each entry describes how a single configurable parameter should be presented, validated,
 encoded and sent to the device.
 
@@ -77,7 +76,17 @@ Entry "p99CoolingHC1SetTemp":
 This docstring documents the expected structure and runtime usage contract for the WRITE_MAP
 dictionary contained in this module.
 """
+
 WRITE_MAP = {
-  "Firmware": "439",
-  "p75passiveCooling"		: {"command":"0A0575", "min" : "0",	"max" : "2", "unit" :"", "type": "select", "device_class":"","icon": "mdi:cooling", "decodetype" : "1clean",  }   
+    "Firmware": "439",
+    "p75passiveCooling": {
+        "command": "0A0575",
+        "min": "0",
+        "max": "2",
+        "unit": "",
+        "type": "select",
+        "device_class": "",
+        "icon": "mdi:cooling",
+        "decodetype": "1clean",
+    },
 }

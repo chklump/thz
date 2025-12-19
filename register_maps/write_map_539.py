@@ -1,5 +1,4 @@
-"""
-Module docstring for WRITE_MAP (firmware "539").
+"""Module docstring for WRITE_MAP (firmware "539").
 
 Purpose
 -------
@@ -77,116 +76,117 @@ Entry "p99CoolingHC1SetTemp":
 This docstring documents the expected structure and runtime usage contract for the WRITE_MAP
 dictionary contained in this module.
 """
+
 WRITE_MAP = {
-  "Firmware": "539",
-  "p75passiveCooling": {
-    "command": "0A0575",
-    "min": "0",
-    "max": "2",
-    "unit": "",
-    "type": "select",
-    "device_class": "",
-    "icon": "mdi:cooling",
-    "decodetype": "1clean"
-  },
-  "p99PumpRateHC": {
-    "command": "0A02CB",
-    "min": "0",
-    "max": "100",
-    "unit": "%",
-    "type": "number",
-    "device_class": "",
-    "icon": "mdi:pump",
-    "decodetype": "5temp"
-  },
-  "p99PumpRateDHW": {
-    "command": "0A02CC",
-    "min": "0",
-    "max": "100",
-    "unit": "%",
-    "type": "number",
-    "device_class": "",
-    "icon": "mdi:pump",
-    "decodetype": "5temp"
-  },
-  "p99CoolingHC1Switch": {
-    "command": "0B0287",
-    "min": "0",
-    "max": "1",
-    "unit": "",
-    "type": "switch",
-    "device_class": "",
-    "icon": "mdi:toggle-switch",
-    "decodetype": "1clean"
-  },
-  "p99CoolingHC1SetTemp": {
-    "command": "0B0582",
-    "min": "12",
-    "max": "27",
-    "unit": "°C",
-    "type": "number",
-    "device_class": "temperature",
-    "icon": "mdi:thermometer",
-    "decodetype": "5temp"
-  },
-  "p99CoolingHC1HysterFlowTemp": {
-    "command": "0B0583",
-    "min": "0.5",
-    "max": "5",
-    "unit": "K",
-    "type": "number",
-    "device_class": "",
-    "icon": "mdi:thermometer-lines",
-    "decodetype": "5temp"
-  },
-  "p99CoolingHC1HysterRoomTemp": {
-    "command": "0B0584",
-    "min": "0.5",
-    "max": "3",
-    "unit": "K",
-    "type": "number",
-    "device_class": "",
-    "icon": "mdi:thermometer-lines",
-    "decodetype": "5temp"
-  },
-  "p99CoolingHC2Switch": {
-    "command": "0C0287",
-    "min": "0",
-    "max": "1",
-    "unit": "",
-    "type": "switch",
-    "device_class": "",
-    "icon": "mdi:toggle-switch",
-    "decodetype": "1clean"
-  },
-  "p99CoolingHC2SetTemp": {
-    "command": "0C0582",
-    "min": "12",
-    "max": "27",
-    "unit": "°C",
-    "type": "number",
-    "device_class": "temperature",
-    "icon": "mdi:thermometer",
-    "decodetype": "5temp"
-  },
-  "p99CoolingHC2HysterFlowTemp": {
-    "command": "0C0583",
-    "min": "0.5",
-    "max": "5",
-    "unit": "K",
-    "type": "number",
-    "device_class": "",
-    "icon": "mdi:thermometer-lines",
-    "decodetype": "5temp"
-  },
-  "p99CoolingHC2HysterRoomTemp": {
-    "command": "0C0584",
-    "min": "0.5",
-    "max": "3",
-    "unit": "K",
-    "type": "number",
-    "device_class": "",
-    "icon": "mdi:thermometer-lines",
-    "decodetype": "5temp"
-  }
+    "Firmware": "539",
+    "p75passiveCooling": {
+        "command": "0A0575",
+        "min": "0",
+        "max": "2",
+        "unit": "",
+        "type": "select",
+        "device_class": "",
+        "icon": "mdi:cooling",
+        "decodetype": "1clean",
+    },
+    "p99PumpRateHC": {
+        "command": "0A02CB",
+        "min": "0",
+        "max": "100",
+        "unit": "%",
+        "type": "number",
+        "device_class": "",
+        "icon": "mdi:pump",
+        "decodetype": "5temp",
+    },
+    "p99PumpRateDHW": {
+        "command": "0A02CC",
+        "min": "0",
+        "max": "100",
+        "unit": "%",
+        "type": "number",
+        "device_class": "",
+        "icon": "mdi:pump",
+        "decodetype": "5temp",
+    },
+    "p99CoolingHC1Switch": {
+        "command": "0B0287",
+        "min": "0",
+        "max": "1",
+        "unit": "",
+        "type": "switch",
+        "device_class": "",
+        "icon": "mdi:toggle-switch",
+        "decodetype": "1clean",
+    },
+    "p99CoolingHC1SetTemp": {
+        "command": "0B0582",
+        "min": "12",
+        "max": "27",
+        "unit": "°C",
+        "type": "number",
+        "device_class": "temperature",
+        "icon": "mdi:thermometer",
+        "decodetype": "5temp",
+    },
+    "p99CoolingHC1HysterFlowTemp": {
+        "command": "0B0583",
+        "min": "0.5",
+        "max": "5",
+        "unit": "K",
+        "type": "number",
+        "device_class": "",
+        "icon": "mdi:thermometer-lines",
+        "decodetype": "5temp",
+    },
+    "p99CoolingHC1HysterRoomTemp": {
+        "command": "0B0584",
+        "min": "0.5",
+        "max": "3",
+        "unit": "K",
+        "type": "number",
+        "device_class": "",
+        "icon": "mdi:thermometer-lines",
+        "decodetype": "5temp",
+    },
+    "p99CoolingHC2Switch": {
+        "command": "0C0287",
+        "min": "0",
+        "max": "1",
+        "unit": "",
+        "type": "switch",
+        "device_class": "",
+        "icon": "mdi:toggle-switch",
+        "decodetype": "1clean",
+    },
+    "p99CoolingHC2SetTemp": {
+        "command": "0C0582",
+        "min": "12",
+        "max": "27",
+        "unit": "°C",
+        "type": "number",
+        "device_class": "temperature",
+        "icon": "mdi:thermometer",
+        "decodetype": "5temp",
+    },
+    "p99CoolingHC2HysterFlowTemp": {
+        "command": "0C0583",
+        "min": "0.5",
+        "max": "5",
+        "unit": "K",
+        "type": "number",
+        "device_class": "",
+        "icon": "mdi:thermometer-lines",
+        "decodetype": "5temp",
+    },
+    "p99CoolingHC2HysterRoomTemp": {
+        "command": "0C0584",
+        "min": "0.5",
+        "max": "3",
+        "unit": "K",
+        "type": "number",
+        "device_class": "",
+        "icon": "mdi:thermometer-lines",
+        "decodetype": "5temp",
+    },
 }

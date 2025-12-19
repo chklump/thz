@@ -1,27 +1,32 @@
-'''THZ Register Map Manager'''
-import sys
-import logging
+"""THZ Register Map Manager."""
+
 from copy import deepcopy
-from typing import Any, Dict, List, Tuple
-from . import register_map_all
-from . import register_map_206
-from . import register_map_214
-from . import register_map_214j
-from . import readings_map_2xx
-from . import readings_map_206
-from . import readings_map_214
-from . import readings_map_214j
-from . import readings_map_439
-from . import readings_map_539
-from . import write_map_214
-from . import write_map_206
-from . import write_map_439_539
-from . import write_map_439
-from . import write_map_539
-from . import write_map_X39tech
+import logging
+import sys
+from typing import Any
 
+from . import (
+    readings_map_2xx,  # noqa: F401
+    readings_map_206,  # noqa: F401
+    readings_map_214,  # noqa: F401
+    readings_map_214j,  # noqa: F401
+    readings_map_439,  # noqa: F401
+    readings_map_539,  # noqa: F401
+    register_map_206,  # noqa: F401
+    register_map_214,  # noqa: F401
+    register_map_214j,  # noqa: F401
+    register_map_all,  # noqa: F401
+    write_map_206,  # noqa: F401
+    write_map_214,  # noqa: F401
+    write_map_439,  # noqa: F401
+    write_map_439_539,  # noqa: F401
+    write_map_539,  # noqa: F401
+    write_map_X39tech,  # noqa: F401
+)
 
-supported_firmwares = ["206, 214, 439, 539"]  # Add other supported firmware versions here
+supported_firmwares = [
+    "206, 214, 439, 539"
+]  # Add other supported firmware versions here
 _LOGGER = logging.getLogger(__name__)
 
 # Data-driven firmware → maps configuration
@@ -57,8 +62,10 @@ FIRMWARE_MAPS = {
     },
 }
 
+
 class BaseRegisterMapManager:
     """Manages register maps for different firmware versions."""
+
     def __init__(
         self,
         firmware_version: str,
@@ -66,7 +73,9 @@ class BaseRegisterMapManager:
         command_map_name: str,
         map_attr: str,
         entry_type: type,
-    ):
+    ) -> None:
+        """Initialize the register map manager for a given firmware version."""
+
         self.firmware_version = firmware_version
         self._package = __package__
         self._base_map = self._load_map(base_map_name, map_attr, entry_type)
@@ -82,22 +91,28 @@ class BaseRegisterMapManager:
         # Merge write maps (use WRITE_MAP attribute)
         for m in self._write_map_names:
             _LOGGER.debug("Merging write map: %s", m)
-            merged = self._merge_maps(merged, self._load_map(m, "WRITE_MAP", entry_type))
+            merged = self._merge_maps(
+                merged, self._load_map(m, "WRITE_MAP", entry_type)
+            )
 
         # Merge read/register maps (use the provided base map_attr, e.g. REGISTER_MAP)
         for m in self._readings_map_names:
             _LOGGER.debug("Merging read map: %s", m)
-            merged = self._merge_maps(merged, self._load_map(m, self._map_attr_for_base, entry_type))
+            merged = self._merge_maps(
+                merged, self._load_map(m, self._map_attr_for_base, entry_type)
+            )
 
         self._merged_map = merged
 
-    def _select_maps_for_firmware(self, firmware: str) -> Tuple[List[str], List[str]]:
+    def _select_maps_for_firmware(self, firmware: str) -> tuple[list[str], list[str]]:
         """Return (write_list, read_list) for firmware."""
         cfg = FIRMWARE_MAPS.get(firmware, FIRMWARE_MAPS["default"])
         # return shallow copies to avoid accidental external mutation
         return list(cfg.get("write", [])), list(cfg.get("read", []))
 
-    def _load_map(self, module_name: str, map_attr: str, entry_type: type) -> Dict[str, Any]:
+    def _load_map(
+        self, module_name: str, map_attr: str, entry_type: type
+    ) -> dict[str, Any]:
         """Load a register map from a module by name (module must be in package)."""
         full_module_name = f"{self._package}.{module_name}"
         try:
@@ -109,13 +124,15 @@ class BaseRegisterMapManager:
         try:
             full_map = deepcopy(getattr(mod, map_attr))
         except (AttributeError, TypeError) as exc:
-            _LOGGER.debug("Attribute %s missing in %s: %s", map_attr, full_module_name, exc)
+            _LOGGER.debug(
+                "Attribute %s missing in %s: %s", map_attr, full_module_name, exc
+            )
             return {}
 
         # Filter entries by expected type to avoid mixing different map shapes
         return {k: v for k, v in full_map.items() if isinstance(v, entry_type)}
 
-    def _merge_maps(self, base: Dict, override: Dict) -> Dict:
+    def _merge_maps(self, base: dict, override: dict) -> dict:
         """Merge base and override maps in a predictable way."""
         merged = deepcopy(base) if base else {}
         if not override:
@@ -129,7 +146,9 @@ class BaseRegisterMapManager:
                         override_names = {e[0] for e in entries}
                     except (AttributeError, TypeError):
                         override_names = set()
-                    merged[block] = [e for e in merged[block] if e[0] not in override_names] + entries
+                    merged[block] = [
+                        e for e in merged[block] if e[0] not in override_names
+                    ] + entries
                 else:
                     # fallback: override completely (used for dict-shaped write maps)
                     merged[block] = deepcopy(entries)
@@ -137,7 +156,7 @@ class BaseRegisterMapManager:
                 merged[block] = deepcopy(entries)
         return merged
 
-    def get_all_registers(self) -> Dict:
+    def get_all_registers(self) -> dict:
         """Get the merged register map."""
         return self._merged_map
 
@@ -162,7 +181,10 @@ class BaseRegisterMapManager:
 
 class RegisterMapManager(BaseRegisterMapManager):
     """Manages read register maps for different firmware versions."""
-    def __init__(self, firmware_version: str):
+
+    def __init__(self, firmware_version: str) -> None:
+        """Initialize the register map manager for a given firmware version."""
+
         super().__init__(
             firmware_version,
             base_map_name="register_map_all",
@@ -174,7 +196,9 @@ class RegisterMapManager(BaseRegisterMapManager):
 
 class RegisterMapManagerWrite(BaseRegisterMapManager):
     """Manages write register maps for different firmware versions."""
-    def __init__(self, firmware_version: str):
+
+    def __init__(self, firmware_version: str) -> None:
+        """Initialize the write register map manager for a given firmware version."""
         super().__init__(
             firmware_version,
             base_map_name="write_map_all",
@@ -183,7 +207,7 @@ class RegisterMapManagerWrite(BaseRegisterMapManager):
             entry_type=dict,
         )
 
-    def _merge_maps(self, base: Dict, override: Dict) -> Dict:
+    def _merge_maps(self, base: dict, override: dict) -> dict:
         """For write maps prefer a simple dict update behaviour."""
         merged = deepcopy(base) if base else {}
         merged.update(deepcopy(override) or {})

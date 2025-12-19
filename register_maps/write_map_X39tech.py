@@ -1,9 +1,8 @@
-"""
-Module docstring for WRITE_MAP (firmware "539").
+"""Module docstring for WRITE_MAP (firmware "X39tech").
 
 Purpose
 -------
-This module-level mapping defines writable device parameters for firmware version "539".
+This module-level mapping defines writable device parameters for firmware version "X39tech".
 Each entry describes how a single configurable parameter should be presented, validated,
 encoded and sent to the device.
 
@@ -77,6 +76,7 @@ Entry "p99CoolingHC1SetTemp":
 This docstring documents the expected structure and runtime usage contract for the WRITE_MAP
 dictionary contained in this module.
 """
+
 WRITE_MAP = {
     "Firmware": "X39tech",
     "zResetLast10errors": {
@@ -88,7 +88,7 @@ WRITE_MAP = {
         "type": "select",
         "device_class": "",
         "icon": "",
-        "decode_type": "D1last"
+        "decode_type": "D1last",
     },
     "zPumpHC": {
         "command": "0A0052",
@@ -99,7 +99,7 @@ WRITE_MAP = {
         "type": "select",
         "device_class": "",
         "icon": "",
-        "decode_type": "0clean"
+        "decode_type": "0clean",
     },
     "zPumpDHW": {
         "command": "0A0056",
@@ -110,7 +110,7 @@ WRITE_MAP = {
         "type": "select",
         "device_class": "",
         "icon": "",
-        "decode_type": "0clean"
+        "decode_type": "0clean",
     },
     "zControlValveDHW": {
         "command": "0A0653",
@@ -121,6 +121,6 @@ WRITE_MAP = {
         "type": "select",
         "device_class": "",
         "icon": "",
-        "decode_type": "1clean"
+        "decode_type": "1clean",
     },
 }
