@@ -1,3 +1,9 @@
+"""Register map for 214j firmware readings.
+
+This module defines the mapping for register readings used by the 214j firmware,
+including command codes, types, and units for each supported register.
+"""
+
 READINGS_MAP = {
     "firmware": "214j",
     "pFan": {"cmd2": "01", "type": "01pxx214", "unit": ""},

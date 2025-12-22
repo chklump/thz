@@ -1,27 +1,28 @@
-'''Init file for THZ integration.'''
+"""Init file for THZ integration."""
+
 from datetime import timedelta
 import logging
-from homeassistant.config_entries import ConfigEntry # pylint: ignore[reportMissingImports, reportMissingModuleSource]
-from homeassistant.core import HomeAssistant # pyright: ignore[reportMissingImports, reportMissingModuleSource]
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed # pyright: ignore[reportMissingImports, reportMissingModuleSource]
-from homeassistant.helpers.discovery import load_platform # pyright: ignore[reportMissingImports, reportMissingModuleSource]
-from homeassistant.helpers import device_registry as deviceRegistry
+
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import DOMAIN
 from .thz_device import THZDevice
-from .register_maps.register_map_manager import RegisterMapManager, RegisterMapManagerWrite
 
 _LOGGER = logging.getLogger(__name__)
 
 
-
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up THZ from config entry."""
 
     log_level_str = config_entry.data.get("log_level", "info")
     _LOGGER.setLevel(getattr(logging, log_level_str.upper(), logging.INFO))
     _LOGGER.info("Loglevel gesetzt auf: %s", log_level_str)
-    _LOGGER.debug("THZ async_setup_entry aufgerufen mit entry: %s", config_entry.as_dict())
+    _LOGGER.debug(
+        "THZ async_setup_entry aufgerufen mit entry: %s", config_entry.as_dict()
+    )
 
     hass.data.setdefault(DOMAIN, {})
 
@@ -35,25 +36,30 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         device = THZDevice(connection="usb", port=data["device"])
     else:
         raise ValueError("Ungültiger Verbindungstyp")
-    
+
     await device.async_initialize(hass)
 
     # 2. Firmware abfragen
-    _LOGGER.info("THZ-Device vollständig initialisiert (FW %s)", device.firmware_version)
+    _LOGGER.info(
+        "THZ-Device vollständig initialisiert (FW %s)", device.firmware_version
+    )
 
     # --- create / update device in Home Assistant device registry using alias/area ---
 
-
-    dev_reg = deviceRegistry.async_get(hass)
+    dev_reg = dr.async_get(hass)
     # prefer a stable id from the device; fall back to conn info
-    unique_id = getattr(device, "unique_id", None) or getattr(device, "serial", None) or f"{conn_type}-{data.get('host') or data.get('device')}"
+    unique_id = (
+        getattr(device, "unique_id", None)
+        or getattr(device, "serial", None)
+        or f"{conn_type}-{data.get('host') or data.get('device')}"
+    )
     device_name = data.get("alias") or f"THZ {data.get('host') or data.get('device')}"
     device_entry = dev_reg.async_get_or_create(
         config_entry_id=config_entry.entry_id,
         identifiers={(DOMAIN, unique_id)},
         name=device_name,
-        manufacturer="", # could be "Stiebel Eltron"
-        model="", # could be e.g. "THZ 222"
+        manufacturer="",  # could be "Stiebel Eltron"
+        model="",  # could be e.g. "THZ 222"
         sw_version=device.firmware_version,
         suggested_area=data.get("area"),
     )
@@ -66,7 +72,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
     # 4. Device speichern
     hass.data[DOMAIN]["device"] = device
-    
+
     # 5. Prepare dict for storing all coordinators
     coordinators = {}
     refresh_intervals = config_entry.data.get("refresh_intervals", {})
@@ -95,19 +101,22 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
     return True
 
+
 async def _async_update_block(hass: HomeAssistant, device: THZDevice, block_name: str):
     """Wird vom Coordinator aufgerufen, um einen Block zu lesen."""
-    block_bytes = bytes.fromhex(block_name.strip("pxx"))
+    block_bytes = bytes.fromhex(block_name.removeprefix("pxx"))
     try:
-        _LOGGER.debug("Lese Block %s ...", block_name)
+        _LOGGER.debug("Lese Block %s", block_name)
         return await hass.async_add_executor_job(device.read_block, block_bytes, "get")
     except Exception as err:
         raise UpdateFailed(f"Fehler beim Lesen von {block_name}: {err}") from err
 
 
-async def async_unload_entry(hass, entry):
-    """Entferne Config Entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, ["sensor", "select", "number", "time"])
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Remove Config Entry."""
+    unload_ok = await hass.config_entries.async_unload_platforms(
+        entry, ["sensor", "select", "number", "time", "switch", "schedule"]
+    )
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok

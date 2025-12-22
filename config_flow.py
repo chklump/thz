@@ -102,7 +102,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ),
             }
         )
-        return self.async_show_form(step_id="ip", data_schema=schema)
+        return self.async_show_form(step_id="setup_ip", data_schema=schema)
 
     async def async_step_setup_usb(
         self, user_input: dict[str, Any] | None = None
@@ -123,7 +123,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required("Baudrate", default=DEFAULT_BAUDRATE): int,
             }
         )
-        return self.async_show_form(step_id="usb", data_schema=schema)
+        return self.async_show_form(step_id="setup_usb", data_schema=schema)
 
     async def async_step_log(self, user_input=None) -> config_entries.ConfigFlowResult:
         """Handle log level configuration."""

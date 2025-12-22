@@ -1,3 +1,15 @@
+"""Module containing the register map for readings specific to firmware version 206 of the THZ component.
+
+Attributes:
+    READINGS_MAP (dict): Dictionary mapping reading names to their corresponding command codes, types, and units.
+        - "firmware": Firmware version identifier.
+        - "sHC1": Heating circuit 1 readings.
+        - "pFan": Fan parameter readings.
+        - "sLast10errors": Last 10 error readings.
+        - "sFirmware": Firmware information readings.
+        - "sGlobal": Global system readings.
+"""
+
 READINGS_MAP = {
     "firmware": "206",
     "sHC1": {"cmd2": "F4", "type": "F4hc1", "unit": ""},

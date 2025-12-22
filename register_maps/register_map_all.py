@@ -1,5 +1,4 @@
-"""
-This module defines a register map for all supported THZ firmware versions."""
+"""This module defines a register map for all supported THZ firmware versions."""
 
 REGISTER_MAP = {
     "firmware": "all",

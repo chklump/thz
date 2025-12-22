@@ -1,3 +1,19 @@
+"""Mapping of register readings for the '2xx' firmware series of the THZ component.
+
+This dictionary defines the available register readings, their associated command codes (`cmd2`), types, and units.
+Some entries reference a parent register and specify only the unit.
+
+Structure:
+    - Key: Name of the reading or register.
+    - Value: Dictionary containing:
+        - 'cmd2': Command code for the register (hexadecimal string).
+        - 'type': Type identifier for the register.
+        - 'unit': Unit of measurement (may be empty).
+        - 'parent': (optional) Parent register for grouped readings.
+
+Used for interpreting and accessing register data from THZ devices with firmware version '2xx'.
+"""
+
 READINGS_MAP = {
     "firmware": "2xx",
     "pDefrostEva": {"cmd2": "03", "type": "03pxx206", "unit": ""},

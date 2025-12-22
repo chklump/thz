@@ -1,5 +1,5 @@
-"""
-Module: /Home Assistant/custom_components/thz/register_maps/write_map_439_539.py
+"""Module: /Home Assistant/custom_components/thz/register_maps/write_map_439_539.py.
+
 Module-level constant:
     WRITE_MAP (dict): Mapping of parameter identifiers to metadata required to
     construct write commands for the THZ device/register map (addresses 0x439-0x539).

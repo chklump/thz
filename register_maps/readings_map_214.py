@@ -1,3 +1,17 @@
+"""Module containing the register map for readings specific to firmware version 214 of the THZ component integration in Home Assistant.
+
+READINGS_MAP defines a mapping of register names to their corresponding command codes,
+data types, and units. This map is used to interpret and access various readings from
+the THZ device.
+
+Structure:
+    - "firmware": Firmware version identifier.
+    - Other keys: Dictionaries with the following fields:
+        - "cmd2": Command code for the register.
+        - "type": Data type or format for the register value.
+        - "unit": Unit of measurement (may be empty if not applicable).
+"""
+
 READINGS_MAP = {
     "firmware": "214",
     "pFan": {"cmd2": "01", "type": "01pxx214", "unit": ""},

@@ -1,3 +1,9 @@
+"""Register map definitions for THZ readings (firmware 5.39).
+
+This module provides the mapping for sensor readings, including command codes,
+units, device classes, icons, and decode types for each supported reading.
+"""
+
 READINGS_MAP = {
     "firmware": "539",
     "sFlowRate": {

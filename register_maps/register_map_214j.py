@@ -1,3 +1,18 @@
+"""Register map definition for firmware version '214j' of the THZ component.
+
+This module contains the REGISTER_MAP dictionary, which specifies the mapping of register names to their respective
+offsets, lengths, conversion functions, and scaling factors for the 'F4' register group. Each tuple in the list
+represents a register with the following structure:
+    (register_name, offset, length, conversion_function, scaling_factor)
+
+Conversion functions include:
+    - 'hex2int': Converts hexadecimal to integer.
+    - 'raw': Returns raw value.
+    - 'somwinmode', 'opmodehc', 'hex', 'bit0', 'bit1', 'bit2', 'bit3': Custom conversion or bit extraction.
+
+This mapping is used for parsing and interpreting data from the THZ device registers.
+"""
+
 REGISTER_MAP = {
     "firmware": "214j",
     "F4": [
