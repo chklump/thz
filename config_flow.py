@@ -238,7 +238,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return THZDevice(
                     connection="ip",
                     host=data.get(CONF_HOST),
-                    port=data.get(CONF_PORT, DEFAULT_PORT),
+                    tcp_port=data.get(CONF_PORT, DEFAULT_PORT),
                     baudrate=data.get("baudrate", DEFAULT_BAUDRATE),
                 )
 
