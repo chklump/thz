@@ -2,9 +2,10 @@
   "domain": "thz",
   "name": "Stiebel Eltron LWZ / Tecalor THZ Integration (unofficial)",
   "version": "0.0.1",
-  "documentation": "https://github.com/bigbadoooff/thz-home-assistant",
-  "dependencies": [],
+  "documentation": "https://github.com/bigbadoooff/thz",
+  "dependencies": ["calendar", "sensor", "switch", "number", "time"],
   "codeowners": ["@bigbadoooff"],
   "requirements": ["pyserial"],
-  "config_flow": true
+  "config_flow": true,
+  "iot_class": "local_polling"
 }
