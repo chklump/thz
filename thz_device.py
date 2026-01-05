@@ -147,7 +147,7 @@ class THZDevice:
         if response != const.DATALINKESCAPE + const.STARTOFTEXT:
             raise ValueError(f"Handshake 2 fehlgeschlagen, erhalten: {response.hex()}")
 
-        if get_or_set == "set":
+        if get_or_set == "get":
             # 5. Bestätigung senden (0x10)
             self._write_bytes(const.DATALINKESCAPE)
 
