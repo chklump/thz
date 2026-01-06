@@ -44,10 +44,10 @@ Each parameter metadata dictionary contains the following keys:
 - icon : str
   Icon identifier (e.g. "mdi:thermometer") for UI presentation.
 
-- decodetype : str
+- decode_type : str
   Short code indicating the encode/decode routine to use for this parameter's raw
   representation (examples in this map: "5temp", "1clean"). The application must
-  map decodetype tokens to concrete serialization/deserialization logic (scaling,
+  map decode_type tokens to concrete serialization/deserialization logic (scaling,
   byte length, signed/unsigned, enumeration handling, etc.).
 
 Operational notes
@@ -57,7 +57,7 @@ Operational notes
 - "command" values are hex strings representing the device-level command; the write
   routine must convert these to bytes and append/precede appropriately formatted
   payload bytes derived from the provided parameter value using the parameter's
-  decodetype.
+  decode_type.
 - "select" types may require an external mapping of option keys to allowed values;
   this map does not embed enumerations.
 - Validate and clamp values against parsed min/max before encoding.
@@ -71,7 +71,7 @@ Entry "p99CoolingHC1SetTemp":
 - min/max: "12"/"27" (convert to numeric range 12..27)
 - unit: "°C"
 - type: "number"
-- decodetype: "5temp" => use the application's temperature encoding for this code.
+- decode_type: "5temp" => use the application's temperature encoding for this code.
 
 This docstring documents the expected structure and runtime usage contract for the WRITE_MAP
 dictionary contained in this module.
@@ -87,7 +87,7 @@ WRITE_MAP = {
         "type": "select",
         "device_class": "",
         "icon": "mdi:cooling",
-        "decodetype": "1clean",
+        "decode_type": "1clean",
     },
     "p99PumpRateHC": {
         "command": "0A02CB",
@@ -97,7 +97,7 @@ WRITE_MAP = {
         "type": "number",
         "device_class": "",
         "icon": "mdi:pump",
-        "decodetype": "5temp",
+        "decode_type": "5temp",
     },
     "p99PumpRateDHW": {
         "command": "0A02CC",
@@ -107,7 +107,7 @@ WRITE_MAP = {
         "type": "number",
         "device_class": "",
         "icon": "mdi:pump",
-        "decodetype": "5temp",
+        "decode_type": "5temp",
     },
     "p99CoolingHC1Switch": {
         "command": "0B0287",
@@ -117,7 +117,7 @@ WRITE_MAP = {
         "type": "switch",
         "device_class": "",
         "icon": "mdi:toggle-switch",
-        "decodetype": "1clean",
+        "decode_type": "1clean",
     },
     "p99CoolingHC1SetTemp": {
         "command": "0B0582",
@@ -127,7 +127,7 @@ WRITE_MAP = {
         "type": "number",
         "device_class": "temperature",
         "icon": "mdi:thermometer",
-        "decodetype": "5temp",
+        "decode_type": "5temp",
     },
     "p99CoolingHC1HysterFlowTemp": {
         "command": "0B0583",
@@ -137,7 +137,7 @@ WRITE_MAP = {
         "type": "number",
         "device_class": "",
         "icon": "mdi:thermometer-lines",
-        "decodetype": "5temp",
+        "decode_type": "5temp",
     },
     "p99CoolingHC1HysterRoomTemp": {
         "command": "0B0584",
@@ -147,7 +147,7 @@ WRITE_MAP = {
         "type": "number",
         "device_class": "",
         "icon": "mdi:thermometer-lines",
-        "decodetype": "5temp",
+        "decode_type": "5temp",
     },
     "p99CoolingHC2Switch": {
         "command": "0C0287",
@@ -157,7 +157,7 @@ WRITE_MAP = {
         "type": "switch",
         "device_class": "",
         "icon": "mdi:toggle-switch",
-        "decodetype": "1clean",
+        "decode_type": "1clean",
     },
     "p99CoolingHC2SetTemp": {
         "command": "0C0582",
@@ -167,7 +167,7 @@ WRITE_MAP = {
         "type": "number",
         "device_class": "temperature",
         "icon": "mdi:thermometer",
-        "decodetype": "5temp",
+        "decode_type": "5temp",
     },
     "p99CoolingHC2HysterFlowTemp": {
         "command": "0C0583",
@@ -177,7 +177,7 @@ WRITE_MAP = {
         "type": "number",
         "device_class": "",
         "icon": "mdi:thermometer-lines",
-        "decodetype": "5temp",
+        "decode_type": "5temp",
     },
     "p99CoolingHC2HysterRoomTemp": {
         "command": "0C0584",
@@ -187,6 +187,6 @@ WRITE_MAP = {
         "type": "number",
         "device_class": "",
         "icon": "mdi:thermometer-lines",
-        "decodetype": "5temp",
+        "decode_type": "5temp",
     },
 }
