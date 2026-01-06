@@ -12,6 +12,9 @@ Key Components:
 The integration reads register mappings from the THZ device, decodes sensor values according
 to their metadata, and exposes them as Home Assistant sensor entities.
 """
+from datetime import timedelta
+# Set update interval to 10 minutes
+SCAN_INTERVAL = timedelta(minutes=5)
 
 import asyncio
 import logging

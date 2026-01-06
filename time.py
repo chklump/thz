@@ -1,4 +1,7 @@
 """Time entity for THZ devices."""
+from datetime import timedelta
+# Set update interval to 10 minutes
+SCAN_INTERVAL = timedelta(minutes=10)
 
 import asyncio
 from datetime import time
@@ -85,7 +88,10 @@ def quarters_to_time(num: int) -> time | None:
         return None
     quarters = num % 4
     hour = (num - quarters) // 4
-    # _LOGGER.debug(f"Converting {num} to time: {hour}:{quarters * 15}")
+    _LOGGER.debug(f"Converting {num} to time: {hour}:{quarters * 15}")
+    if hour == 24:
+        hour = 23
+        quarters = 3
     return time(hour, quarters * 15)
 
 

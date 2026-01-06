@@ -1,3 +1,6 @@
+from datetime import timedelta
+# Set update interval to 10 minutes
+SCAN_INTERVAL = timedelta(minutes=10)
 import asyncio  # noqa: D100
 import logging
 from typing import Any

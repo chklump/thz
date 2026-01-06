@@ -1,4 +1,8 @@
 """Select entity for THZ integration."""
+from datetime import timedelta
+# Set update interval to 10 minutes
+SCAN_INTERVAL = timedelta(minutes=10)
+
 
 import asyncio
 import logging
@@ -75,6 +79,10 @@ SELECT_MAP = {
         "51": "F51_SensorHeatPumpFlow",
         "52": "F52_SensorCondenserOutlet",
     },
+    "1clean": {
+        "0": "off",
+        "1": "on",
+    },
 }
 
 
@@ -92,13 +100,23 @@ async def async_setup_entry(
     for name, entry in write_registers.items():
         if entry["type"] == "select":
             _LOGGER.debug(
-                "Creating Select for %s with command %s", name, entry["command"]
+                "Preparing to create Select: name=%s, command=%s, min=%s, max=%s, step=%s, unit=%s, device_class=%s, icon=%s, decode_type=%s, unique_id=%s",
+                name,
+                entry.get("command"),
+                entry.get("min"),
+                entry.get("max"),
+                entry.get("step", 1),
+                entry.get("unit", ""),
+                entry.get("device_class"),
+                entry.get("icon"),
+                entry.get("decode_type"),
+                f"thz_{name.lower().replace(' ', '_')}"
             )
             entity = THZSelect(
                 name=name,
-                command=entry["command"],
-                min_value=entry["min"],
-                max_value=entry["max"],
+                command=entry.get("command"),
+                min_value=entry.get("min"),
+                max_value=entry.get("max"),
                 step=entry.get("step", 1),
                 unit=entry.get("unit", ""),
                 device_class=entry.get("device_class"),

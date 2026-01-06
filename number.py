@@ -1,5 +1,7 @@
 """THZ Number Entity Platform."""
-
+from datetime import timedelta
+# Set update interval to 10 minutes
+SCAN_INTERVAL = timedelta(minutes=10)
 import asyncio
 import logging
 
@@ -100,14 +102,6 @@ class THZNumber(NumberEntity):
         """Return the native value of the number."""
         return self._attr_native_value
 
-    # async def async_update(self):
-    #     '''Fetch new state data for the number.'''
-    #     # _LOGGER.debug(f"Updating number {self._attr_name} with command {self._command}")
-    #     async with self._device.lock:
-    #         value_bytes = await self.hass.async_add_executor_job(self._device.read_value,
-    #                                                              bytes.fromhex(self._command), "get", 4, 2)
-    #     value = int.from_bytes(value_bytes, byteorder='big', signed=False)*self._attr_native_step
-    #     self._attr_native_value = value
 
     async def async_update(self) -> None:
         """Fetch new state data for the number."""
@@ -131,12 +125,6 @@ class THZNumber(NumberEntity):
         _LOGGER.debug("Recv number %s with real value %s", self._attr_name, value)
         self._attr_native_value = value
 
-    # async def async_set_native_value(self, value: float):
-    #     '''Set new value for the number.'''
-    #     value_int = int(value)
-    #     async with self._device.lock:
-    #         await self.hass.async_add_executor_job(self._device.write_value, bytes.fromhex(self._command), value_int/self._attr_native_step)
-    #     self._attr_native_value = value
 
     async def async_set_native_value(self, value: float) -> None:
         """Set new value for the number."""
