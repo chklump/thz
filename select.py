@@ -209,7 +209,7 @@ class THZSelect(SelectEntity):
         else:
             self._attr_current_option = None
 
-    async def select_option(self, option: str) -> None:
+    async def async_select_option(self, option: str) -> None:
         """Set the selected option."""
         # Map option string back to value
         if self._decode_type in SELECT_MAP:

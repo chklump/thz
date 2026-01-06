@@ -86,7 +86,7 @@ class THZSchedule:
         icon: str | None = None,
         unique_id: str | None = None,
     ) -> None:
-        self._attr_name = name
+        self._name = name
         self._command = command
         self.day_index = self._parse_day_from_name(name)  # e.g., 4 for Friday
         self._device = device
