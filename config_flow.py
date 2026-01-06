@@ -67,7 +67,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             # save alias/area and continue
             self.connection_data["alias"] = user_input.get("alias", "").strip()
             self.connection_data["area"] = user_input.get("area", "").strip()
-            return await self.async_step_log()
+            return await self.async_step_detect_blocks()
 
         # Get available areas
         area_registry = ar.async_get(self.hass)
@@ -124,21 +124,6 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             }
         )
         return self.async_show_form(step_id="setup_usb", data_schema=schema)
-
-    async def async_step_log(self, user_input=None) -> config_entries.ConfigFlowResult:
-        """Handle log level configuration."""
-        if user_input is not None:
-            self.connection_data["log_level"] = LOG_LEVELS[user_input["log_level"]]
-            return await self.async_step_detect_blocks()
-
-        schema = vol.Schema(
-            {
-                vol.Required("log_level", default="Info"): vol.In(
-                    list(LOG_LEVELS.keys())
-                ),
-            }
-        )
-        return self.async_show_form(step_id="log", data_schema=schema)
 
     # TODO Reconfigure Step richtig aufsetzen
     async def async_step_reconfigure(
@@ -202,12 +187,18 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     "area",
                     default=defaults.get("area", ""),
                 ): vol.In(areas),
-                vol.Required(
-                    "log_level",
-                    default=defaults.get("log_level", "info"),
-                ): vol.In(["debug", "info", "warning", "error"]),
             }
         )
+    #TODO reconfigure fails with 
+    # 2026-01-06 20:55:18.564 ERROR (MainThread) [homeassistant.config_entries] Error setting up entry THZ (usb: /dev/ttyUSB0) for thz
+    # Traceback (most recent call last):
+    #   File "/usr/src/homeassistant/homeassistant/config_entries.py", line 761, in __async_setup_with_context
+    #     result = await component.async_setup_entry(hass, self)
+    #              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    #   File "/config/custom_components/thz/__init__.py", line 30, in async_setup_entry
+    #     conn_type = data["connection_type"]
+    #                 ~~~~^^^^^^^^^^^^^^^^^^^
+    # KeyError: 'connection_type'
 
     async def get_ports(self) -> list[str]:
         """Get available serial ports."""
