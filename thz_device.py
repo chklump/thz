@@ -128,53 +128,58 @@ class THZDevice:
         timeout = self.read_timeout
         data = bytearray()
 
-        # 1. Greeting senden (0x02)
-        self._write_bytes(const.STARTOFTEXT)
-        # _LOGGER.info("Greeting gesendet (0x02)")
+        try:
+            # 1. Greeting senden (0x02)
+            self._write_bytes(const.STARTOFTEXT)
+            # _LOGGER.info("Greeting gesendet (0x02)")
 
-        # 2. 0x10 Antwort erwarten
-        response = self._read_exact(1, timeout)
-        if response != const.DATALINKESCAPE:
-            raise ValueError(f"Handshake 1 fehlgeschlagen, erhalten: {response.hex()}")
+            # 2. 0x10 Antwort erwarten
+            response = self._read_exact(1, timeout)
+            if response != const.DATALINKESCAPE:
+                _LOGGER.error(f"Handshake 1 fehlgeschlagen, erhalten: {response.hex()}")
+                return b""
 
-        # 3. Telegram senden
-        self._reset_input_buffer()
-        self._write_bytes(telegram)
-        # _LOGGER.info(f"Request gesendet: {telegram.hex()}")
+            # 3. Telegram senden
+            self._reset_input_buffer()
+            self._write_bytes(telegram)
+            # _LOGGER.info(f"Request gesendet: {telegram.hex()}")
 
-        # 4. 0x10 0x02 Antwort erwarten
-        response = self._read_exact(2, timeout)
-        if response != const.DATALINKESCAPE + const.STARTOFTEXT:
-            raise ValueError(f"Handshake 2 fehlgeschlagen, erhalten: {response.hex()}")
+            # 4. 0x10 0x02 Antwort erwarten
+            response = self._read_exact(2, timeout)
+            if response != const.DATALINKESCAPE + const.STARTOFTEXT:
+                _LOGGER.error(f"Handshake 2 fehlgeschlagen, erhalten: {response.hex()}")
+                return b""
 
-        if get_or_set == "get":
-            # 5. Bestätigung senden (0x10)
-            self._write_bytes(const.DATALINKESCAPE)
+            if get_or_set == "get":
+                # 5. Bestätigung senden (0x10)
+                self._write_bytes(const.DATALINKESCAPE)
 
-            # 6. Daten-Telegramm empfangen bis 0x10 0x03
-            start_time = time.time()
-            while time.time() - start_time < timeout:
-                chunk = self._read_available()
-                if chunk:
-                    data.extend(chunk)
-                    if (
-                        len(data) >= 8
-                        and data[-2:] == const.DATALINKESCAPE + const.ENDOFTEXT
-                    ):
-                        break
-                #else:
-                    #time.sleep(0.01) causes blocking in async context, let's see if it works without
+                # 6. Daten-Telegramm empfangen bis 0x10 0x03
+                start_time = time.time()
+                while time.time() - start_time < timeout:
+                    chunk = self._read_available()
+                    if chunk:
+                        data.extend(chunk)
+                        if (
+                            len(data) >= 8
+                            and data[-2:] == const.DATALINKESCAPE + const.ENDOFTEXT
+                        ):
+                            break
 
-            # _LOGGER.info(f"Empfangene Rohdaten: {data.hex()}")
+                # _LOGGER.info(f"Empfangene Rohdaten: {data.hex()}")
 
-            if not (
-                len(data) >= 8 and data[-2:] == const.DATALINKESCAPE + const.ENDOFTEXT
-            ):
-                raise ValueError("Keine gültige Antwort nach Datenanfrage erhalten")
+                if not (
+                    len(data) >= 8 and data[-2:] == const.DATALINKESCAPE + const.ENDOFTEXT
+                ):
+                    _LOGGER.error("Keine gültige Antwort nach Datenanfrage erhalten")
+                    return b""
 
-        # 7. Ende der Kommunikation
-        self._write_bytes(const.STARTOFTEXT)
-        return bytes(data)
+            # 7. Ende der Kommunikation
+            self._write_bytes(const.STARTOFTEXT)
+            return bytes(data)
+        except Exception as e:
+            _LOGGER.error(f"Fehler bei send_request: {e}")
+            return b""
 
     # Hilfsmethoden ergänzen
     def _write_bytes(self, data: bytes):
@@ -303,43 +308,54 @@ class THZDevice:
 
     def decode_response(self, data: bytes):
         """Decode the response from the THZ device, checking header, CRC, and unescaping."""
-        if len(data) < 6:
-            raise ValueError(f"Antwort zu kurz: {data.hex()}")
+        try:
+            if len(data) < 6:
+                _LOGGER.error(f"Antwort zu kurz: {data.hex()}")
+                return None
 
-        data = self.unescape(data)
+            data = self.unescape(data)
 
-        # Header sind die ersten 2 Bytes
-        header = data[0:2]
-        if header in (b"\x01\x80", b"\x01\x00"):
-            # normale Antwort b'\x01\x80' for "set" commands, b'\x01\x00' for "get"
-            # CRC ist Byte 2 (index 2)
-            crc = data[2]
-            # Payload = zwischen Byte 3 und vorletzte 2 Bytes (ETX)
-            payload = data[3:-2]
-            # Prüfe CRC
-            # Für CRC berechnung: alles außer CRC und ETX (letzte 2 Bytes)
-            # hexstring zum Prüfen zusammensetzen
-            check_data = data[:2] + b"\x00" + payload
-            # _LOGGER.debug(f"Payload: {payload.hex()},
-            # Checksumme: {crc:02X}, Checkdaten: {check_data.hex()}")
-            checksum_bytes = self.thz_checksum(check_data)
-            calc_crc = checksum_bytes[0]
-            if calc_crc != crc:
-                raise ValueError(
-                    f"CRC Fehler in Antwort. Erwartet {crc:02X}, berechnet {calc_crc:02X}"
-                )
+            # Header sind die ersten 2 Bytes
+            header = data[0:2]
+            if header in (b"\x01\x80", b"\x01\x00"):
+                # normale Antwort b'\x01\x80' for "set" commands, b'\x01\x00' for "get"
+                # CRC ist Byte 2 (index 2)
+                crc = data[2]
+                # Payload = zwischen Byte 3 und vorletzte 2 Bytes (ETX)
+                payload = data[3:-2]
+                # Prüfe CRC
+                # Für CRC berechnung: alles außer CRC und ETX (letzte 2 Bytes)
+                # hexstring zum Prüfen zusammensetzen
+                check_data = data[:2] + b"\x00" + payload
+                # _LOGGER.debug(f"Payload: {payload.hex()},
+                # Checksumme: {crc:02X}, Checkdaten: {check_data.hex()}")
+                checksum_bytes = self.thz_checksum(check_data)
+                calc_crc = checksum_bytes[0]
+                if calc_crc != crc:
+                    _LOGGER.error(
+                        f"CRC Fehler in Antwort. Erwartet {crc:02X}, berechnet {calc_crc:02X}"
+                    )
+                    return None
 
-            return checksum_bytes + payload
+                return checksum_bytes + payload
 
-        if header == b"\x01\x01":
-            raise ValueError("Timing Issue from device")
-        if header == b"\x01\x02":
-            raise ValueError("CRC Error in request")
-        if header == b"\x01\x03":
-            raise ValueError("Unknown Command")
-        if header == b"\x01\x04":
-            raise ValueError("Unknown Register Request")
-        raise ValueError(f"Unknown Response: {data.hex()}")
+            if header == b"\x01\x01":
+                _LOGGER.error("Timing Issue from device")
+                return None
+            if header == b"\x01\x02":
+                _LOGGER.error("CRC Error in request")
+                return None
+            if header == b"\x01\x03":
+                _LOGGER.error("Unknown Command")
+                return None
+            if header == b"\x01\x04":
+                _LOGGER.error("Unknown Register Request")
+                return None
+            _LOGGER.error(f"Unknown Response: {data.hex()}")
+            return None
+        except Exception as e:
+            _LOGGER.error(f"Fehler beim Dekodieren der Antwort: {e}")
+            return None
 
     def read_write_register(
         self,
@@ -363,7 +379,11 @@ class THZDevice:
         raw_response = self.send_request(telegram, get_or_set)
         # _LOGGER.debug(f"Rohantwort erhalten: {raw_response.hex()}")
         # _LOGGER.debug("Payload dekodiert: %s", payload.hex())
-        return self.decode_response(raw_response) if get_or_set == "get" else b""
+        if get_or_set == "get":
+            decoded = self.decode_response(raw_response)
+            return decoded if decoded is not None else b""
+        else:
+            return b""
 
     def construct_telegram(
         self, addr_bytes: bytes, header: bytes, footer: bytes, checksum: bytes
@@ -391,15 +411,16 @@ class THZDevice:
         """
         try:
             value_raw = self.read_value(b"\xfd", "get", 2, 2)
+            if value_raw is None:
+                _LOGGER.error("Firmware-Version konnte nicht gelesen werden: Keine Antwort")
+                return ""
             # _LOGGER.debug("Rohdaten Firmware-Version: %s", value_raw.hex())
             firmware_version = int.from_bytes(value_raw, byteorder="big", signed=False)
             _LOGGER.debug("Firmware-Version gelesen: %s", firmware_version)
             return str(firmware_version)
         except Exception as e:
-            # Fehlerbehandlung oder Logging, falls z. B. keine Verbindung oder ungültige Antwort
-            raise RuntimeError(
-                f"Firmware-Version konnte nicht gelesen werden: {e}"
-            ) from e
+            _LOGGER.error(f"Firmware-Version konnte nicht gelesen werden: {e}")
+            return ""
 
     def read_value(
         self, addr_bytes: bytes, get_or_set: str, offset: int, length: int
