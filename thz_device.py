@@ -162,8 +162,8 @@ class THZDevice:
                         and data[-2:] == const.DATALINKESCAPE + const.ENDOFTEXT
                     ):
                         break
-                else:
-                    time.sleep(0.01)
+                #else:
+                    #time.sleep(0.01) causes blocking in async context, let's see if it works without
 
             # _LOGGER.info(f"Empfangene Rohdaten: {data.hex()}")
 
@@ -193,8 +193,8 @@ class THZDevice:
             chunk = self._read_available()
             if chunk:
                 buf.extend(chunk)
-            else:
-                time.sleep(0.01)
+            #else: 
+                #time.sleep(0.01) time.sleep(0.01) causes blocking in async context, let's see if it works without
         return bytes(buf)
 
     def _read_available(self) -> bytes:
@@ -363,7 +363,7 @@ class THZDevice:
         raw_response = self.send_request(telegram, get_or_set)
         # _LOGGER.debug(f"Rohantwort erhalten: {raw_response.hex()}")
         # _LOGGER.debug("Payload dekodiert: %s", payload.hex())
-        return self.decode_response(raw_response)
+        return self.decode_response(raw_response) if get_or_set == "get" else b""
 
     def construct_telegram(
         self, addr_bytes: bytes, header: bytes, footer: bytes, checksum: bytes
