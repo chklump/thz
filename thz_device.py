@@ -382,8 +382,8 @@ class THZDevice:
         if get_or_set == "get":
             decoded = self.decode_response(raw_response)
             return decoded if decoded is not None else b""
-        else:
-            return b""
+
+        return b""
 
     def construct_telegram(
         self, addr_bytes: bytes, header: bytes, footer: bytes, checksum: bytes

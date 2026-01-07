@@ -1,4 +1,7 @@
 """Schedule entity for THZ devices."""
+from datetime import timedelta
+# Set update interval to 10 minutes
+SCAN_INTERVAL = timedelta(minutes=120)
 
 import asyncio
 from dataclasses import dataclass
