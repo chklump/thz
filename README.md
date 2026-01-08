@@ -161,4 +161,5 @@ This means you are free to use, modify, and distribute this software under the t
 
 ---
 
-**Credits**: Based on the FHEM-Module by Immi. Thanks to the Home Assistant community for their support and contributions.
+**Credits**: Based on the FHEM-Module by Immi. Thanks to the FHEM and Home Assistant community for their support and contributions.
+
