@@ -116,9 +116,6 @@ def decode_value(raw: bytes, decode_type: str, factor: float = 1.0):
         # _LOGGER.debug(f"Decode bit {bitnum} from raw {raw.hex()}")
         return not ((raw[0] >> bitnum) & 0x01)
     if decode_type == "esp_mant":
-        mant = int.from_bytes(raw[:2], byteorder="big")
-        esp = int.from_bytes(raw[2:], byteorder="big")
-        # The value is encoded as mantissa, exponent (e.g., "123,4" means mant=123, esp=4)
         # To mimic: sprintf("%.3f", unpack('f', pack('L', reverse(hex($value)))))
         mant = struct.unpack('<f', raw)[0]
         return round(mant, 3)
