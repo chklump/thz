@@ -1,5 +1,14 @@
 {
   "config": {
+    "step": {
+      "user": {
+        "title": "Select Connection Type",
+        "description": "Select how to connect to your THZ device",
+        "data": {
+          "connection_type": "Connection Type"
+        }
+      }
+    },
     "abort": {
       "reconfigured": "The THZ integration has been reconfigured successfully.",
       "missing_entry_id": "No config entry ID was provided. Cannot continue reconfiguration.",

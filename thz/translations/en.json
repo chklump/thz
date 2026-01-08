@@ -1,5 +1,14 @@
 {
     "config": {
+        "step": {
+            "user": {
+                "title": "Select Connection Type",
+                "description": "Select how to connect to your THZ device",
+                "data": {
+                    "connection_type": "Connection Type"
+                }
+            }
+        },
         "abort": {
             "cannot_detect_blocks": "Failed to read firmware or available blocks from the device. Please check your connection and try again.",
             "invalid_entry_id": "The provided config entry ID is invalid. Cannot continue reconfiguration.",
