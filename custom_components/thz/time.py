@@ -152,7 +152,7 @@ async def async_setup_entry(
                 time_type="start",
             )
             entities.append(start_entity)
-            
+
             # Create end time entity
             end_entity = THZScheduleTime(
                 name=f"{name} End",
@@ -315,7 +315,7 @@ class THZScheduleTime(TimeEntity):
             await asyncio.sleep(
                 0.01
             )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
-        
+
         # Schedule data is 4 bytes: 2 bytes for start time, 2 bytes for end time
         if self._time_type == "start":
             # First 2 bytes are start time (little endian)
@@ -323,7 +323,7 @@ class THZScheduleTime(TimeEntity):
         else:  # "end"
             # Last 2 bytes are end time (little endian)
             num = int.from_bytes(value_bytes[2:4], byteorder="little", signed=False)
-        
+
         self._attr_native_value = quarters_to_time(num)
 
     async def async_set_native_value(self, value: str):
@@ -344,19 +344,19 @@ class THZScheduleTime(TimeEntity):
             except (ValueError, AttributeError) as e:
                 _LOGGER.error("Failed to parse time value '%s': %s", value, e)
                 raise
-        
+
         new_num = time_to_quarters(t_value)
-        
+
         # Read the current schedule data (4 bytes)
         async with self._device.lock:
             current_bytes = await self.hass.async_add_executor_job(
                 self._device.read_value, bytes.fromhex(self._command), "get", 4, 4
             )
             await asyncio.sleep(0.01)
-        
+
         # Convert new_num to 2 bytes (little endian)
         new_time_bytes = new_num.to_bytes(2, byteorder="little", signed=False)
-        
+
         # Modify only the relevant bytes (start or end)
         if self._time_type == "start":
             # Update first 2 bytes (start time)
@@ -364,12 +364,12 @@ class THZScheduleTime(TimeEntity):
         else:  # "end"
             # Update last 2 bytes (end time)
             new_bytes = current_bytes[0:2] + new_time_bytes
-        
+
         # Write the modified schedule data back to device
         async with self._device.lock:
             await self.hass.async_add_executor_job(
                 self._device.write_value, bytes.fromhex(self._command), new_bytes
             )
             await asyncio.sleep(0.01)
-        
+
         self._attr_native_value = t_value
