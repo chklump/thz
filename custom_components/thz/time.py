@@ -333,8 +333,17 @@ class THZScheduleTime(TimeEntity):
         if value is None:
             t_value = None
         else:
-            hour, minute = map(int, value.split(":"))
-            t_value = time(hour, minute)
+            try:
+                parts = value.split(":")
+                if len(parts) != 2:
+                    raise ValueError(f"Invalid time format: {value}")
+                hour, minute = int(parts[0]), int(parts[1])
+                if not (0 <= hour <= 23 and 0 <= minute <= 59):
+                    raise ValueError(f"Invalid time values: hour={hour}, minute={minute}")
+                t_value = time(hour, minute)
+            except (ValueError, AttributeError) as e:
+                _LOGGER.error("Failed to parse time value '%s': %s", value, e)
+                raise
         
         new_num = time_to_quarters(t_value)
         
