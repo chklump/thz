@@ -216,7 +216,7 @@ class THZTime(TimeEntity):
         num_bytes = num.to_bytes(2, byteorder="big", signed=False)
         async with self._device.lock:
             await self.hass.async_add_executor_job(
-                self._device.write_value(bytes.fromhex(self._command), num_bytes)
+                self._device.write_value, bytes.fromhex(self._command), num_bytes
             )
             await asyncio.sleep(
                 0.01
