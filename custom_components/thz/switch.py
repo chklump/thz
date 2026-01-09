@@ -38,6 +38,7 @@ async def async_setup_entry(
     entities = []
     write_manager: RegisterMapManagerWrite = hass.data[DOMAIN]["write_manager"]
     device: THZDevice = hass.data[DOMAIN]["device"]
+    device_id = hass.data[DOMAIN]["device_id"]
     
     # Get write interval from config, default to DEFAULT_UPDATE_INTERVAL
     write_interval = config_entry.data.get("write_interval", DEFAULT_UPDATE_INTERVAL)
@@ -61,6 +62,7 @@ async def async_setup_entry(
                 icon=entry.get("icon"),
                 unique_id=f"thz_{name.lower().replace(' ', '_')}",
                 scan_interval=write_interval,
+                device_id=device_id,
             )
             entities.append(entity)
 
@@ -118,6 +120,7 @@ class THZSwitch(SwitchEntity):
         icon: str | None = None,
         unique_id: str | None = None,
         scan_interval: int | None = None,
+        device_id: str | None = None,
     ) -> None:
         """Initialize a new switch entity for the THZ integration.
 
@@ -133,6 +136,7 @@ class THZSwitch(SwitchEntity):
             icon (str, optional): The icon to use for the switch. Defaults to "mdi:eye" if not provided.
             unique_id (str, optional): The unique identifier for the switch. If not provided, a unique ID is generated.
             scan_interval (int, optional): The scan interval in seconds for polling updates.
+            device_id (str, optional): The device identifier for linking to device.
         """
 
         self._attr_name = name
@@ -143,6 +147,7 @@ class THZSwitch(SwitchEntity):
             unique_id or f"thz_set_{command.lower()}_{name.lower().replace(' ', '_')}"
         )
         self._is_on = False
+        self._device_id = device_id
         if scan_interval is not None:
             self.SCAN_INTERVAL = timedelta(seconds=scan_interval)
 
@@ -160,6 +165,14 @@ class THZSwitch(SwitchEntity):
         """
 
         return self._is_on
+
+    @property
+    def device_info(self):
+        """Return device information to link this entity with the device."""
+        from .const import DOMAIN
+        return {
+            "identifiers": {(DOMAIN, self._device_id)},
+        }
 
     # TODO debugging um die richtigen Werte zu bekommen
     async def async_update(self) -> None:

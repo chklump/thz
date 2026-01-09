@@ -58,8 +58,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         config_entry_id=config_entry.entry_id,
         identifiers={(DOMAIN, unique_id)},
         name=device_name,
-        manufacturer="",  # could be "Stiebel Eltron"
-        model="",  # could be e.g. "THZ 222"
+        manufacturer="Stiebel Eltron / Tecalor",
+        model=f"LWZ/THZ (FW: {device.firmware_version})",
         sw_version=device.firmware_version,
         suggested_area=data.get("area"),
     )
@@ -72,6 +72,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # 4. Device speichern
     hass.data[DOMAIN]["device"] = device
+    hass.data[DOMAIN]["device_id"] = unique_id
 
     # 5. Prepare dict for storing all coordinators
     coordinators = {}

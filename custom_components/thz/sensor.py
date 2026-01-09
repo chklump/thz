@@ -51,6 +51,7 @@ async def async_setup_entry(
     register_manager: RegisterMapManager = hass.data[DOMAIN]["register_manager"]
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
     coordinators = entry_data["coordinators"]
+    device_id = hass.data[DOMAIN]["device_id"]
 
     # Create sensors
     sensors = []
@@ -79,7 +80,7 @@ async def async_setup_entry(
                 "translation_key": meta.get("translation_key"),
             }
             sensors.append(
-                THZGenericSensor(coordinator, entry=entry, block=block_bytes)
+                THZGenericSensor(coordinator, entry=entry, block=block_bytes, device_id=device_id)
             )
     async_add_entities(sensors, True)
 
@@ -191,13 +192,14 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         unique_id (str | None): A unique identifier for the sensor entity.
     """
 
-    def __init__(self, coordinator, entry, block) -> None:
+    def __init__(self, coordinator, entry, block, device_id) -> None:
         """Initialize a sensor instance with the provided configuration.
 
         Args:
             coordinator: The DataUpdateCoordinator for this sensor's block.
             entry (dict): The configuration entry for the sensor.
             block: The block associated with the sensor.
+            device_id: The unique device identifier.
 
         Attributes:
             _name (str): Name of the sensor.
@@ -210,6 +212,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
             _device_class (str, optional): Device class for the sensor.
             _icon (str, optional): Icon representing the sensor.
             _translation_key (str, optional): Translation key for localization.
+            _device_id: Device identifier for linking to device.
         """
         super().__init__(coordinator)
 
@@ -224,6 +227,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         self._device_class = e.get("device_class")
         self._icon = e.get("icon")
         self._translation_key = e.get("translation_key")
+        self._device_id = device_id
 
     @property
     def name(self) -> str | None:
@@ -317,3 +321,10 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         return (
             f"thz_{self._block}_{self._offset}_{self._name.lower().replace(' ', '_')}"
         )
+
+    @property
+    def device_info(self):
+        """Return device information to link this entity with the device."""
+        return {
+            "identifiers": {(DOMAIN, self._device_id)},
+        }
