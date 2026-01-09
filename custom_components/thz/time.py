@@ -103,7 +103,8 @@ async def async_setup_entry(
     """Set up THZ Time entities from a config entry.
 
     This function creates THZTime entities based on write registers of type "time"
-    from the device's register map.
+    from the device's register map. It also creates start and end time entities
+    for schedule-type registers.
 
     Args:
         hass: The Home Assistant instance.
@@ -116,6 +117,7 @@ async def async_setup_entry(
     Note:
         - Requires 'write_manager' and 'device' to be present in hass.data['thz']
         - Creates a THZTime entity for each register with type 'time'
+        - Creates THZScheduleTime entities (start and end) for each register with type 'schedule'
         - Entity IDs are generated from the register name, converted to lowercase with spaces replaced by underscores
     """
     entities = []
@@ -136,6 +138,31 @@ async def async_setup_entry(
                 unique_id=f"thz_{name.lower().replace(' ', '_')}",
             )
             entities.append(entity)
+        elif entry["type"] == "schedule":
+            _LOGGER.debug(
+                "Creating Schedule Start and End Time for %s with command %s", name, entry["command"]
+            )
+            # Create start time entity
+            start_entity = THZScheduleTime(
+                name=f"{name} Start",
+                command=entry["command"],
+                device=device,
+                icon=entry.get("icon", "mdi:calendar-clock"),
+                unique_id=f"thz_{name.lower().replace(' ', '_')}_start",
+                time_type="start",
+            )
+            entities.append(start_entity)
+            
+            # Create end time entity
+            end_entity = THZScheduleTime(
+                name=f"{name} End",
+                command=entry["command"],
+                device=device,
+                icon=entry.get("icon", "mdi:calendar-clock"),
+                unique_id=f"thz_{name.lower().replace(' ', '_')}_end",
+                time_type="end",
+            )
+            entities.append(end_entity)
 
     async_add_entities(entities, True)
 
@@ -221,4 +248,116 @@ class THZTime(TimeEntity):
             await asyncio.sleep(
                 0.01
             )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
+        self._attr_native_value = t_value
+
+
+class THZScheduleTime(TimeEntity):
+    """Time entity for THZ schedule start/end times.
+
+    This class represents a time entity that can read and write schedule start or end times
+    from/to THZ devices. Each schedule has two time values (start and end) stored sequentially
+    in the device's memory.
+
+    Attributes:
+        _attr_should_poll (bool): Indicates if entity should be polled for updates.
+        _attr_name (str): Name of the entity.
+        _command (str): Command hex string to communicate with device.
+        _device (THZDevice): Device instance this entity belongs to.
+        _attr_icon (str): Icon to display for this entity.
+        _attr_unique_id (str): Unique ID for this entity.
+        _attr_native_value (str): Current time value in HH:MM format.
+        _time_type (str): Either "start" or "end" to indicate which time value this entity represents.
+
+    Args:
+        name (str): Name of the time entity.
+        command (str): Hex command string for device communication.
+        device (THZDevice): THZ device instance.
+        time_type (str): Either "start" or "end".
+        icon (str, optional): Custom icon for the entity. Defaults to "mdi:calendar-clock".
+        unique_id (str, optional): Custom unique ID. Defaults to generated ID based on command and name.
+    """
+
+    _attr_should_poll = True
+
+    def __init__(self, name, command, device, time_type, icon=None, unique_id=None) -> None:
+        """Initialize a new instance of the schedule time class.
+
+        Args:
+            name (str): The name of the entity.
+            command (str): The command associated with the entity.
+            device: The device instance this entity is associated with.
+            time_type (str): Either "start" or "end".
+            icon (str, optional): The icon to use for this entity. Defaults to "mdi:calendar-clock" if not provided.
+            unique_id (str, optional): A unique identifier for this entity. If not provided, a unique ID is generated.
+        """
+
+        self._attr_name = name
+        self._command = command
+        self._device = device
+        self._time_type = time_type
+        self._attr_icon = icon or "mdi:calendar-clock"
+        self._attr_unique_id = (
+            unique_id or f"thz_schedule_time_{command.lower()}_{name.lower().replace(' ', '_')}_{time_type}"
+        )
+        self._attr_native_value = None
+
+    @property
+    def native_value(self):
+        """Return the native value of the time."""
+        return self._attr_native_value
+
+    async def async_update(self):
+        """Fetch new state data for the schedule time."""
+        async with self._device.lock:
+            value_bytes = await self.hass.async_add_executor_job(
+                self._device.read_value, bytes.fromhex(self._command), "get", 4, 4
+            )
+            await asyncio.sleep(
+                0.01
+            )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
+        
+        # Schedule data is 4 bytes: 2 bytes for start time, 2 bytes for end time
+        if self._time_type == "start":
+            # First byte is start time
+            num = value_bytes[0]
+        else:  # "end"
+            # Second byte is end time
+            num = value_bytes[1]
+        
+        self._attr_native_value = quarters_to_time(num)
+
+    async def async_set_native_value(self, value: str):
+        """Set new value for the schedule time."""
+
+        # Convert string (e.g., "12:30") to datetime.time
+        if value is None:
+            t_value = None
+        else:
+            hour, minute = map(int, value.split(":"))
+            t_value = time(hour, minute)
+        
+        new_num = time_to_quarters(t_value)
+        
+        # Read the current schedule data (4 bytes)
+        async with self._device.lock:
+            current_bytes = await self.hass.async_add_executor_job(
+                self._device.read_value, bytes.fromhex(self._command), "get", 4, 4
+            )
+            await asyncio.sleep(0.01)
+        
+        # Modify only the relevant byte (start or end)
+        if self._time_type == "start":
+            # Update first byte (start time)
+            new_bytes = bytes([new_num, current_bytes[1], current_bytes[2], current_bytes[3]])
+        else:  # "end"
+            # Update second byte (end time)
+            new_bytes = bytes([current_bytes[0], new_num, current_bytes[2], current_bytes[3]])
+        
+        # Write the modified schedule data back to device
+        async with self._device.lock:
+            await self.hass.async_add_executor_job(
+                self._device.write_value, bytes.fromhex(self._command), new_bytes
+            )
+            await asyncio.sleep(0.01)
+        
         self._attr_native_value = t_value
