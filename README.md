@@ -31,6 +31,7 @@ The integration communicates with the heat pump using the serial protocol, suppo
 
 - 🔄 Improve Schedule handling
 - 🔄 make sure all Sensor values are interpreted correctly
+- 🔄 Improve Settings for Polling Frequency from the Device
 
 ## Compatibility
 
@@ -143,6 +144,7 @@ This means you are free to use, modify, and distribute this software under the t
 ---
 
 **Credits**: Based on the FHEM-Module by Immi. Thanks to the FHEM and Home Assistant community for their support and contributions.
+
 
 
 
