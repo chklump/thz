@@ -1,0 +1,7 @@
+{
+  "name": "example-project",
+  "description": "This is an example of a manifest file.",
+  "version": "1.0.0",
+  "documentation": "https://docs.example.com",
+  "issue_tracker": "https://github.com/bigbadoooff/thz/issues"
+}
