@@ -167,15 +167,19 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
     """Represents a generic sensor entity for the THZ integration.
 
     This class is responsible for managing the state and properties of a sensor
-    associated with a THZ device. It handles initialization from a configuration
-    entry, exposes sensor metadata (such as name, unit, device class, icon, and
-    translation key), and provides state updates by reading coordinator data.
+    associated with a THZ device. It uses a coordinator to poll data from the device
+    at configurable intervals, then decodes the relevant bytes for this sensor.
+    
+    Attributes:
         _block: Block identifier associated with the sensor.
         _offset: Offset within the block for sensor data.
         _length: Length of the sensor data in bytes.
         _decode_type: Type used to decode the sensor data.
         _factor: Factor to apply to the decoded value.
         _unit (str, optional): Unit of measurement for the sensor.
+        _device_class (str, optional): Device class for the sensor.
+        _icon (str, optional): Icon representing the sensor.
+        _translation_key (str, optional): Translation key for localization.
 
     Properties:
         name (str | None): The name of the sensor.
@@ -185,9 +189,6 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         icon (str | None): The icon to use in the frontend.
         translation_key (str | None): The translation key for this sensor.
         unique_id (str | None): A unique identifier for the sensor entity.
-
-    Methods:
-        _handle_coordinator_update(): Called when the coordinator has new data.
     """
 
     def __init__(self, coordinator, entry, block) -> None:
@@ -243,9 +244,18 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         
         try:
             payload = self.coordinator.data
+            # Validate payload length before slicing
+            if len(payload) < self._offset + self._length:
+                _LOGGER.warning(
+                    "Payload too short for sensor %s: expected at least %d bytes, got %d",
+                    self._name,
+                    self._offset + self._length,
+                    len(payload),
+                )
+                return None
             raw_bytes = payload[self._offset : self._offset + self._length]
             return decode_value(raw_bytes, self._decode_type, self._factor)
-        except Exception as err:
+        except (ValueError, IndexError, TypeError) as err:
             _LOGGER.error(
                 "Error decoding sensor %s: %s", self._name, err, exc_info=True
             )
@@ -305,5 +315,5 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         """
 
         return (
-            f"thz_{self._block.hex()}_{self._offset}_{self._name.lower().replace(' ', '_')}"
+            f"thz_{self._block}_{self._offset}_{self._name.lower().replace(' ', '_')}"
         )
