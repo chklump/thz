@@ -1,5 +1,6 @@
 """Select entity for THZ integration."""
 import logging
+from datetime import timedelta
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
@@ -187,7 +188,6 @@ class THZSelect(SelectEntity):
         self._attr_current_option = None
         
         if scan_interval is not None:
-            from datetime import timedelta
             self.SCAN_INTERVAL = timedelta(seconds=scan_interval)
 
     @property

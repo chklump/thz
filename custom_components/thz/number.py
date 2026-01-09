@@ -1,5 +1,6 @@
 """THZ Number Entity Platform."""
 import logging
+from datetime import timedelta
 
 from homeassistant.components.number import ConfigEntry, NumberEntity
 from homeassistant.const import CONF_SCAN_INTERVAL
@@ -101,7 +102,6 @@ class THZNumber(NumberEntity):
         )
         self._attr_native_value = None
         if scan_interval is not None:
-            from datetime import timedelta
             self._attr_should_poll = True
             self.SCAN_INTERVAL = timedelta(seconds=scan_interval)
 

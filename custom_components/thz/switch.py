@@ -1,6 +1,7 @@
 """THZ Switch Entity Platform."""
 import asyncio
 import logging
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.components.switch import ConfigEntry, SwitchEntity
@@ -143,7 +144,6 @@ class THZSwitch(SwitchEntity):
         )
         self._is_on = False
         if scan_interval is not None:
-            from datetime import timedelta
             self.SCAN_INTERVAL = timedelta(seconds=scan_interval)
 
     @property
