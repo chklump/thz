@@ -1,17 +1,14 @@
 """Time entity for THZ devices."""
-from datetime import timedelta
-# Set update interval to 10 minutes
-SCAN_INTERVAL = timedelta(minutes=10)
-
 import asyncio
-from datetime import time
 import logging
+from datetime import time, timedelta
 
 from homeassistant.components.time import TimeEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -121,8 +118,12 @@ async def async_setup_entry(
         - Entity IDs are generated from the register name, converted to lowercase with spaces replaced by underscores
     """
     entities = []
-    write_manager: RegisterMapManagerWrite = hass.data["thz"]["write_manager"]
-    device: THZDevice = hass.data["thz"]["device"]
+    write_manager: RegisterMapManagerWrite = hass.data[DOMAIN]["write_manager"]
+    device: THZDevice = hass.data[DOMAIN]["device"]
+    
+    # Get write interval from config, default to DEFAULT_UPDATE_INTERVAL
+    write_interval = config_entry.data.get("write_interval", DEFAULT_UPDATE_INTERVAL)
+    
     write_registers = write_manager.get_all_registers()
     _LOGGER.debug("write_registers: %s", write_registers)
     for name, entry in write_registers.items():
@@ -136,6 +137,7 @@ async def async_setup_entry(
                 device=device,
                 icon=entry.get("icon"),
                 unique_id=f"thz_{name.lower().replace(' ', '_')}",
+                scan_interval=write_interval,
             )
             entities.append(entity)
         elif entry["type"] == "schedule":
@@ -150,6 +152,7 @@ async def async_setup_entry(
                 icon=entry.get("icon", "mdi:calendar-clock"),
                 unique_id=f"thz_{name.lower().replace(' ', '_')}_start",
                 time_type="start",
+                scan_interval=write_interval,
             )
             entities.append(start_entity)
 
@@ -161,6 +164,7 @@ async def async_setup_entry(
                 icon=entry.get("icon", "mdi:calendar-clock"),
                 unique_id=f"thz_{name.lower().replace(' ', '_')}_end",
                 time_type="end",
+                scan_interval=write_interval,
             )
             entities.append(end_entity)
 
@@ -193,7 +197,7 @@ class THZTime(TimeEntity):
 
     _attr_should_poll = True
 
-    def __init__(self, name, command, device, icon=None, unique_id=None) -> None:
+    def __init__(self, name, command, device, icon=None, unique_id=None, scan_interval=None) -> None:
         """Initialize a new instance of the class.
 
         Args:
@@ -202,6 +206,7 @@ class THZTime(TimeEntity):
             device: The device instance this entity is associated with.
             icon (str, optional): The icon to use for this entity. Defaults to "mdi:clock" if not provided.
             unique_id (str, optional): A unique identifier for this entity. If not provided, a unique ID is generated.
+            scan_interval (int, optional): The scan interval in seconds for polling updates.
         """
 
         self._attr_name = name
@@ -212,6 +217,9 @@ class THZTime(TimeEntity):
             unique_id or f"thz_time_{command.lower()}_{name.lower().replace(' ', '_')}"
         )
         self._attr_native_value = None
+        
+        if scan_interval is not None:
+            self.SCAN_INTERVAL = timedelta(seconds=scan_interval)
 
     @property
     def native_value(self):
@@ -279,7 +287,7 @@ class THZScheduleTime(TimeEntity):
 
     _attr_should_poll = True
 
-    def __init__(self, name, command, device, time_type, icon=None, unique_id=None) -> None:
+    def __init__(self, name, command, device, time_type, icon=None, unique_id=None, scan_interval=None) -> None:
         """Initialize a new instance of the schedule time class.
 
         Args:
@@ -289,6 +297,7 @@ class THZScheduleTime(TimeEntity):
             time_type (str): Either "start" or "end".
             icon (str, optional): The icon to use for this entity. Defaults to "mdi:calendar-clock" if not provided.
             unique_id (str, optional): A unique identifier for this entity. If not provided, a unique ID is generated.
+            scan_interval (int, optional): The scan interval in seconds for polling updates.
         """
 
         self._attr_name = name
@@ -300,6 +309,9 @@ class THZScheduleTime(TimeEntity):
             unique_id or f"thz_schedule_time_{command.lower()}_{name.lower().replace(' ', '_')}_{time_type}"
         )
         self._attr_native_value = None
+        
+        if scan_interval is not None:
+            self.SCAN_INTERVAL = timedelta(seconds=scan_interval)
 
     @property
     def native_value(self):

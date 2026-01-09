@@ -1,15 +1,12 @@
 """THZ Number Entity Platform."""
-from datetime import timedelta
-# Set update interval to 10 minutes
-SCAN_INTERVAL = timedelta(minutes=10)
-import asyncio
 import logging
 
 from homeassistant.components.number import ConfigEntry, NumberEntity
+from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DOMAIN
+from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -25,6 +22,10 @@ async def async_setup_entry(
     entities = []
     write_manager: RegisterMapManagerWrite = hass.data[DOMAIN]["write_manager"]
     device: THZDevice = hass.data[DOMAIN]["device"]
+    
+    # Get write interval from config, default to DEFAULT_UPDATE_INTERVAL
+    write_interval = config_entry.data.get("write_interval", DEFAULT_UPDATE_INTERVAL)
+    
     write_registers = write_manager.get_all_registers()
     _LOGGER.debug("write_registers: %s", write_registers)
     for name, entry in write_registers.items():
@@ -44,6 +45,7 @@ async def async_setup_entry(
                 icon=entry.get("icon"),
                 unique_id=f"thz_{name.lower().replace(' ', '_')}",
                 decode_type=entry["decode_type"],
+                scan_interval=write_interval,
             )
             entities.append(entity)
 
@@ -66,6 +68,7 @@ class THZNumber(NumberEntity):
         device,
         icon=None,
         unique_id=None,
+        scan_interval=None,
     ) -> None:
         """Initialize a new instance of the class.
 
@@ -81,6 +84,7 @@ class THZNumber(NumberEntity):
             device: The device instance this entity belongs to.
             icon (optional): The icon to use for this entity. Defaults to "mdi:eye".
             unique_id (optional): The unique identifier for this entity. If not provided, a unique ID is generated.
+            scan_interval (optional): The scan interval in seconds for polling updates.
         """
         self._attr_name = name
         self._command = command
@@ -96,6 +100,10 @@ class THZNumber(NumberEntity):
             unique_id or f"thz_set_{command.lower()}_{name.lower().replace(' ', '_')}"
         )
         self._attr_native_value = None
+        if scan_interval is not None:
+            from datetime import timedelta
+            self._attr_should_poll = True
+            self.SCAN_INTERVAL = timedelta(seconds=scan_interval)
 
     @property
     def native_value(self) -> float | None:

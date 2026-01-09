@@ -1,7 +1,5 @@
-from datetime import timedelta
-# Set update interval to 10 minutes
-SCAN_INTERVAL = timedelta(minutes=10)
-import asyncio  # noqa: D100
+"""THZ Switch Entity Platform."""
+import asyncio
 import logging
 from typing import Any
 
@@ -9,6 +7,7 @@ from homeassistant.components.switch import ConfigEntry, SwitchEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -36,8 +35,12 @@ async def async_setup_entry(
     """
 
     entities = []
-    write_manager: RegisterMapManagerWrite = hass.data["thz"]["write_manager"]
-    device: THZDevice = hass.data["thz"]["device"]
+    write_manager: RegisterMapManagerWrite = hass.data[DOMAIN]["write_manager"]
+    device: THZDevice = hass.data[DOMAIN]["device"]
+    
+    # Get write interval from config, default to DEFAULT_UPDATE_INTERVAL
+    write_interval = config_entry.data.get("write_interval", DEFAULT_UPDATE_INTERVAL)
+    
     write_registers = write_manager.get_all_registers()
     _LOGGER.debug("write_registers: %s", write_registers)
     for name, entry in write_registers.items():
@@ -56,6 +59,7 @@ async def async_setup_entry(
                 device=device,
                 icon=entry.get("icon"),
                 unique_id=f"thz_{name.lower().replace(' ', '_')}",
+                scan_interval=write_interval,
             )
             entities.append(entity)
 
@@ -112,6 +116,7 @@ class THZSwitch(SwitchEntity):
         device,
         icon: str | None = None,
         unique_id: str | None = None,
+        scan_interval: int | None = None,
     ) -> None:
         """Initialize a new switch entity for the THZ integration.
 
@@ -126,6 +131,7 @@ class THZSwitch(SwitchEntity):
             device: The device instance this switch is associated with.
             icon (str, optional): The icon to use for the switch. Defaults to "mdi:eye" if not provided.
             unique_id (str, optional): The unique identifier for the switch. If not provided, a unique ID is generated.
+            scan_interval (int, optional): The scan interval in seconds for polling updates.
         """
 
         self._attr_name = name
@@ -136,6 +142,9 @@ class THZSwitch(SwitchEntity):
             unique_id or f"thz_set_{command.lower()}_{name.lower().replace(' ', '_')}"
         )
         self._is_on = False
+        if scan_interval is not None:
+            from datetime import timedelta
+            self.SCAN_INTERVAL = timedelta(seconds=scan_interval)
 
     @property
     def is_on(self) -> bool | None:
