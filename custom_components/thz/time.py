@@ -372,4 +372,5 @@ class THZScheduleTime(TimeEntity):
             )
             await asyncio.sleep(0.01)
 
-        self._attr_native_value = t_value
+        # Set to the rounded time value that was actually written to the device
+        self._attr_native_value = quarters_to_time(new_num)
