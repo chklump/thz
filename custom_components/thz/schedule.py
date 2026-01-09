@@ -171,11 +171,12 @@ class THZSchedule(Schedule):
                 empty_time_bytes = empty_time.to_bytes(
                     2, byteorder="little", signed=False
                 )
-                await self.hass.async_add_executor_job(
-                    self._device.write_value,
-                    bytes.fromhex(self._command),
-                    empty_time_bytes + empty_time_bytes,
-                )
+                async with self._device.lock:
+                    await self.hass.async_add_executor_job(
+                        self._device.write_value,
+                        bytes.fromhex(self._command),
+                        empty_time_bytes + empty_time_bytes,
+                    )
                 return
             slot = schedule[0]  # Only one slot per entity
             start_time = slot.start_time
@@ -187,11 +188,12 @@ class THZSchedule(Schedule):
             )
             end_time = end_time_quarters.to_bytes(2, byteorder="little", signed=False)
 
-            await self.hass.async_add_executor_job(
-                self._device.write_value,
-                bytes.fromhex(self._command),
-                start_time + end_time,
-            )
+            async with self._device.lock:
+                await self.hass.async_add_executor_job(
+                    self._device.write_value,
+                    bytes.fromhex(self._command),
+                    start_time + end_time,
+                )
 
             await self.async_update()
         except Exception as exc:

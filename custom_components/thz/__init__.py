@@ -107,7 +107,8 @@ async def _async_update_block(hass: HomeAssistant, device: THZDevice, block_name
     block_bytes = bytes.fromhex(block_name.removeprefix("pxx"))
     try:
         _LOGGER.debug("Lese Block %s", block_name)
-        return await hass.async_add_executor_job(device.read_block, block_bytes, "get")
+        async with device.lock:
+            return await hass.async_add_executor_job(device.read_block, block_bytes, "get")
     except Exception as err:
         raise UpdateFailed(f"Fehler beim Lesen von {block_name}: {err}") from err
 
