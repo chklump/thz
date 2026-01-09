@@ -1,6 +1,6 @@
 {
   "name": "Stiebel Eltron LWZ / Tecalor THZ Integration (unofficial)",
-  "content_in_root": true,
+  "content_in_root": false,
   "domains": ["thz"],
   "iot_class": "local_polling"
 }
