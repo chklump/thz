@@ -23,17 +23,14 @@ The integration communicates with the heat pump using the serial protocol, suppo
 - ✅ **Number Platform**: Adjust numeric settings and parameters
 - ✅ **Select Platform**: Choose between predefined options for various settings
 - ✅ **Time Platform**: Set time-based parameters
-- ✅ **Calendar Platform**: Manage heating schedules and programs
+- ✅ **Calendar Platform**: View heating schedules and programs
 - ✅ **Device Registry Integration**: Proper device identification in Home Assistant
 - ✅ **Automatic Polling**: Regular updates of sensor values
 
 ### Planned Features
 
-- 🔄 Advanced scheduling and automation helpers
-- 🔄 Energy consumption tracking and statistics
-- 🔄 Enhanced diagnostic information
-- 🔄 Support for additional heat pump models
-- 🔄 Firmware update notifications
+- 🔄 Improve Schedule handling
+- 🔄 make sure all Sensor values are interpreted correctly
 
 ## Compatibility
 
@@ -146,5 +143,6 @@ This means you are free to use, modify, and distribute this software under the t
 ---
 
 **Credits**: Based on the FHEM-Module by Immi. Thanks to the FHEM and Home Assistant community for their support and contributions.
+
 
 
