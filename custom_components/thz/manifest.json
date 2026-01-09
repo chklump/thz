@@ -5,6 +5,7 @@
   "config_flow": true,
   "dependencies": ["calendar", "sensor", "switch", "number", "time"],
   "documentation": "https://github.com/bigbadoooff/thz",
+  "issue_tracker": "https://github.com/bigbadoooff/thz/issues",
   "iot_class": "local_polling",
   "requirements": ["pyserial"],
   "version": "0.0.1"
