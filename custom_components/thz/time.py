@@ -318,11 +318,11 @@ class THZScheduleTime(TimeEntity):
         
         # Schedule data is 4 bytes: 2 bytes for start time, 2 bytes for end time
         if self._time_type == "start":
-            # First byte is start time
-            num = value_bytes[0]
+            # First 2 bytes are start time (little endian)
+            num = int.from_bytes(value_bytes[0:2], byteorder="little", signed=False)
         else:  # "end"
-            # Second byte is end time
-            num = value_bytes[1]
+            # Last 2 bytes are end time (little endian)
+            num = int.from_bytes(value_bytes[2:4], byteorder="little", signed=False)
         
         self._attr_native_value = quarters_to_time(num)
 
@@ -345,13 +345,16 @@ class THZScheduleTime(TimeEntity):
             )
             await asyncio.sleep(0.01)
         
-        # Modify only the relevant byte (start or end)
+        # Convert new_num to 2 bytes (little endian)
+        new_time_bytes = new_num.to_bytes(2, byteorder="little", signed=False)
+        
+        # Modify only the relevant bytes (start or end)
         if self._time_type == "start":
-            # Update first byte (start time)
-            new_bytes = bytes([new_num, current_bytes[1], current_bytes[2], current_bytes[3]])
+            # Update first 2 bytes (start time)
+            new_bytes = new_time_bytes + current_bytes[2:4]
         else:  # "end"
-            # Update second byte (end time)
-            new_bytes = bytes([current_bytes[0], new_num, current_bytes[2], current_bytes[3]])
+            # Update last 2 bytes (end time)
+            new_bytes = current_bytes[0:2] + new_time_bytes
         
         # Write the modified schedule data back to device
         async with self._device.lock:
