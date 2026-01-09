@@ -137,22 +137,6 @@ If you'd like to contribute code:
 6. Push to your branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request with a clear description of your changes
 
-### Development Setup
-
-For developers wanting to work on the integration:
-
-```bash
-# Clone the repository
-git clone https://github.com/bigbadoooff/thz.git
-cd thz
-
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Run tests (if available)
-pytest
-```
-
 ## License
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
@@ -162,4 +146,5 @@ This means you are free to use, modify, and distribute this software under the t
 ---
 
 **Credits**: Based on the FHEM-Module by Immi. Thanks to the FHEM and Home Assistant community for their support and contributions.
+
 
