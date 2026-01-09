@@ -91,6 +91,7 @@ async def async_setup_entry(
     entities = []
     write_manager: RegisterMapManagerWrite = hass.data[DOMAIN]["write_manager"]
     device: THZDevice = hass.data[DOMAIN]["device"]
+    device_id = hass.data[DOMAIN]["device_id"]
     
     # Get write interval from config, default to DEFAULT_UPDATE_INTERVAL
     write_interval = config_entry.data.get("write_interval", DEFAULT_UPDATE_INTERVAL)
@@ -125,6 +126,7 @@ async def async_setup_entry(
                 decode_type=entry.get("decode_type"),
                 unique_id=f"thz_{name.lower().replace(' ', '_')}",
                 scan_interval=write_interval,
+                device_id=device_id,
             )
             entities.append(entity)
 
@@ -151,6 +153,7 @@ class THZSelect(SelectEntity):
         unique_id=None,
         options=None,
         scan_interval: int | None = None,
+        device_id: str | None = None,
     ) -> None:
         """Initialize a THZ select entity.
 
@@ -168,6 +171,7 @@ class THZSelect(SelectEntity):
             unique_id (str, optional): The unique ID for the entity. If not provided, a unique ID is generated.
             options (list, optional): The list of options for the select entity. If not provided, options are determined by decode_type.
             scan_interval (int, optional): The scan interval in seconds for polling updates.
+            device_id (str, optional): The device identifier for linking to device.
         """
 
         self._attr_name = name
@@ -178,6 +182,7 @@ class THZSelect(SelectEntity):
             unique_id or f"thz_set_{command.lower()}_{name.lower().replace(' ', '_')}"
         )
         self._decode_type = decode_type
+        self._device_id = device_id
 
         if decode_type in SELECT_MAP:
             self._attr_options = list(SELECT_MAP[decode_type].values())
@@ -194,6 +199,13 @@ class THZSelect(SelectEntity):
     def current_option(self) -> str | None:
         """Return the current option."""
         return self._attr_current_option
+
+    @property
+    def device_info(self):
+        """Return device information to link this entity with the device."""
+        return {
+            "identifiers": {(DOMAIN, self._device_id)},
+        }
 
     async def async_update(self) -> None:
         """Fetch new state data for the select."""
