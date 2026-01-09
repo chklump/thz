@@ -261,7 +261,12 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             refresh_intervals = {b: user_input[f"refresh_{b}"] for b in blocks}
-            data = {**self.connection_data, "refresh_intervals": refresh_intervals}
+            write_interval = user_input.get("write_interval", DEFAULT_UPDATE_INTERVAL)
+            data = {
+                **self.connection_data,
+                "refresh_intervals": refresh_intervals,
+                "write_interval": write_interval,
+            }
             title = f"THZ ({data['connection_type']}: {data.get('host') or data.get('device')})"
             return self.async_create_entry(title=title, data=data)
 
@@ -270,12 +275,17 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             schema_dict[vol.Optional(f"refresh_{block}", default=600)] = vol.All(
                 int, vol.Range(min=5, max=86400)
             )
+        
+        # Add write interval for number/switch/select/time entities
+        schema_dict[vol.Optional("write_interval", default=DEFAULT_UPDATE_INTERVAL)] = vol.All(
+            int, vol.Range(min=5, max=86400)
+        )
 
         schema = vol.Schema(schema_dict)
         return self.async_show_form(
             step_id="refresh_blocks",
             data_schema=schema,
             description_placeholders={
-                "hint": "Aktualisierungsintervall je Block (Sekunden)"
+                "hint": "Aktualisierungsintervall je Block (Sekunden), write_interval für Schreibentitäten (number/switch/select/time)"
             },
         )
