@@ -150,10 +150,11 @@ class THZSchedule(Schedule):
                 0.01
             )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
 
-        start_time_raw = int.from_bytes(
-            raw_value[0:2], byteorder="little", signed=False
-        )
-        end_time_raw = int.from_bytes(raw_value[2:4], byteorder="little", signed=False)
+        # Schedule data format (from FHEM 7prog):
+        # - raw_value[0]: start time (1 byte, 0-95 quarters)
+        # - raw_value[1]: end time (1 byte, 0-95 quarters)
+        start_time_raw = raw_value[0]
+        end_time_raw = raw_value[1]
         start_time = quarters_to_time(start_time_raw)
         end_time = quarters_to_time(end_time_raw)
         return [
@@ -168,14 +169,24 @@ class THZSchedule(Schedule):
             if not schedule:
                 # Handle empty schedule (e.g., clear the slot)
                 empty_time = time_to_quarters(None)
-                empty_time_bytes = empty_time.to_bytes(
-                    2, byteorder="little", signed=False
-                )
+                # Read current data to preserve other bytes
+                async with self._device.lock:
+                    current_bytes = await self.hass.async_add_executor_job(
+                        self._device.read_value,
+                        bytes.fromhex(self._command),
+                        "get",
+                        4,
+                        4,
+                    )
+                # Update only the time bytes (0 and 1)
+                new_bytes = bytearray(current_bytes)
+                new_bytes[0] = empty_time
+                new_bytes[1] = empty_time
                 async with self._device.lock:
                     await self.hass.async_add_executor_job(
                         self._device.write_value,
                         bytes.fromhex(self._command),
-                        empty_time_bytes + empty_time_bytes,
+                        bytes(new_bytes),
                     )
                 return
             slot = schedule[0]  # Only one slot per entity
@@ -183,16 +194,27 @@ class THZSchedule(Schedule):
             end_time = slot.end_time
             start_time_quarters = time_to_quarters(start_time)
             end_time_quarters = time_to_quarters(end_time)
-            start_time = start_time_quarters.to_bytes(
-                2, byteorder="little", signed=False
-            )
-            end_time = end_time_quarters.to_bytes(2, byteorder="little", signed=False)
+
+            # Read current data to preserve other bytes
+            async with self._device.lock:
+                current_bytes = await self.hass.async_add_executor_job(
+                    self._device.read_value,
+                    bytes.fromhex(self._command),
+                    "get",
+                    4,
+                    4,
+                )
+            
+            # Update only the time bytes (0 and 1)
+            new_bytes = bytearray(current_bytes)
+            new_bytes[0] = start_time_quarters
+            new_bytes[1] = end_time_quarters
 
             async with self._device.lock:
                 await self.hass.async_add_executor_job(
                     self._device.write_value,
                     bytes.fromhex(self._command),
-                    start_time + end_time,
+                    bytes(new_bytes),
                 )
 
             await self.async_update()
