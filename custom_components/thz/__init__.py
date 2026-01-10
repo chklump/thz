@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DOMAIN
+from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN
 from .thz_device import THZDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -77,8 +77,35 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # 5. Prepare dict for storing all coordinators
     coordinators = {}
     refresh_intervals = config_entry.data.get("refresh_intervals", {})
-    # Für jeden Block mit eigenem Intervall einen Coordinator anlegen
+    
+    # If refresh_intervals is empty or missing, populate with defaults for all available blocks
+    if not refresh_intervals:
+        available_blocks = device.available_reading_blocks
+        if available_blocks:
+            _LOGGER.warning(
+                "No refresh_intervals found in config, using default interval of %s seconds for %d blocks",
+                DEFAULT_UPDATE_INTERVAL,
+                len(available_blocks)
+            )
+            refresh_intervals = {
+                block: DEFAULT_UPDATE_INTERVAL
+                for block in available_blocks
+            }
+        else:
+            _LOGGER.error(
+                "No available reading blocks found on device and no refresh_intervals in config"
+            )
+            # Continue with empty dict - no coordinators or sensors will be created
+    else:
+        _LOGGER.debug(
+            "Creating coordinators with refresh intervals: %s", refresh_intervals
+        )
+    
+    # Create a coordinator for each block with its own interval
     for block, interval in refresh_intervals.items():
+        _LOGGER.debug(
+            "Creating coordinator for block %s with interval %s seconds", block, interval
+        )
         coordinator = DataUpdateCoordinator(
             hass,
             _LOGGER,

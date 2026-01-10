@@ -224,8 +224,10 @@ class THZTime(TimeEntity):
         self._attr_native_value = None
         self._device_id = device_id
         
-        if scan_interval is not None:
-            self.SCAN_INTERVAL = timedelta(seconds=scan_interval)
+        # Always set SCAN_INTERVAL to avoid HA's 30-second default
+        # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
+        interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
+        self.SCAN_INTERVAL = timedelta(seconds=interval)
 
     @property
     def native_value(self):
@@ -326,8 +328,10 @@ class THZScheduleTime(TimeEntity):
         self._attr_native_value = None
         self._device_id = device_id
         
-        if scan_interval is not None:
-            self.SCAN_INTERVAL = timedelta(seconds=scan_interval)
+        # Always set SCAN_INTERVAL to avoid HA's 30-second default
+        # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
+        interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
+        self.SCAN_INTERVAL = timedelta(seconds=interval)
 
     @property
     def native_value(self):
