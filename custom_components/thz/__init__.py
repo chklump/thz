@@ -88,9 +88,16 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             block: DEFAULT_UPDATE_INTERVAL
             for block in device.available_reading_blocks
         }
+    else:
+        _LOGGER.info(
+            "Creating coordinators with refresh intervals: %s", refresh_intervals
+        )
     
     # Für jeden Block mit eigenem Intervall einen Coordinator anlegen
     for block, interval in refresh_intervals.items():
+        _LOGGER.debug(
+            "Creating coordinator for block %s with interval %s seconds", block, interval
+        )
         coordinator = DataUpdateCoordinator(
             hass,
             _LOGGER,
