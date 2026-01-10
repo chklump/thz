@@ -93,7 +93,7 @@ applyTo: "**/*.py"
 - Never block the event loop: avoid `time.sleep()`, synchronous file I/O, or blocking network calls
 - Use `asyncio.sleep()` for delays instead of `time.sleep()`
 - Wrap blocking operations (serial I/O, file operations) with `hass.async_add_executor_job()`
-- Don't call `hass.async_add_executor_job()` unnecessarily for quick operations
+- Do not call `hass.async_add_executor_job()` unnecessarily for quick operations
 - Use `asyncio.TimeoutError` for timeout handling with `asyncio.wait_for()`
 
 ## Documentation
