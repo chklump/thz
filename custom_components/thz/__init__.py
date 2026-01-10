@@ -96,7 +96,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Forward setup to platforms
     await hass.config_entries.async_forward_entry_setups(
-        config_entry, ["sensor", "number", "switch", "select", "time", "calendar"]
+        config_entry, ["sensor", "number", "switch", "select", "time"]
     )
 
     return True
@@ -107,7 +107,8 @@ async def _async_update_block(hass: HomeAssistant, device: THZDevice, block_name
     block_bytes = bytes.fromhex(block_name.removeprefix("pxx"))
     try:
         _LOGGER.debug("Lese Block %s", block_name)
-        return await hass.async_add_executor_job(device.read_block, block_bytes, "get")
+        async with device.lock:
+            return await hass.async_add_executor_job(device.read_block, block_bytes, "get")
     except Exception as err:
         raise UpdateFailed(f"Fehler beim Lesen von {block_name}: {err}") from err
 
@@ -115,7 +116,7 @@ async def _async_update_block(hass: HomeAssistant, device: THZDevice, block_name
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Remove Config Entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(
-        entry, ["sensor", "select", "number", "time", "switch", "calendar"]
+        entry, ["sensor", "select", "number", "time", "switch"]
     )
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)

@@ -12,11 +12,6 @@ Key Components:
 The integration reads register mappings from the THZ device, decodes sensor values according
 to their metadata, and exposes them as Home Assistant sensor entities.
 """
-from datetime import timedelta
-# Set update interval to 10 minutes
-SCAN_INTERVAL = timedelta(minutes=5)
-
-import asyncio
 import logging
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
@@ -24,7 +19,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.typing import StateType
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .const import DOMAIN
 from .register_maps.register_map_manager import RegisterMapManager
 from .sensor_meta import SENSOR_META
 from .thz_device import THZDevice
@@ -53,16 +50,23 @@ async def async_setup_entry(
         None
     """
 
-    # 4. Mapping setzen
-    register_manager: RegisterMapManager = hass.data["thz"]["register_manager"]
-    device: THZDevice = hass.data["thz"]["device"]
+    # Get data from hass.data
+    register_manager: RegisterMapManager = hass.data[DOMAIN]["register_manager"]
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    coordinators = entry_data["coordinators"]
 
-    # 5. Sensoren anlegen
+    # Create sensors
     sensors = []
     all_registers = register_manager.get_all_registers()
     for block, entries in all_registers.items():
-        block = block.removeprefix("pxx")  # Entferne "pxx" Präfix
-        block_bytes = bytes.fromhex(block)
+        # Get the coordinator for this block
+        coordinator = coordinators.get(block)
+        if coordinator is None:
+            _LOGGER.warning("No coordinator found for block %s, skipping sensors", block)
+            continue
+        
+        block_hex = block.removeprefix("pxx")  # Remove "pxx" prefix
+        block_bytes = bytes.fromhex(block_hex)
         for name, offset, length, decode_type, factor in entries:
             meta = SENSOR_META.get(name.strip(), {})
             entry = {
@@ -78,7 +82,7 @@ async def async_setup_entry(
                 "translation_key": meta.get("translation_key"),
             }
             sensors.append(
-                THZGenericSensor(entry=entry, block=block_bytes, device=device)
+                THZGenericSensor(coordinator, entry=entry, block=block_bytes)
             )
     async_add_entities(sensors, True)
 
@@ -161,20 +165,23 @@ def normalize_entry(entry):  # um nach und nach Mapping zu erweitern
     raise ValueError("Unsupported sensor entry format.")
 
 
-class THZGenericSensor(SensorEntity):
+class THZGenericSensor(CoordinatorEntity, SensorEntity):
     """Represents a generic sensor entity for the THZ integration.
 
     This class is responsible for managing the state and properties of a sensor
-    associated with a THZ device. It handles initialization from a configuration
-    entry, exposes sensor metadata (such as name, unit, device class, icon, and
-    translation key), and provides asynchronous state updates by reading and decoding
-    data from the device.
+    associated with a THZ device. It uses a coordinator to poll data from the device
+    at configurable intervals, then decodes the relevant bytes for this sensor.
+    
+    Attributes:
         _block: Block identifier associated with the sensor.
         _offset: Offset within the block for sensor data.
         _length: Length of the sensor data in bytes.
         _decode_type: Type used to decode the sensor data.
         _factor: Factor to apply to the decoded value.
         _unit (str, optional): Unit of measurement for the sensor.
+        _device_class (str, optional): Device class for the sensor.
+        _icon (str, optional): Icon representing the sensor.
+        _translation_key (str, optional): Translation key for localization.
 
     Properties:
         name (str | None): The name of the sensor.
@@ -184,18 +191,15 @@ class THZGenericSensor(SensorEntity):
         icon (str | None): The icon to use in the frontend.
         translation_key (str | None): The translation key for this sensor.
         unique_id (str | None): A unique identifier for the sensor entity.
-
-    Methods:
-        async_update(): Asynchronously updates the sensor state by reading and decoding data from the device.
     """
 
-    def __init__(self, entry, block, device) -> None:
+    def __init__(self, coordinator, entry, block) -> None:
         """Initialize a sensor instance with the provided configuration.
 
         Args:
+            coordinator: The DataUpdateCoordinator for this sensor's block.
             entry (dict): The configuration entry for the sensor.
             block: The block associated with the sensor.
-            device: The device to which the sensor belongs.
 
         Attributes:
             _name (str): Name of the sensor.
@@ -208,10 +212,8 @@ class THZGenericSensor(SensorEntity):
             _device_class (str, optional): Device class for the sensor.
             _icon (str, optional): Icon representing the sensor.
             _translation_key (str, optional): Translation key for localization.
-            _refresh_dict (dict, optional): Dictionary for refresh options.
-            _device: Device instance the sensor is attached to.
-            _state: Current state of the sensor.
         """
+        super().__init__(coordinator)
 
         e = normalize_entry(entry)
         self._name = e["name"]
@@ -224,9 +226,6 @@ class THZGenericSensor(SensorEntity):
         self._device_class = e.get("device_class")
         self._icon = e.get("icon")
         self._translation_key = e.get("translation_key")
-        self._refresh_dict = e.get("refresh_dict")
-        self._device = device
-        self._state = None
 
     @property
     def name(self) -> str | None:
@@ -242,7 +241,27 @@ class THZGenericSensor(SensorEntity):
         StateType | int | float | bool | str | None
             The current state value of the sensor.
         """
-        return self._state
+        if self.coordinator.data is None:
+            return None
+        
+        try:
+            payload = self.coordinator.data
+            # Validate payload length before slicing
+            if len(payload) < self._offset + self._length:
+                _LOGGER.warning(
+                    "Payload too short for sensor %s: expected at least %d bytes, got %d",
+                    self._name,
+                    self._offset + self._length,
+                    len(payload),
+                )
+                return None
+            raw_bytes = payload[self._offset : self._offset + self._length]
+            return decode_value(raw_bytes, self._decode_type, self._factor)
+        except (ValueError, IndexError, TypeError) as err:
+            _LOGGER.error(
+                "Error decoding sensor %s: %s", self._name, err, exc_info=True
+            )
+            return None
 
     @property
     def native_unit_of_measurement(self) -> str | None:
@@ -300,22 +319,3 @@ class THZGenericSensor(SensorEntity):
         return (
             f"thz_{self._block}_{self._offset}_{self._name.lower().replace(' ', '_')}"
         )
-
-    async def async_update(self) -> None:
-        """Asynchronously updates the sensor state by reading data from the device.
-
-        Acquires the device lock, reads a cached data block from the device, and decodes
-        the relevant bytes to update the sensor's state. Includes a short pause to ensure
-        the device is ready before processing the data.
-        """
-        async with self._device.lock:
-            payload = await self.hass.async_add_executor_job(
-                self._device.read_block_cached, self._block
-            )
-            await asyncio.sleep(
-                0.01
-            )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
-        # _LOGGER.debug(f"Updating sensor {self._name} with payload: {payload.hex()}, offset: {self._offset}, length: {self._length}")
-        raw_bytes = payload[self._offset : self._offset + self._length]
-        self._state = decode_value(raw_bytes, self._decode_type, self._factor)
-        # _LOGGER.debug(f"Sensor {self._name} updated with state: {self._state}")
