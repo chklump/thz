@@ -23,6 +23,7 @@ async def async_setup_entry(
     entities = []
     write_manager: RegisterMapManagerWrite = hass.data[DOMAIN]["write_manager"]
     device: THZDevice = hass.data[DOMAIN]["device"]
+    device_id = hass.data[DOMAIN]["device_id"]
     
     # Get write interval from config, default to DEFAULT_UPDATE_INTERVAL
     write_interval = config_entry.data.get("write_interval", DEFAULT_UPDATE_INTERVAL)
@@ -47,6 +48,7 @@ async def async_setup_entry(
                 unique_id=f"thz_{name.lower().replace(' ', '_')}",
                 decode_type=entry["decode_type"],
                 scan_interval=write_interval,
+                device_id=device_id,
             )
             entities.append(entity)
 
@@ -70,6 +72,7 @@ class THZNumber(NumberEntity):
         icon=None,
         unique_id=None,
         scan_interval=None,
+        device_id=None,
     ) -> None:
         """Initialize a new instance of the class.
 
@@ -86,6 +89,7 @@ class THZNumber(NumberEntity):
             icon (optional): The icon to use for this entity. Defaults to "mdi:eye".
             unique_id (optional): The unique identifier for this entity. If not provided, a unique ID is generated.
             scan_interval (optional): The scan interval in seconds for polling updates.
+            device_id (optional): The device identifier for linking to device.
         """
         self._attr_name = name
         self._command = command
@@ -101,6 +105,7 @@ class THZNumber(NumberEntity):
             unique_id or f"thz_set_{command.lower()}_{name.lower().replace(' ', '_')}"
         )
         self._attr_native_value = None
+        self._device_id = device_id
         if scan_interval is not None:
             self._attr_should_poll = True
             self.SCAN_INTERVAL = timedelta(seconds=scan_interval)
@@ -109,6 +114,14 @@ class THZNumber(NumberEntity):
     def native_value(self) -> float | None:
         """Return the native value of the number."""
         return self._attr_native_value
+
+    @property
+    def device_info(self):
+        """Return device information to link this entity with the device."""
+        from .const import DOMAIN
+        return {
+            "identifiers": {(DOMAIN, self._device_id)},
+        }
 
 
     async def async_update(self) -> None:
