@@ -86,7 +86,8 @@ def quarters_to_time(num: int) -> time | None:
     if num < 0 or num > 95:
         _LOGGER.warning(
             "Invalid quarters value %s (expected 0-95). Value will be clamped. "
-            "This may indicate a byte order issue in reading the time value.", num
+            "This may indicate a byte order issue in reading the time value.",
+            num
         )
         num = max(0, min(95, num))
     

@@ -204,7 +204,7 @@ class THZSchedule(Schedule):
                     4,
                     4,
                 )
-            
+
             # Update only the time bytes (0 and 1)
             new_bytes = bytearray(current_bytes)
             new_bytes[0] = start_time_quarters
