@@ -222,30 +222,44 @@ class THZSelect(SelectEntity):
                 self._command,
                 value_bytes.hex() if value_bytes else "None",
             )
-        value = int.from_bytes(value_bytes, byteorder="little", signed=False)
-        _LOGGER.debug("Value for %s (%s): %s", self._attr_name, self._command, value)
-        # Map value to option string (you must define this mapping)
-        if self._decode_type in SELECT_MAP:
-            value_str = (
-                str(value).zfill(2) if self._decode_type == "SomWinMode" else str(value)
+        
+        # Validate that we received data
+        if not value_bytes:
+            _LOGGER.warning(
+                "No data received for select %s, keeping previous value", self._attr_name
             )
-            _LOGGER.debug(
-                "Mapping value %s to option for %s (%s)",
-                value_str,
-                self._attr_name,
-                self._command,
+            return
+        
+        try:
+            value = int.from_bytes(value_bytes, byteorder="little", signed=False)
+            _LOGGER.debug("Value for %s (%s): %s", self._attr_name, self._command, value)
+            # Map value to option string (you must define this mapping)
+            if self._decode_type in SELECT_MAP:
+                value_str = (
+                    str(value).zfill(2) if self._decode_type == "SomWinMode" else str(value)
+                )
+                _LOGGER.debug(
+                    "Mapping value %s to option for %s (%s)",
+                    value_str,
+                    self._attr_name,
+                    self._command,
+                )
+                self._attr_current_option = SELECT_MAP[self._decode_type].get(
+                    value_str, None
+                )
+                _LOGGER.debug(
+                    "Current option for %s (%s): %s",
+                    self._attr_name,
+                    self._command,
+                    self._attr_current_option,
+                )
+            else:
+                self._attr_current_option = None
+        except (ValueError, IndexError, TypeError) as err:
+            _LOGGER.error(
+                "Error decoding select %s: %s", self._attr_name, err, exc_info=True
             )
-            self._attr_current_option = SELECT_MAP[self._decode_type].get(
-                value_str, None
-            )
-            _LOGGER.debug(
-                "Current option for %s (%s): %s",
-                self._attr_name,
-                self._command,
-                self._attr_current_option,
-            )
-        else:
-            self._attr_current_option = None
+            # Keep previous value on error
 
     async def async_select_option(self, option: str) -> None:
         """Set the selected option."""
