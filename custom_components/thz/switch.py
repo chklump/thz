@@ -148,8 +148,10 @@ class THZSwitch(SwitchEntity):
         )
         self._is_on = False
         self._device_id = device_id
-        if scan_interval is not None:
-            self.SCAN_INTERVAL = timedelta(seconds=scan_interval)
+        # Always set SCAN_INTERVAL to avoid HA's 30-second default
+        # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
+        interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
+        self.SCAN_INTERVAL = timedelta(seconds=interval)
 
     @property
     def is_on(self) -> bool | None:
@@ -200,8 +202,22 @@ class THZSwitch(SwitchEntity):
             await asyncio.sleep(
                 0.01
             )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
-        value = int.from_bytes(value_bytes, byteorder="big", signed=False)
-        self._is_on = bool(value)
+        
+        # Validate that we received data
+        if not value_bytes:
+            _LOGGER.warning(
+                "No data received for switch %s, keeping previous value", self._attr_name
+            )
+            return
+        
+        try:
+            value = int.from_bytes(value_bytes, byteorder="big", signed=False)
+            self._is_on = bool(value)
+        except (ValueError, IndexError, TypeError) as err:
+            _LOGGER.error(
+                "Error decoding switch %s: %s", self._attr_name, err, exc_info=True
+            )
+            # Keep previous value on error
 
     async def turn_on(self, **kwargs: Any) -> None:
         """Asynchronously turns on the switch by sending a command to the device.

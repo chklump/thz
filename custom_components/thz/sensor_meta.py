@@ -305,7 +305,7 @@ SENSOR_META = {
     "flowRate": {
         "offset": 110,
         "length": 4,
-        "decode": "hex",
+        "decode": "hex2int",
         "factor": 100,
         "unit": "l/min",
         "icon": "mdi:water-pump",

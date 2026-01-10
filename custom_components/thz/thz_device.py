@@ -145,7 +145,26 @@ class THZDevice:
             # _LOGGER.info(f"Request gesendet: {telegram.hex()}")
 
             # 4. 0x10 0x02 Antwort erwarten
+            # Note: Device may send 0x10 and 0x02 separately with a delay
             response = self._read_exact(2, timeout)
+            
+            # Handle case where device sends 0x10 first, then 0x02 after delay
+            if response == const.DATALINKESCAPE:
+                _LOGGER.debug("Received 0x10, waiting for 0x02...")
+                # Add delay for firmware 2.x as per Perl module
+                if self._firmware_version and self._firmware_version.startswith("2"):
+                    time.sleep(0.005)
+                second_byte = self._read_exact(1, timeout)
+                if second_byte == const.STARTOFTEXT:
+                    response = const.DATALINKESCAPE + const.STARTOFTEXT
+                else:
+                    _LOGGER.error(f"Handshake 2 fehlgeschlagen: erhalten 0x10 dann {second_byte.hex()}")
+                    return b""
+            elif response == const.STARTOFTEXT:
+                # Sometimes device sends just 0x02 (as per Perl code line 1525)
+                _LOGGER.debug("Received only 0x02 as response")
+                response = const.DATALINKESCAPE + const.STARTOFTEXT  # Accept it
+            
             if response != const.DATALINKESCAPE + const.STARTOFTEXT:
                 _LOGGER.error(f"Handshake 2 fehlgeschlagen, erhalten: {response.hex()}")
                 return b""

@@ -24,6 +24,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .register_maps.register_map_manager import RegisterMapManager
 from .sensor_meta import SENSOR_META
+from .thz_device import THZDevice
+import math
+import struct
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -118,11 +121,10 @@ def decode_value(raw: bytes, decode_type: str, factor: float = 1.0):
         # _LOGGER.debug(f"Decode bit {bitnum} from raw {raw.hex()}")
         return not ((raw[0] >> bitnum) & 0x01)
     if decode_type == "esp_mant":
-        # Dummy Beispiel für spezielle Darstellung
-        mant = int.from_bytes(raw[:4], byteorder="big")
-        exp = int.from_bytes(raw[4:], byteorder="big")
-        return mant * (2**exp)
-
+        # To mimic: sprintf("%.3f", unpack('f', pack('L', reverse(hex($value)))))
+        mant = struct.unpack('<f', raw)[0]
+        return round(mant, 3)
+    
     return raw.hex()
 
 
