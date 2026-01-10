@@ -270,8 +270,9 @@ class THZTime(TimeEntity):
             hour, minute = map(int, value.split(":"))
             t_value = time(hour, minute)
         num = time_to_quarters(t_value)
-        # Write as 2 bytes for compatibility with device protocol
-        # Time value is in first byte, second byte is typically unused
+        # Write as 2 bytes to match the protocol's read format (offset=4, length=2)
+        # even though only the first byte contains the meaningful time value (0-95 quarters).
+        # Second byte is set to 0 as it appears to be unused by the device.
         num_bytes = bytes([num, 0])
         async with self._device.lock:
             await self.hass.async_add_executor_job(
