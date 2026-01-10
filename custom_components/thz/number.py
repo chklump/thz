@@ -1,4 +1,5 @@
 """THZ Number Entity Platform."""
+import asyncio
 import logging
 from datetime import timedelta
 
@@ -133,20 +134,31 @@ class THZNumber(NumberEntity):
             value_bytes = await self.hass.async_add_executor_job(
                 self._device.read_value, bytes.fromhex(self._command), "get", 4, 2
             )
-        value = (
-            int.from_bytes(value_bytes, byteorder="big", signed=False)
-            * self._attr_native_step
-        )
-        _LOGGER.debug("Recv number %s with value %s", self._attr_name, value_bytes)
-        if self._decode_type != "0clean":
-            value = (
-                int.from_bytes(value_bytes, byteorder="big", signed=True)
-                * self._attr_native_step
+        
+        # Validate that we received data
+        if not value_bytes:
+            _LOGGER.warning(
+                "No data received for number %s, keeping previous value", self._attr_name
             )
-        else:
-            value = value_bytes[0]
-        _LOGGER.debug("Recv number %s with real value %s", self._attr_name, value)
-        self._attr_native_value = value
+            return
+        
+        _LOGGER.debug("Recv number %s with value %s", self._attr_name, value_bytes)
+        
+        try:
+            if self._decode_type != "0clean":
+                value = (
+                    int.from_bytes(value_bytes, byteorder="big", signed=True)
+                    * self._attr_native_step
+                )
+            else:
+                value = value_bytes[0]
+            _LOGGER.debug("Recv number %s with real value %s", self._attr_name, value)
+            self._attr_native_value = value
+        except (ValueError, IndexError, TypeError) as err:
+            _LOGGER.error(
+                "Error decoding number %s: %s", self._attr_name, err, exc_info=True
+            )
+            # Keep previous value on error
 
 
     async def async_set_native_value(self, value: float) -> None:
