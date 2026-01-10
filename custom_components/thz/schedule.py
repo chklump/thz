@@ -143,8 +143,12 @@ class THZSchedule(Schedule):
     async def get_schedule_times_from_device(self) -> list[ScheduleInfo]:
         """Retrieve schedule times from the device for this entity's day."""
         async with self._device.lock:
-            raw_value = self._device.read_value(
-                bytes.fromhex(self._command), "get", 4, 4
+            raw_value = await self.hass.async_add_executor_job(
+                self._device.read_value,
+                bytes.fromhex(self._command),
+                "get",
+                4,
+                4
             )
             await asyncio.sleep(
                 0.01
