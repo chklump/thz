@@ -51,7 +51,7 @@ applyTo: "**/*.py"
 
 - Catch specific exceptions rather than broad `Exception`
 - Use `_LOGGER.error()` with exception info for debugging
-- Raise `UpdateFailed` from coordinator update methods on errors
+- Raise `UpdateFailed` (from `homeassistant.helpers.update_coordinator`) from coordinator update methods on errors
 - Return `None` for sensor values that cannot be read
 
 ## Data Decoding
@@ -90,7 +90,9 @@ applyTo: "**/*.py"
 ## Async Patterns
 
 - Use `await` for all coroutines
-- Don't block the event loop with time.sleep() - use `asyncio.sleep()` instead
+- Never block the event loop: avoid `time.sleep()`, synchronous file I/O, or blocking network calls
+- Use `asyncio.sleep()` for delays instead of `time.sleep()`
+- Wrap blocking operations (serial I/O, file operations) with `hass.async_add_executor_job()`
 - Don't call `hass.async_add_executor_job()` unnecessarily for quick operations
 - Use `asyncio.TimeoutError` for timeout handling with `asyncio.wait_for()`
 

@@ -11,7 +11,7 @@ This is an unofficial Home Assistant custom integration for Stiebel Eltron LWZ /
 - All user-facing strings should support internationalization via `strings.json` and translation files
 - Follow Home Assistant's entity naming conventions and device class assignments
 - Use type hints for all function parameters and return values
-- Maintain compatibility with Home Assistant 2021.12 or newer
+- Target modern Home Assistant versions (2023.x or newer recommended)
 
 ## Architecture
 
