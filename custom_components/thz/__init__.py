@@ -80,20 +80,28 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     
     # If refresh_intervals is empty or missing, populate with defaults for all available blocks
     if not refresh_intervals:
-        _LOGGER.warning(
-            "No refresh_intervals found in config, using default interval of %s seconds for all blocks",
-            DEFAULT_UPDATE_INTERVAL
-        )
-        refresh_intervals = {
-            block: DEFAULT_UPDATE_INTERVAL
-            for block in device.available_reading_blocks
-        }
+        available_blocks = device.available_reading_blocks
+        if available_blocks:
+            _LOGGER.warning(
+                "No refresh_intervals found in config, using default interval of %s seconds for %d blocks",
+                DEFAULT_UPDATE_INTERVAL,
+                len(available_blocks)
+            )
+            refresh_intervals = {
+                block: DEFAULT_UPDATE_INTERVAL
+                for block in available_blocks
+            }
+        else:
+            _LOGGER.error(
+                "No available reading blocks found on device and no refresh_intervals in config"
+            )
+            # Continue with empty dict - no coordinators or sensors will be created
     else:
-        _LOGGER.info(
+        _LOGGER.debug(
             "Creating coordinators with refresh intervals: %s", refresh_intervals
         )
     
-    # Für jeden Block mit eigenem Intervall einen Coordinator anlegen
+    # Create a coordinator for each block with its own interval
     for block, interval in refresh_intervals.items():
         _LOGGER.debug(
             "Creating coordinator for block %s with interval %s seconds", block, interval

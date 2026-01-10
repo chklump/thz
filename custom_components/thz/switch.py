@@ -148,8 +148,10 @@ class THZSwitch(SwitchEntity):
         )
         self._is_on = False
         self._device_id = device_id
-        if scan_interval is not None:
-            self.SCAN_INTERVAL = timedelta(seconds=scan_interval)
+        # Always set SCAN_INTERVAL to avoid HA's 30-second default
+        # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
+        interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
+        self.SCAN_INTERVAL = timedelta(seconds=interval)
 
     @property
     def is_on(self) -> bool | None:

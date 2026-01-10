@@ -106,9 +106,11 @@ class THZNumber(NumberEntity):
         )
         self._attr_native_value = None
         self._device_id = device_id
-        if scan_interval is not None:
-            self._attr_should_poll = True
-            self.SCAN_INTERVAL = timedelta(seconds=scan_interval)
+        # Always set should_poll and SCAN_INTERVAL to avoid HA's 30-second default
+        self._attr_should_poll = True
+        # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
+        interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
+        self.SCAN_INTERVAL = timedelta(seconds=interval)
 
     @property
     def native_value(self) -> float | None:
