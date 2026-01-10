@@ -65,10 +65,8 @@ def quarters_to_time(num: int) -> time | None:
 
     Notes:
     -----
-    - The function does not enforce the 0–95 range; values outside this range (including
-      negative values) will be converted arithmetically and may produce hours outside 0–23.
-    - If strict validation is required, validate num beforehand or modify the function to
-      raise a ValueError for out-of-range inputs.
+    - The function validates the 0–95 range and logs a warning for out-of-range values.
+    - Invalid values are clamped to the valid range (0-95) to prevent crashes.
 
     Examples:
     --------
@@ -83,12 +81,19 @@ def quarters_to_time(num: int) -> time | None:
     """
     if num == 0x80:
         return None
+    
+    # Validate range and clamp if necessary
+    if num < 0 or num > 95:
+        _LOGGER.warning(
+            "Invalid quarters value %s (expected 0-95). Value will be clamped. "
+            "This may indicate a byte order issue in reading the time value.",
+            num
+        )
+        num = max(0, min(95, num))
+    
     quarters = num % 4
     hour = (num - quarters) // 4
-    _LOGGER.debug(f"Converting {num} to time: {hour}:{quarters * 15}")
-    if hour == 24:
-        hour = 23
-        quarters = 3
+    _LOGGER.debug("Converting %s to time: %s:%s", num, hour, quarters * 15)
     return time(hour, quarters * 15)
 
 
@@ -251,22 +256,9 @@ class THZTime(TimeEntity):
             await asyncio.sleep(
                 0.01
             )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
-        
-        # Validate that we received data
-        if not value_bytes:
-            _LOGGER.warning(
-                "No data received for time %s, keeping previous value", self._attr_name
-            )
-            return
-        
-        try:
-            num = value_bytes[0]
-            self._attr_native_value = quarters_to_time(num)
-        except (ValueError, IndexError, TypeError) as err:
-            _LOGGER.error(
-                "Error decoding time %s: %s", self._attr_name, err, exc_info=True
-            )
-            # Keep previous value on error
+        # Time values are stored as single bytes (0-95 quarters)
+        num = value_bytes[0]
+        self._attr_native_value = quarters_to_time(num)
 
     async def async_set_native_value(self, value: str):
         """Set new value for the time."""
@@ -278,7 +270,10 @@ class THZTime(TimeEntity):
             hour, minute = map(int, value.split(":"))
             t_value = time(hour, minute)
         num = time_to_quarters(t_value)
-        num_bytes = num.to_bytes(2, byteorder="big", signed=False)
+        # Write as 2 bytes to match the protocol's read format (offset=4, length=2)
+        # even though only the first byte contains the meaningful time value (0-95 quarters).
+        # Second byte is set to 0 as it appears to be unused by the device.
+        num_bytes = bytes([num, 0])
         async with self._device.lock:
             await self.hass.async_add_executor_job(
                 self._device.write_value, bytes.fromhex(self._command), num_bytes
@@ -370,30 +365,19 @@ class THZScheduleTime(TimeEntity):
                 0.01
             )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
 
-        # Validate that we received data
-        if not value_bytes or len(value_bytes) < 4:
-            _LOGGER.warning(
-                "Insufficient data received for schedule time %s (expected 4 bytes, got %d), keeping previous value",
-                self._attr_name,
-                len(value_bytes) if value_bytes else 0
-            )
-            return
+        # Schedule data format (from FHEM 7prog):
+        # - Bytes 0-3: header/other data
+        # - Byte 4 (offset 8 hex digits): start time (1 byte, 0-95 quarters)
+        # - Byte 5 (offset 10 hex digits): end time (1 byte, 0-95 quarters)
+        # However, read_value returns data starting at offset 4, so:
+        # - value_bytes[0]: start time
+        # - value_bytes[1]: end time
+        if self._time_type == "start":
+            num = value_bytes[0]
+        else:  # "end"
+            num = value_bytes[1]
 
-        try:
-            # Schedule data is 4 bytes: 2 bytes for start time, 2 bytes for end time
-            if self._time_type == "start":
-                # First 2 bytes are start time (little endian)
-                num = int.from_bytes(value_bytes[0:2], byteorder="little", signed=False)
-            else:  # "end"
-                # Last 2 bytes are end time (little endian)
-                num = int.from_bytes(value_bytes[2:4], byteorder="little", signed=False)
-
-            self._attr_native_value = quarters_to_time(num)
-        except (ValueError, IndexError, TypeError) as err:
-            _LOGGER.error(
-                "Error decoding schedule time %s: %s", self._attr_name, err, exc_info=True
-            )
-            # Keep previous value on error
+        self._attr_native_value = quarters_to_time(num)
 
     async def async_set_native_value(self, value: str):
         """Set new value for the schedule time."""
@@ -423,30 +407,18 @@ class THZScheduleTime(TimeEntity):
             )
             await asyncio.sleep(0.01)
 
-        # Validate that we received data
-        if not current_bytes or len(current_bytes) < 4:
-            _LOGGER.error(
-                "Failed to read current schedule data for %s (expected 4 bytes, got %d), cannot update",
-                self._attr_name,
-                len(current_bytes) if current_bytes else 0
-            )
-            raise ValueError("Failed to read current schedule data from device")
-
-        # Convert new_num to 2 bytes (little endian)
-        new_time_bytes = new_num.to_bytes(2, byteorder="little", signed=False)
-
-        # Modify only the relevant bytes (start or end)
+        # Time values are single bytes (0-95 quarters)
+        # Modify only the relevant byte (start at byte 0 or end at byte 1)
+        new_bytes = bytearray(current_bytes)
         if self._time_type == "start":
-            # Update first 2 bytes (start time)
-            new_bytes = new_time_bytes + current_bytes[2:4]
+            new_bytes[0] = new_num
         else:  # "end"
-            # Update last 2 bytes (end time)
-            new_bytes = current_bytes[0:2] + new_time_bytes
+            new_bytes[1] = new_num
 
         # Write the modified schedule data back to device
         async with self._device.lock:
             await self.hass.async_add_executor_job(
-                self._device.write_value, bytes.fromhex(self._command), new_bytes
+                self._device.write_value, bytes.fromhex(self._command), bytes(new_bytes)
             )
             await asyncio.sleep(0.01)
 
