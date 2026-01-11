@@ -1,0 +1,162 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Verbindungstyp wählen",
+                "description": "Wählen Sie, wie Sie sich mit Ihrem THZ-Gerät verbinden möchten",
+                "data": {
+                    "connection_type": "Verbindungstyp"
+                }
+            }
+        },
+        "abort": {
+            "cannot_detect_blocks": "Firmware oder verfügbare Blöcke konnten nicht vom Gerät gelesen werden. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+            "invalid_entry_id": "Die angegebene Konfigurations-ID ist ungültig. Neukonfiguration kann nicht fortgesetzt werden.",
+            "missing_entry_id": "Es wurde keine Konfigurations-ID angegeben. Neukonfiguration kann nicht fortgesetzt werden.",
+            "no_data_in_entry": "Keine Konfigurationsdaten im Eintrag gefunden. Neukonfiguration kann nicht fortgesetzt werden.",
+            "reconfigured": "Die THZ-Integration wurde erfolgreich neu konfiguriert."
+        }
+    },
+    "entity": {
+        "sensor": {
+            "outside_temp": {
+                "name": "Außentemperatur"
+            },
+            "flow_temp": {
+                "name": "Vorlauftemperatur"
+            },
+            "return_temp": {
+                "name": "Rücklauftemperatur"
+            },
+            "hotgas_temp": {
+                "name": "Heißgastemperatur"
+            },
+            "dhw_temp": {
+                "name": "Warmwassertemperatur"
+            },
+            "flow_temp_hc2": {
+                "name": "Vorlauftemperatur HK2"
+            },
+            "evaporator_temp": {
+                "name": "Verdampfertemperatur"
+            },
+            "condenser_temp": {
+                "name": "Verflüssigertemperatur"
+            },
+            "mixer_open": {
+                "name": "Mischer offen"
+            },
+            "mixer_closed": {
+                "name": "Mischer geschlossen"
+            },
+            "heat_pipe_valve": {
+                "name": "Heizrohrventil"
+            },
+            "diverter_valve": {
+                "name": "Umschaltventil"
+            },
+            "dhw_pump": {
+                "name": "Warmwasserpumpe"
+            },
+            "heating_circuit_pump": {
+                "name": "Heizkreispumpe"
+            },
+            "solar_pump": {
+                "name": "Solarpumpe"
+            },
+            "compressor": {
+                "name": "Kompressor"
+            },
+            "booster_stage_3": {
+                "name": "Zusatzheizung Stufe 3"
+            },
+            "booster_stage_2": {
+                "name": "Zusatzheizung Stufe 2"
+            },
+            "booster_stage_1": {
+                "name": "Zusatzheizung Stufe 1"
+            },
+            "high_pressure_sensor": {
+                "name": "Hochdrucksensor"
+            },
+            "low_pressure_sensor": {
+                "name": "Niederdrucksensor"
+            },
+            "evaporator_ice_monitor": {
+                "name": "Verdampfer Eisüberwachung"
+            },
+            "signal_anode": {
+                "name": "Signalanodenmeldung"
+            },
+            "evu_release": {
+                "name": "EVU-Freigabe"
+            },
+            "oven_fireplace": {
+                "name": "Ofen/Kamin"
+            },
+            "stb": {
+                "name": "STB"
+            },
+            "output_ventilator_power": {
+                "name": "Abluftventilator Leistung"
+            },
+            "input_ventilator_power": {
+                "name": "Zuluftventilator Leistung"
+            },
+            "main_ventilator_power": {
+                "name": "Hauptventilator Leistung"
+            },
+            "output_ventilator_speed": {
+                "name": "Abluftventilator Drehzahl"
+            },
+            "input_ventilator_speed": {
+                "name": "Zuluftventilator Drehzahl"
+            },
+            "main_ventilator_speed": {
+                "name": "Hauptventilator Drehzahl"
+            },
+            "outside_temp_filtered": {
+                "name": "Außentemperatur (gefiltert)"
+            },
+            "rel_humidity": {
+                "name": "Relative Luftfeuchtigkeit"
+            },
+            "dew_point": {
+                "name": "Taupunkt"
+            },
+            "power_nd": {
+                "name": "Leistung Nd"
+            },
+            "power_hd": {
+                "name": "Leistung Hd"
+            },
+            "actual_power_qc": {
+                "name": "Aktuelle Leistung Qc"
+            },
+            "actual_power_pel": {
+                "name": "Aktuelle Leistung Pel"
+            },
+            "collector_temp": {
+                "name": "Kollektortemperatur"
+            },
+            "inside_temp": {
+                "name": "Innentemperatur"
+            },
+            "window_open": {
+                "name": "Fenster offen"
+            },
+            "quick_air_vent": {
+                "name": "Schnelllüftung"
+            },
+            "flow_rate": {
+                "name": "Durchflussmenge"
+            },
+            "pressure_hc": {
+                "name": "Heizkreisdruck"
+            },
+            "humidity_air_out": {
+                "name": "Luftfeuchtigkeit Abluft"
+            }
+        }
+    }
+}

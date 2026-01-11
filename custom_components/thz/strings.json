@@ -16,5 +16,147 @@
       "no_data_in_entry": "No configuration data found in the entry. Cannot continue reconfiguration.",
       "cannot_detect_blocks": "Failed to read firmware or available blocks from the device. Please check your connection and try again."
     }
+  },
+  "entity": {
+    "sensor": {
+      "outside_temp": {
+        "name": "Outside Temperature"
+      },
+      "flow_temp": {
+        "name": "Flow Temperature"
+      },
+      "return_temp": {
+        "name": "Return Temperature"
+      },
+      "hotgas_temp": {
+        "name": "Hot Gas Temperature"
+      },
+      "dhw_temp": {
+        "name": "DHW Temperature"
+      },
+      "flow_temp_hc2": {
+        "name": "Flow Temperature HC2"
+      },
+      "evaporator_temp": {
+        "name": "Evaporator Temperature"
+      },
+      "condenser_temp": {
+        "name": "Condenser Temperature"
+      },
+      "mixer_open": {
+        "name": "Mixer Open"
+      },
+      "mixer_closed": {
+        "name": "Mixer Closed"
+      },
+      "heat_pipe_valve": {
+        "name": "Heat Pipe Valve"
+      },
+      "diverter_valve": {
+        "name": "Diverter Valve"
+      },
+      "dhw_pump": {
+        "name": "DHW Pump"
+      },
+      "heating_circuit_pump": {
+        "name": "Heating Circuit Pump"
+      },
+      "solar_pump": {
+        "name": "Solar Pump"
+      },
+      "compressor": {
+        "name": "Compressor"
+      },
+      "booster_stage_3": {
+        "name": "Booster Stage 3"
+      },
+      "booster_stage_2": {
+        "name": "Booster Stage 2"
+      },
+      "booster_stage_1": {
+        "name": "Booster Stage 1"
+      },
+      "high_pressure_sensor": {
+        "name": "High Pressure Sensor"
+      },
+      "low_pressure_sensor": {
+        "name": "Low Pressure Sensor"
+      },
+      "evaporator_ice_monitor": {
+        "name": "Evaporator Ice Monitor"
+      },
+      "signal_anode": {
+        "name": "Signal Anode"
+      },
+      "evu_release": {
+        "name": "EVU Release"
+      },
+      "oven_fireplace": {
+        "name": "Oven/Fireplace"
+      },
+      "stb": {
+        "name": "STB"
+      },
+      "output_ventilator_power": {
+        "name": "Output Ventilator Power"
+      },
+      "input_ventilator_power": {
+        "name": "Input Ventilator Power"
+      },
+      "main_ventilator_power": {
+        "name": "Main Ventilator Power"
+      },
+      "output_ventilator_speed": {
+        "name": "Output Ventilator Speed"
+      },
+      "input_ventilator_speed": {
+        "name": "Input Ventilator Speed"
+      },
+      "main_ventilator_speed": {
+        "name": "Main Ventilator Speed"
+      },
+      "outside_temp_filtered": {
+        "name": "Outside Temperature (Filtered)"
+      },
+      "rel_humidity": {
+        "name": "Relative Humidity"
+      },
+      "dew_point": {
+        "name": "Dew Point"
+      },
+      "power_nd": {
+        "name": "Power Nd"
+      },
+      "power_hd": {
+        "name": "Power Hd"
+      },
+      "actual_power_qc": {
+        "name": "Actual Power Qc"
+      },
+      "actual_power_pel": {
+        "name": "Actual Power Pel"
+      },
+      "collector_temp": {
+        "name": "Collector Temperature"
+      },
+      "inside_temp": {
+        "name": "Inside Temperature"
+      },
+      "window_open": {
+        "name": "Window Open"
+      },
+      "quick_air_vent": {
+        "name": "Quick Air Vent"
+      },
+      "flow_rate": {
+        "name": "Flow Rate"
+      },
+      "pressure_hc": {
+        "name": "Heating Circuit Pressure"
+      },
+      "humidity_air_out": {
+        "name": "Humidity Air Out"
+      }
+    }
   }
 }

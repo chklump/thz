@@ -105,6 +105,7 @@ SENSOR_META = {
         "decode": "bit0",
         "factor": 1,
         "icon": "mdi:gate-open",
+        "translation_key": "mixer_open",
     },
     "mixerClosed": {
         "offset": 45,
@@ -112,6 +113,7 @@ SENSOR_META = {
         "decode": "bit1",
         "factor": 1,
         "icon": "mdi:gate",
+        "translation_key": "mixer_closed",
     },
     "heatPipeValve": {
         "offset": 45,
@@ -119,6 +121,7 @@ SENSOR_META = {
         "decode": "bit2",
         "factor": 1,
         "icon": "mdi:valve",
+        "translation_key": "heat_pipe_valve",
     },
     "diverterValve": {
         "offset": 45,
@@ -126,6 +129,7 @@ SENSOR_META = {
         "decode": "bit3",
         "factor": 1,
         "icon": "mdi:valve",
+        "translation_key": "diverter_valve",
     },
     "dhwPump": {
         "offset": 44,
@@ -133,6 +137,7 @@ SENSOR_META = {
         "decode": "bit0",
         "factor": 1,
         "icon": "mdi:pump",
+        "translation_key": "dhw_pump",
     },
     "heatingCircuitPump": {
         "offset": 44,
@@ -140,6 +145,7 @@ SENSOR_META = {
         "decode": "bit1",
         "factor": 1,
         "icon": "mdi:pump",
+        "translation_key": "heating_circuit_pump",
     },
     "solarPump": {
         "offset": 44,
@@ -147,6 +153,7 @@ SENSOR_META = {
         "decode": "bit3",
         "factor": 1,
         "icon": "mdi:weather-sunny",
+        "translation_key": "solar_pump",
     },
     "compressor": {
         "offset": 47,
@@ -154,17 +161,78 @@ SENSOR_META = {
         "decode": "bit3",
         "factor": 1,
         "icon": "mdi:engine",
+        "translation_key": "compressor",
     },
-    "boosterStage3": {"offset": 46, "length": 1, "decode": "bit0", "factor": 1},
-    "boosterStage2": {"offset": 46, "length": 1, "decode": "bit1", "factor": 1},
-    "boosterStage1": {"offset": 46, "length": 1, "decode": "bit2", "factor": 1},
-    "highPressureSensor": {"offset": 49, "length": 1, "decode": "nbit0", "factor": 1},
-    "lowPressureSensor": {"offset": 49, "length": 1, "decode": "nbit1", "factor": 1},
-    "evaporatorIceMonitor": {"offset": 49, "length": 1, "decode": "bit2", "factor": 1},
-    "signalAnode": {"offset": 49, "length": 1, "decode": "bit3", "factor": 1},
-    "evuRelease": {"offset": 48, "length": 1, "decode": "bit0", "factor": 1},
-    "ovenFireplace": {"offset": 48, "length": 1, "decode": "bit1", "factor": 1},
-    "STB": {"offset": 48, "length": 1, "decode": "bit2", "factor": 1},
+    "boosterStage3": {
+        "offset": 46,
+        "length": 1,
+        "decode": "bit0",
+        "factor": 1,
+        "translation_key": "booster_stage_3",
+    },
+    "boosterStage2": {
+        "offset": 46,
+        "length": 1,
+        "decode": "bit1",
+        "factor": 1,
+        "translation_key": "booster_stage_2",
+    },
+    "boosterStage1": {
+        "offset": 46,
+        "length": 1,
+        "decode": "bit2",
+        "factor": 1,
+        "translation_key": "booster_stage_1",
+    },
+    "highPressureSensor": {
+        "offset": 49,
+        "length": 1,
+        "decode": "nbit0",
+        "factor": 1,
+        "translation_key": "high_pressure_sensor",
+    },
+    "lowPressureSensor": {
+        "offset": 49,
+        "length": 1,
+        "decode": "nbit1",
+        "factor": 1,
+        "translation_key": "low_pressure_sensor",
+    },
+    "evaporatorIceMonitor": {
+        "offset": 49,
+        "length": 1,
+        "decode": "bit2",
+        "factor": 1,
+        "translation_key": "evaporator_ice_monitor",
+    },
+    "signalAnode": {
+        "offset": 49,
+        "length": 1,
+        "decode": "bit3",
+        "factor": 1,
+        "translation_key": "signal_anode",
+    },
+    "evuRelease": {
+        "offset": 48,
+        "length": 1,
+        "decode": "bit0",
+        "factor": 1,
+        "translation_key": "evu_release",
+    },
+    "ovenFireplace": {
+        "offset": 48,
+        "length": 1,
+        "decode": "bit1",
+        "factor": 1,
+        "translation_key": "oven_fireplace",
+    },
+    "STB": {
+        "offset": 48,
+        "length": 1,
+        "decode": "bit2",
+        "factor": 1,
+        "translation_key": "stb",
+    },
     "outputVentilatorPower": {
         "offset": 50,
         "length": 4,
@@ -172,6 +240,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "W",
         "icon": "mdi:fan",
+        "translation_key": "output_ventilator_power",
     },
     "inputVentilatorPower": {
         "offset": 54,
@@ -180,6 +249,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "W",
         "icon": "mdi:fan",
+        "translation_key": "input_ventilator_power",
     },
     "mainVentilatorPower": {
         "offset": 58,
@@ -188,6 +258,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "W",
         "icon": "mdi:fan",
+        "translation_key": "main_ventilator_power",
     },
     "outputVentilatorSpeed": {
         "offset": 62,
@@ -196,6 +267,7 @@ SENSOR_META = {
         "factor": 1,
         "unit": "rpm",
         "icon": "mdi:speedometer",
+        "translation_key": "output_ventilator_speed",
     },
     "inputVentilatorSpeed": {
         "offset": 66,
@@ -204,6 +276,7 @@ SENSOR_META = {
         "factor": 1,
         "unit": "rpm",
         "icon": "mdi:speedometer",
+        "translation_key": "input_ventilator_speed",
     },
     "mainVentilatorSpeed": {
         "offset": 70,
@@ -212,6 +285,7 @@ SENSOR_META = {
         "factor": 1,
         "unit": "rpm",
         "icon": "mdi:speedometer",
+        "translation_key": "main_ventilator_speed",
     },
     "outside_tempFiltered": {
         "offset": 74,
@@ -220,6 +294,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "°C",
         "icon": "mdi:thermometer",
+        "translation_key": "outside_temp_filtered",
     },
     "relHumidity": {
         "offset": 78,
@@ -229,6 +304,7 @@ SENSOR_META = {
         "unit": "%",
         "device_class": "humidity",
         "icon": "mdi:water-percent",
+        "translation_key": "rel_humidity",
     },
     "dewPoint": {
         "offset": 82,
@@ -237,6 +313,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "°C",
         "icon": "mdi:weather-fog",
+        "translation_key": "dew_point",
     },
     "P_Nd": {
         "offset": 86,
@@ -245,6 +322,7 @@ SENSOR_META = {
         "factor": 100,
         "unit": "kW",
         "icon": "mdi:flash",
+        "translation_key": "power_nd",
     },
     "P_Hd": {
         "offset": 90,
@@ -253,6 +331,7 @@ SENSOR_META = {
         "factor": 100,
         "unit": "kW",
         "icon": "mdi:flash",
+        "translation_key": "power_hd",
     },
     "actualPower_Qc": {
         "offset": 94,
@@ -261,6 +340,7 @@ SENSOR_META = {
         "factor": 1,
         "unit": "kW",
         "icon": "mdi:flash",
+        "translation_key": "actual_power_qc",
     },
     "actualPower_Pel": {
         "offset": 102,
@@ -269,6 +349,7 @@ SENSOR_META = {
         "factor": 1,
         "unit": "kW",
         "icon": "mdi:flash",
+        "translation_key": "actual_power_pel",
     },
     "collectorTemp": {
         "offset": 4,
@@ -278,6 +359,7 @@ SENSOR_META = {
         "unit": "°C",
         "device_class": "temperature",
         "icon": "mdi:solar-power",
+        "translation_key": "collector_temp",
     },
     "insideTemp": {
         "offset": 32,
@@ -287,6 +369,7 @@ SENSOR_META = {
         "unit": "°C",
         "device_class": "temperature",
         "icon": "mdi:home-thermometer",
+        "translation_key": "inside_temp",
     },
     "windowOpen": {
         "offset": 47,
@@ -294,6 +377,7 @@ SENSOR_META = {
         "decode": "bit2",
         "factor": 1,
         "icon": "mdi:window-open",
+        "translation_key": "window_open",
     },
     "quickAirVent": {
         "offset": 48,
@@ -301,6 +385,7 @@ SENSOR_META = {
         "decode": "bit3",
         "factor": 1,
         "icon": "mdi:fan-speed-3",
+        "translation_key": "quick_air_vent",
     },
     "flowRate": {
         "offset": 110,
@@ -309,6 +394,7 @@ SENSOR_META = {
         "factor": 100,
         "unit": "l/min",
         "icon": "mdi:water-pump",
+        "translation_key": "flow_rate",
     },
     "p_HCw": {
         "offset": 114,
@@ -317,6 +403,7 @@ SENSOR_META = {
         "factor": 100,
         "unit": "bar",
         "icon": "mdi:gauge",
+        "translation_key": "pressure_hc",
     },
     "humidityAirOut": {
         "offset": 154,
@@ -326,5 +413,6 @@ SENSOR_META = {
         "unit": "%",
         "device_class": "humidity",
         "icon": "mdi:water-percent",
+        "translation_key": "humidity_air_out",
     },
 }
