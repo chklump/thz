@@ -55,7 +55,7 @@ async def async_setup_entry(
             )
             entities.append(entity)
 
-    async_add_entities(entities)
+    async_add_entities(entities, True)
 
 
 class THZNumber(NumberEntity):
