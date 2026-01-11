@@ -154,8 +154,9 @@ class THZSwitch(SwitchEntity):
         self._is_on = False
         self._device_id = device_id
         self._translation_key = translation_key
-        # Enable entity name translation when translation_key is provided
-        self._attr_has_entity_name = True
+        # Enable entity name translation only when translation_key is provided
+        # This prevents entities from showing as just the device name when no translation exists
+        self._attr_has_entity_name = translation_key is not None
         # Always set SCAN_INTERVAL to avoid HA's 30-second default
         # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
         interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
@@ -179,13 +180,13 @@ class THZSwitch(SwitchEntity):
 
     @property
     def name(self) -> str | None:
-        """Return the name of the switch, or None if translation_key is set.
+        """Return the name of the switch.
         
-        When translation_key is set, Home Assistant will use the translation
-        system to get the localized name. Return None in that case to allow
-        the translation system to work properly.
+        When has_entity_name is True (which means translation_key is set),
+        return None to allow Home Assistant to use the translation system.
+        Otherwise, return the full entity name directly.
         """
-        if self._translation_key:
+        if self._attr_has_entity_name:
             return None
         return self._attr_name
 
