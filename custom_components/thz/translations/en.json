@@ -1,20 +1,274 @@
 {
-    "config": {
-        "step": {
-            "user": {
-                "title": "Select Connection Type",
-                "description": "Select how to connect to your THZ device",
-                "data": {
-                    "connection_type": "Connection Type"
-                }
-            }
-        },
-        "abort": {
-            "cannot_detect_blocks": "Failed to read firmware or available blocks from the device. Please check your connection and try again.",
-            "invalid_entry_id": "The provided config entry ID is invalid. Cannot continue reconfiguration.",
-            "missing_entry_id": "No config entry ID was provided. Cannot continue reconfiguration.",
-            "no_data_in_entry": "No configuration data found in the entry. Cannot continue reconfiguration.",
-            "reconfigured": "The THZ integration has been reconfigured successfully."
+  "config": {
+    "step": {
+      "user": {
+        "title": "Select Connection Type",
+        "description": "Select how to connect to your THZ device",
+        "data": {
+          "connection_type": "Connection Type"
         }
+      }
+    },
+    "abort": {
+      "reconfigured": "The THZ integration has been reconfigured successfully.",
+      "missing_entry_id": "No config entry ID was provided. Cannot continue reconfiguration.",
+      "invalid_entry_id": "The provided config entry ID is invalid. Cannot continue reconfiguration.",
+      "no_data_in_entry": "No configuration data found in the entry. Cannot continue reconfiguration.",
+      "cannot_detect_blocks": "Failed to read firmware or available blocks from the device. Please check your connection and try again."
     }
+  },
+  "entity": {
+    "sensor": {
+      "outside_temp": {
+        "name": "Outside Temperature"
+      },
+      "flow_temp": {
+        "name": "Flow Temperature"
+      },
+      "return_temp": {
+        "name": "Return Temperature"
+      },
+      "hotgas_temp": {
+        "name": "Hot Gas Temperature"
+      },
+      "dhw_temp": {
+        "name": "DHW Temperature"
+      },
+      "flow_temp_hc2": {
+        "name": "Flow Temperature HC2"
+      },
+      "evaporator_temp": {
+        "name": "Evaporator Temperature"
+      },
+      "condenser_temp": {
+        "name": "Condenser Temperature"
+      },
+      "mixer_open": {
+        "name": "Mixer Open"
+      },
+      "mixer_closed": {
+        "name": "Mixer Closed"
+      },
+      "heat_pipe_valve": {
+        "name": "Heat Pipe Valve"
+      },
+      "diverter_valve": {
+        "name": "Diverter Valve"
+      },
+      "dhw_pump": {
+        "name": "DHW Pump"
+      },
+      "heating_circuit_pump": {
+        "name": "Heating Circuit Pump"
+      },
+      "solar_pump": {
+        "name": "Solar Pump"
+      },
+      "compressor": {
+        "name": "Compressor"
+      },
+      "booster_stage_3": {
+        "name": "Booster Stage 3"
+      },
+      "booster_stage_2": {
+        "name": "Booster Stage 2"
+      },
+      "booster_stage_1": {
+        "name": "Booster Stage 1"
+      },
+      "high_pressure_sensor": {
+        "name": "High Pressure Sensor"
+      },
+      "low_pressure_sensor": {
+        "name": "Low Pressure Sensor"
+      },
+      "evaporator_ice_monitor": {
+        "name": "Evaporator Ice Monitor"
+      },
+      "signal_anode": {
+        "name": "Signal Anode"
+      },
+      "evu_release": {
+        "name": "EVU Release"
+      },
+      "oven_fireplace": {
+        "name": "Oven/Fireplace"
+      },
+      "stb": {
+        "name": "STB"
+      },
+      "output_ventilator_power": {
+        "name": "Output Ventilator Power"
+      },
+      "input_ventilator_power": {
+        "name": "Input Ventilator Power"
+      },
+      "main_ventilator_power": {
+        "name": "Main Ventilator Power"
+      },
+      "output_ventilator_speed": {
+        "name": "Output Ventilator Speed"
+      },
+      "input_ventilator_speed": {
+        "name": "Input Ventilator Speed"
+      },
+      "main_ventilator_speed": {
+        "name": "Main Ventilator Speed"
+      },
+      "outside_temp_filtered": {
+        "name": "Outside Temperature (Filtered)"
+      },
+      "rel_humidity": {
+        "name": "Relative Humidity"
+      },
+      "dew_point": {
+        "name": "Dew Point"
+      },
+      "power_nd": {
+        "name": "Power Nd"
+      },
+      "power_hd": {
+        "name": "Power Hd"
+      },
+      "actual_power_qc": {
+        "name": "Actual Power Qc"
+      },
+      "actual_power_pel": {
+        "name": "Actual Power Pel"
+      },
+      "collector_temp": {
+        "name": "Collector Temperature"
+      },
+      "inside_temp": {
+        "name": "Inside Temperature"
+      },
+      "window_open": {
+        "name": "Window Open"
+      },
+      "quick_air_vent": {
+        "name": "Quick Air Vent"
+      },
+      "flow_rate": {
+        "name": "Flow Rate"
+      },
+      "pressure_hc": {
+        "name": "Heating Circuit Pressure"
+      },
+      "humidity_air_out": {
+        "name": "Humidity Air Out"
+      }
+    },
+    "number": {
+      "op_mode": {
+        "name": "Operating Mode"
+      },
+      "room_temp_day": {
+        "name": "Room Temperature Day"
+      },
+      "room_temp_night": {
+        "name": "Room Temperature Night"
+      },
+      "room_temp_standby": {
+        "name": "Room Temperature Standby"
+      },
+      "room_temp_day_hc1": {
+        "name": "Room Temperature Day HC1"
+      },
+      "room_temp_night_hc1": {
+        "name": "Room Temperature Night HC1"
+      },
+      "room_temp_standby_hc1": {
+        "name": "Room Temperature Standby HC1"
+      },
+      "room_temp_day_hc2": {
+        "name": "Room Temperature Day HC2"
+      },
+      "room_temp_night_hc2": {
+        "name": "Room Temperature Night HC2"
+      },
+      "room_temp_standby_hc2": {
+        "name": "Room Temperature Standby HC2"
+      },
+      "dhw_temp_day": {
+        "name": "DHW Temperature Day"
+      },
+      "dhw_temp_night": {
+        "name": "DHW Temperature Night"
+      },
+      "dhw_temp_standby": {
+        "name": "DHW Temperature Standby"
+      },
+      "dhw_temp_manual": {
+        "name": "DHW Temperature Manual"
+      },
+      "fan_stage_day": {
+        "name": "Fan Stage Day"
+      },
+      "fan_stage_night": {
+        "name": "Fan Stage Night"
+      },
+      "fan_stage_standby": {
+        "name": "Fan Stage Standby"
+      },
+      "fan_stage_manual": {
+        "name": "Fan Stage Manual"
+      },
+      "hc_temp_manual": {
+        "name": "Heating Circuit Temperature Manual"
+      },
+      "gradient_hc1": {
+        "name": "Heating Curve Gradient HC1"
+      },
+      "low_end_hc1": {
+        "name": "Heating Curve Low End HC1"
+      },
+      "room_influence_hc1": {
+        "name": "Room Influence HC1"
+      },
+      "gradient_hc2": {
+        "name": "Heating Curve Gradient HC2"
+      },
+      "low_end_hc2": {
+        "name": "Heating Curve Low End HC2"
+      },
+      "room_influence_hc2": {
+        "name": "Room Influence HC2"
+      },
+      "flow_proportion_hc1": {
+        "name": "Flow Proportion HC1"
+      },
+      "flow_proportion_hc2": {
+        "name": "Flow Proportion HC2"
+      },
+      "hysteresis_1": {
+        "name": "Hysteresis 1"
+      },
+      "hysteresis_2": {
+        "name": "Hysteresis 2"
+      },
+      "hysteresis_3": {
+        "name": "Hysteresis 3"
+      },
+      "hysteresis_4": {
+        "name": "Hysteresis 4"
+      },
+      "hysteresis_5": {
+        "name": "Hysteresis 5"
+      },
+      "hysteresis_dhw": {
+        "name": "Hysteresis DHW"
+      },
+      "summer_mode_temp": {
+        "name": "Summer Mode Temperature"
+      },
+      "summer_mode_hysteresis": {
+        "name": "Summer Mode Hysteresis"
+      }
+    },
+    "select": {
+      "op_mode": {
+        "name": "Operating Mode"
+      }
+    }
+  }
 }
