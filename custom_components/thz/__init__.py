@@ -31,7 +31,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # 1. Device "roh" initialisieren
     if conn_type == "ip":
-        device = THZDevice(connection="ip", host=data["host"], port=data["port"])
+        device = THZDevice(connection="ip", host=data["host"], tcp_port=data["port"])
     elif conn_type == "usb":
         device = THZDevice(connection="usb", port=data["device"])
     else:
