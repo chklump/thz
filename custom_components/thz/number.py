@@ -8,8 +8,8 @@ from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN
 from .entity_translations import get_translation_key
+from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN, should_hide_entity_by_default
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -119,6 +119,7 @@ class THZNumber(NumberEntity):
         # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
         interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
         self.SCAN_INTERVAL = timedelta(seconds=interval)
+        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
 
     @property
     def native_value(self) -> float | None:

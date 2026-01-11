@@ -21,7 +21,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
+from .const import DOMAIN, should_hide_entity_by_default
 from .register_maps.register_map_manager import RegisterMapManager
 from .sensor_meta import SENSOR_META
 from .thz_device import THZDevice
@@ -122,7 +122,8 @@ def decode_value(raw: bytes, decode_type: str, factor: float = 1.0):
         return not ((raw[0] >> bitnum) & 0x01)
     if decode_type == "esp_mant":
         # To mimic: sprintf("%.3f", unpack('f', pack('L', reverse(hex($value)))))
-        mant = struct.unpack('<f', raw)[0]
+        # The FHEM code reverses bytes and unpacks, which is equivalent to big-endian
+        mant = struct.unpack('>f', raw)[0]
         return round(mant, 3)
     
     return raw.hex()
@@ -233,6 +234,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         
         # Enable entity name translation when translation_key is provided
         self._attr_has_entity_name = True
+        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(self._name)
 
     @property
     def name(self) -> str | None:
