@@ -26,6 +26,22 @@ The integration communicates with the heat pump using the serial protocol, suppo
 - ✅ **Calendar Platform**: View heating schedules and programs
 - ✅ **Device Registry Integration**: Proper device identification in Home Assistant
 - ✅ **Automatic Polling**: Regular updates of sensor values
+- ✅ **Smart Entity Management**: Non-essential entities are hidden by default to reduce clutter
+
+### Hidden Entities by Default
+
+To provide a cleaner initial setup experience, the following entity types are hidden by default:
+
+- **HC2 (Heating Circuit 2) entities**: Only needed if you have a second heating circuit installed
+- **Time plan/program entities**: Advanced schedule configuration entities (programDHW_*, programHC1_*, programHC2_*)
+- **Advanced technical parameters**: Parameters like gradient, hysteresis, integral components (typically p13 and higher)
+
+**Note**: Hidden entities can still be manually enabled through the Home Assistant UI:
+1. Go to **Settings** → **Devices & Services**
+2. Find the THZ integration and click on it
+3. Click on the device
+4. Click "Show disabled entities" at the bottom
+5. Enable any entities you need
 
 ### Planned Features
 
