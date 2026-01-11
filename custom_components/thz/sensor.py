@@ -186,7 +186,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
 
     Properties:
         name (str | None): The name of the sensor.
-        state (StateType | int | float | bool | str | None): The current state value of the sensor.
+        native_value (StateType | int | float | bool | str | None): The native value of the sensor.
         native_unit_of_measurement: The native unit of measurement for this sensor.
         device_class (str | None): The device class of the sensor.
         icon (str | None): The icon to use in the frontend.
