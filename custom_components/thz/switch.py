@@ -8,7 +8,9 @@ from homeassistant.components.switch import ConfigEntry, SwitchEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN
+
+from .entity_translations import get_translation_key
+from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN, should_hide_entity_by_default
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -63,6 +65,7 @@ async def async_setup_entry(
                 unique_id=f"thz_{name.lower().replace(' ', '_')}",
                 scan_interval=write_interval,
                 device_id=device_id,
+                translation_key=get_translation_key(name),
             )
             entities.append(entity)
 
@@ -121,6 +124,7 @@ class THZSwitch(SwitchEntity):
         unique_id: str | None = None,
         scan_interval: int | None = None,
         device_id: str | None = None,
+        translation_key: str | None = None,
     ) -> None:
         """Initialize a new switch entity for the THZ integration.
 
@@ -137,6 +141,7 @@ class THZSwitch(SwitchEntity):
             unique_id (str, optional): The unique identifier for the switch. If not provided, a unique ID is generated.
             scan_interval (int, optional): The scan interval in seconds for polling updates.
             device_id (str, optional): The device identifier for linking to device.
+            translation_key (str, optional): Translation key for localization.
         """
 
         self._attr_name = name
@@ -148,10 +153,14 @@ class THZSwitch(SwitchEntity):
         )
         self._is_on = False
         self._device_id = device_id
+        self._translation_key = translation_key
+        # Enable entity name translation when translation_key is provided
+        self._attr_has_entity_name = True
         # Always set SCAN_INTERVAL to avoid HA's 30-second default
         # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
         interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
         self.SCAN_INTERVAL = timedelta(seconds=interval)
+        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
 
     @property
     def is_on(self) -> bool | None:
@@ -167,6 +176,23 @@ class THZSwitch(SwitchEntity):
         """
 
         return self._is_on
+
+    @property
+    def name(self) -> str | None:
+        """Return the name of the switch, or None if translation_key is set.
+        
+        When translation_key is set, Home Assistant will use the translation
+        system to get the localized name. Return None in that case to allow
+        the translation system to work properly.
+        """
+        if self._translation_key:
+            return None
+        return self._attr_name
+
+    @property
+    def translation_key(self) -> str | None:
+        """Return the translation key for this switch, if available."""
+        return self._translation_key
 
     @property
     def device_info(self):
@@ -202,8 +228,22 @@ class THZSwitch(SwitchEntity):
             await asyncio.sleep(
                 0.01
             )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
-        value = int.from_bytes(value_bytes, byteorder="big", signed=False)
-        self._is_on = bool(value)
+        
+        # Validate that we received data
+        if not value_bytes:
+            _LOGGER.warning(
+                "No data received for switch %s, keeping previous value", self._attr_name
+            )
+            return
+        
+        try:
+            value = int.from_bytes(value_bytes, byteorder="big", signed=False)
+            self._is_on = bool(value)
+        except (ValueError, IndexError, TypeError) as err:
+            _LOGGER.error(
+                "Error decoding switch %s: %s", self._attr_name, err, exc_info=True
+            )
+            # Keep previous value on error
 
     async def turn_on(self, **kwargs: Any) -> None:
         """Asynchronously turns on the switch by sending a command to the device.

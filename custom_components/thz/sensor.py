@@ -21,7 +21,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
+from .const import DOMAIN, should_hide_entity_by_default
 from .register_maps.register_map_manager import RegisterMapManager
 from .sensor_meta import SENSOR_META
 from .thz_device import THZDevice
@@ -122,7 +122,8 @@ def decode_value(raw: bytes, decode_type: str, factor: float = 1.0):
         return not ((raw[0] >> bitnum) & 0x01)
     if decode_type == "esp_mant":
         # To mimic: sprintf("%.3f", unpack('f', pack('L', reverse(hex($value)))))
-        mant = struct.unpack('<f', raw)[0]
+        # The FHEM code reverses bytes and unpacks, which is equivalent to big-endian
+        mant = struct.unpack('>f', raw)[0]
         return round(mant, 3)
     
     return raw.hex()
@@ -186,7 +187,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
 
     Properties:
         name (str | None): The name of the sensor.
-        state (StateType | int | float | bool | str | None): The current state value of the sensor.
+        native_value (StateType | int | float | bool | str | None): The native value of the sensor.
         native_unit_of_measurement: The native unit of measurement for this sensor.
         device_class (str | None): The device class of the sensor.
         icon (str | None): The icon to use in the frontend.
@@ -230,20 +231,31 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         self._icon = e.get("icon")
         self._translation_key = e.get("translation_key")
         self._device_id = device_id
+        
+        # Enable entity name translation when translation_key is provided
+        self._attr_has_entity_name = True
+        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(self._name)
 
     @property
     def name(self) -> str | None:
-        """Return the name of the sensor, or None if not set."""
+        """Return the name of the sensor, or None if translation_key is set.
+        
+        When translation_key is set, Home Assistant will use the translation
+        system to get the localized name. Return None in that case to allow
+        the translation system to work properly.
+        """
+        if self._translation_key:
+            return None
         return self._name
 
     @property
-    def state(self) -> StateType | int | float | bool | str | None:
-        """Return the current state value of the sensor.
+    def native_value(self) -> StateType | int | float | bool | str | None:
+        """Return the native value of the sensor.
 
         Returns:
         -------
         StateType | int | float | bool | str | None
-            The current state value of the sensor.
+            The native value of the sensor.
         """
         if self.coordinator.data is None:
             return None

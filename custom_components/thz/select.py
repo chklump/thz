@@ -1,4 +1,5 @@
 """Select entity for THZ integration."""
+import asyncio
 import logging
 from datetime import timedelta
 
@@ -7,7 +8,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN
+from .entity_translations import get_translation_key
+from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN, should_hide_entity_by_default
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -127,10 +129,11 @@ async def async_setup_entry(
                 unique_id=f"thz_{name.lower().replace(' ', '_')}",
                 scan_interval=write_interval,
                 device_id=device_id,
+                translation_key=get_translation_key(name),
             )
             entities.append(entity)
 
-    async_add_entities(entities)
+    async_add_entities(entities, True)
 
 
 class THZSelect(SelectEntity):
@@ -154,6 +157,7 @@ class THZSelect(SelectEntity):
         options=None,
         scan_interval: int | None = None,
         device_id: str | None = None,
+        translation_key: str | None = None,
     ) -> None:
         """Initialize a THZ select entity.
 
@@ -172,6 +176,7 @@ class THZSelect(SelectEntity):
             options (list, optional): The list of options for the select entity. If not provided, options are determined by decode_type.
             scan_interval (int, optional): The scan interval in seconds for polling updates.
             device_id (str, optional): The device identifier for linking to device.
+            translation_key (str, optional): Translation key for localization.
         """
 
         self._attr_name = name
@@ -183,6 +188,9 @@ class THZSelect(SelectEntity):
         )
         self._decode_type = decode_type
         self._device_id = device_id
+        self._translation_key = translation_key
+        # Enable entity name translation when translation_key is provided
+        self._attr_has_entity_name = True
 
         if decode_type in SELECT_MAP:
             self._attr_options = list(SELECT_MAP[decode_type].values())
@@ -196,11 +204,29 @@ class THZSelect(SelectEntity):
         # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
         interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
         self.SCAN_INTERVAL = timedelta(seconds=interval)
+        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
 
     @property
     def current_option(self) -> str | None:
         """Return the current option."""
         return self._attr_current_option
+
+    @property
+    def name(self) -> str | None:
+        """Return the name of the select, or None if translation_key is set.
+        
+        When translation_key is set, Home Assistant will use the translation
+        system to get the localized name. Return None in that case to allow
+        the translation system to work properly.
+        """
+        if self._translation_key:
+            return None
+        return self._attr_name
+
+    @property
+    def translation_key(self) -> str | None:
+        """Return the translation key for this select, if available."""
+        return self._translation_key
 
     @property
     def device_info(self):
@@ -222,30 +248,44 @@ class THZSelect(SelectEntity):
                 self._command,
                 value_bytes.hex() if value_bytes else "None",
             )
-        value = int.from_bytes(value_bytes, byteorder="little", signed=False)
-        _LOGGER.debug("Value for %s (%s): %s", self._attr_name, self._command, value)
-        # Map value to option string (you must define this mapping)
-        if self._decode_type in SELECT_MAP:
-            value_str = (
-                str(value).zfill(2) if self._decode_type == "SomWinMode" else str(value)
+        
+        # Validate that we received data
+        if not value_bytes:
+            _LOGGER.warning(
+                "No data received for select %s, keeping previous value", self._attr_name
             )
-            _LOGGER.debug(
-                "Mapping value %s to option for %s (%s)",
-                value_str,
-                self._attr_name,
-                self._command,
+            return
+        
+        try:
+            value = int.from_bytes(value_bytes, byteorder="little", signed=False)
+            _LOGGER.debug("Value for %s (%s): %s", self._attr_name, self._command, value)
+            # Map value to option string (you must define this mapping)
+            if self._decode_type in SELECT_MAP:
+                value_str = (
+                    str(value).zfill(2) if self._decode_type == "SomWinMode" else str(value)
+                )
+                _LOGGER.debug(
+                    "Mapping value %s to option for %s (%s)",
+                    value_str,
+                    self._attr_name,
+                    self._command,
+                )
+                self._attr_current_option = SELECT_MAP[self._decode_type].get(
+                    value_str, None
+                )
+                _LOGGER.debug(
+                    "Current option for %s (%s): %s",
+                    self._attr_name,
+                    self._command,
+                    self._attr_current_option,
+                )
+            else:
+                self._attr_current_option = None
+        except (ValueError, IndexError, TypeError) as err:
+            _LOGGER.error(
+                "Error decoding select %s: %s", self._attr_name, err, exc_info=True
             )
-            self._attr_current_option = SELECT_MAP[self._decode_type].get(
-                value_str, None
-            )
-            _LOGGER.debug(
-                "Current option for %s (%s): %s",
-                self._attr_name,
-                self._command,
-                self._attr_current_option,
-            )
-        else:
-            self._attr_current_option = None
+            # Keep previous value on error
 
     async def async_select_option(self, option: str) -> None:
         """Set the selected option."""

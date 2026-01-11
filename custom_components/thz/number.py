@@ -1,4 +1,5 @@
 """THZ Number Entity Platform."""
+import asyncio
 import logging
 from datetime import timedelta
 
@@ -7,7 +8,8 @@ from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN
+from .entity_translations import get_translation_key
+from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN, should_hide_entity_by_default
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -49,10 +51,11 @@ async def async_setup_entry(
                 decode_type=entry["decode_type"],
                 scan_interval=write_interval,
                 device_id=device_id,
+                translation_key=get_translation_key(name),
             )
             entities.append(entity)
 
-    async_add_entities(entities)
+    async_add_entities(entities, True)
 
 
 class THZNumber(NumberEntity):
@@ -73,6 +76,7 @@ class THZNumber(NumberEntity):
         unique_id=None,
         scan_interval=None,
         device_id=None,
+        translation_key=None,
     ) -> None:
         """Initialize a new instance of the class.
 
@@ -90,6 +94,7 @@ class THZNumber(NumberEntity):
             unique_id (optional): The unique identifier for this entity. If not provided, a unique ID is generated.
             scan_interval (optional): The scan interval in seconds for polling updates.
             device_id (optional): The device identifier for linking to device.
+            translation_key (optional): Translation key for localization.
         """
         self._attr_name = name
         self._command = command
@@ -106,16 +111,37 @@ class THZNumber(NumberEntity):
         )
         self._attr_native_value = None
         self._device_id = device_id
+        self._translation_key = translation_key
+        # Enable entity name translation when translation_key is provided
+        self._attr_has_entity_name = True
         # Always set should_poll and SCAN_INTERVAL to avoid HA's 30-second default
         self._attr_should_poll = True
         # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
         interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
         self.SCAN_INTERVAL = timedelta(seconds=interval)
+        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
 
     @property
     def native_value(self) -> float | None:
         """Return the native value of the number."""
         return self._attr_native_value
+
+    @property
+    def name(self) -> str | None:
+        """Return the name of the number, or None if translation_key is set.
+        
+        When translation_key is set, Home Assistant will use the translation
+        system to get the localized name. Return None in that case to allow
+        the translation system to work properly.
+        """
+        if self._translation_key:
+            return None
+        return self._attr_name
+
+    @property
+    def translation_key(self) -> str | None:
+        """Return the translation key for this number, if available."""
+        return self._translation_key
 
     @property
     def device_info(self):
@@ -133,20 +159,31 @@ class THZNumber(NumberEntity):
             value_bytes = await self.hass.async_add_executor_job(
                 self._device.read_value, bytes.fromhex(self._command), "get", 4, 2
             )
-        value = (
-            int.from_bytes(value_bytes, byteorder="big", signed=False)
-            * self._attr_native_step
-        )
-        _LOGGER.debug("Recv number %s with value %s", self._attr_name, value_bytes)
-        if self._decode_type != "0clean":
-            value = (
-                int.from_bytes(value_bytes, byteorder="big", signed=True)
-                * self._attr_native_step
+        
+        # Validate that we received data
+        if not value_bytes:
+            _LOGGER.warning(
+                "No data received for number %s, keeping previous value", self._attr_name
             )
-        else:
-            value = value_bytes[0]
-        _LOGGER.debug("Recv number %s with real value %s", self._attr_name, value)
-        self._attr_native_value = value
+            return
+        
+        _LOGGER.debug("Recv number %s with value %s", self._attr_name, value_bytes)
+        
+        try:
+            if self._decode_type != "0clean":
+                value = (
+                    int.from_bytes(value_bytes, byteorder="big", signed=True)
+                    * self._attr_native_step
+                )
+            else:
+                value = value_bytes[0]
+            _LOGGER.debug("Recv number %s with real value %s", self._attr_name, value)
+            self._attr_native_value = value
+        except (ValueError, IndexError, TypeError) as err:
+            _LOGGER.error(
+                "Error decoding number %s: %s", self._attr_name, err, exc_info=True
+            )
+            # Keep previous value on error
 
 
     async def async_set_native_value(self, value: float) -> None:
