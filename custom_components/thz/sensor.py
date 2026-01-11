@@ -237,13 +237,13 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         return self._name
 
     @property
-    def state(self) -> StateType | int | float | bool | str | None:
-        """Return the current state value of the sensor.
+    def native_value(self) -> StateType | int | float | bool | str | None:
+        """Return the native value of the sensor.
 
         Returns:
         -------
         StateType | int | float | bool | str | None
-            The current state value of the sensor.
+            The native value of the sensor.
         """
         if self.coordinator.data is None:
             return None

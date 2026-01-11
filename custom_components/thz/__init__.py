@@ -114,6 +114,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             update_method=lambda b=block: _async_update_block(hass, device, b),
         )
         await coordinator.async_config_entry_first_refresh()
+        _LOGGER.info(
+            "Initial data fetch completed for block %s, data available: %s",
+            block,
+            coordinator.data is not None,
+        )
         coordinators[block] = coordinator
 
     # im hass.data speichern
