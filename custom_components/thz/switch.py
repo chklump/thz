@@ -8,7 +8,7 @@ from homeassistant.components.switch import ConfigEntry, SwitchEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN
+from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN, should_hide_entity_by_default
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -152,6 +152,7 @@ class THZSwitch(SwitchEntity):
         # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
         interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
         self.SCAN_INTERVAL = timedelta(seconds=interval)
+        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
 
     @property
     def is_on(self) -> bool | None:

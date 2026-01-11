@@ -21,7 +21,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
+from .const import DOMAIN, should_hide_entity_by_default
 from .register_maps.register_map_manager import RegisterMapManager
 from .sensor_meta import SENSOR_META
 from .thz_device import THZDevice
@@ -230,6 +230,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         self._icon = e.get("icon")
         self._translation_key = e.get("translation_key")
         self._device_id = device_id
+        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(self._name)
 
     @property
     def name(self) -> str | None:
