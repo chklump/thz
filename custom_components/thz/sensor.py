@@ -122,7 +122,8 @@ def decode_value(raw: bytes, decode_type: str, factor: float = 1.0):
         return not ((raw[0] >> bitnum) & 0x01)
     if decode_type == "esp_mant":
         # To mimic: sprintf("%.3f", unpack('f', pack('L', reverse(hex($value)))))
-        mant = struct.unpack('<f', raw)[0]
+        # The FHEM code reverses bytes and unpacks, which is equivalent to big-endian
+        mant = struct.unpack('>f', raw)[0]
         return round(mant, 3)
     
     return raw.hex()
