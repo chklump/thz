@@ -232,19 +232,20 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         self._translation_key = e.get("translation_key")
         self._device_id = device_id
         
-        # Enable entity name translation when translation_key is provided
-        self._attr_has_entity_name = True
+        # Enable entity name translation only when translation_key is provided
+        # This prevents entities from showing as just the device name when no translation exists
+        self._attr_has_entity_name = self._translation_key is not None
         self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(self._name)
 
     @property
     def name(self) -> str | None:
-        """Return the name of the sensor, or None if translation_key is set.
+        """Return the name of the sensor.
         
-        When translation_key is set, Home Assistant will use the translation
-        system to get the localized name. Return None in that case to allow
-        the translation system to work properly.
+        When has_entity_name is True (which means translation_key is set),
+        return None to allow Home Assistant to use the translation system.
+        Otherwise, return the full entity name directly.
         """
-        if self._translation_key:
+        if self._attr_has_entity_name:
             return None
         return self._name
 
