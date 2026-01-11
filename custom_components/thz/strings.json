@@ -157,6 +157,118 @@
       "humidity_air_out": {
         "name": "Humidity Air Out"
       }
+    },
+    "number": {
+      "op_mode": {
+        "name": "Operating Mode"
+      },
+      "room_temp_day": {
+        "name": "Room Temperature Day"
+      },
+      "room_temp_night": {
+        "name": "Room Temperature Night"
+      },
+      "room_temp_standby": {
+        "name": "Room Temperature Standby"
+      },
+      "room_temp_day_hc1": {
+        "name": "Room Temperature Day HC1"
+      },
+      "room_temp_night_hc1": {
+        "name": "Room Temperature Night HC1"
+      },
+      "room_temp_standby_hc1": {
+        "name": "Room Temperature Standby HC1"
+      },
+      "room_temp_day_hc2": {
+        "name": "Room Temperature Day HC2"
+      },
+      "room_temp_night_hc2": {
+        "name": "Room Temperature Night HC2"
+      },
+      "room_temp_standby_hc2": {
+        "name": "Room Temperature Standby HC2"
+      },
+      "dhw_temp_day": {
+        "name": "DHW Temperature Day"
+      },
+      "dhw_temp_night": {
+        "name": "DHW Temperature Night"
+      },
+      "dhw_temp_standby": {
+        "name": "DHW Temperature Standby"
+      },
+      "dhw_temp_manual": {
+        "name": "DHW Temperature Manual"
+      },
+      "fan_stage_day": {
+        "name": "Fan Stage Day"
+      },
+      "fan_stage_night": {
+        "name": "Fan Stage Night"
+      },
+      "fan_stage_standby": {
+        "name": "Fan Stage Standby"
+      },
+      "fan_stage_manual": {
+        "name": "Fan Stage Manual"
+      },
+      "hc_temp_manual": {
+        "name": "Heating Circuit Temperature Manual"
+      },
+      "gradient_hc1": {
+        "name": "Heating Curve Gradient HC1"
+      },
+      "low_end_hc1": {
+        "name": "Heating Curve Low End HC1"
+      },
+      "room_influence_hc1": {
+        "name": "Room Influence HC1"
+      },
+      "gradient_hc2": {
+        "name": "Heating Curve Gradient HC2"
+      },
+      "low_end_hc2": {
+        "name": "Heating Curve Low End HC2"
+      },
+      "room_influence_hc2": {
+        "name": "Room Influence HC2"
+      },
+      "flow_proportion_hc1": {
+        "name": "Flow Proportion HC1"
+      },
+      "flow_proportion_hc2": {
+        "name": "Flow Proportion HC2"
+      },
+      "hysteresis_1": {
+        "name": "Hysteresis 1"
+      },
+      "hysteresis_2": {
+        "name": "Hysteresis 2"
+      },
+      "hysteresis_3": {
+        "name": "Hysteresis 3"
+      },
+      "hysteresis_4": {
+        "name": "Hysteresis 4"
+      },
+      "hysteresis_5": {
+        "name": "Hysteresis 5"
+      },
+      "hysteresis_dhw": {
+        "name": "Hysteresis DHW"
+      },
+      "summer_mode_temp": {
+        "name": "Summer Mode Temperature"
+      },
+      "summer_mode_hysteresis": {
+        "name": "Summer Mode Hysteresis"
+      }
+    },
+    "select": {
+      "op_mode": {
+        "name": "Operating Mode"
+      }
     }
   }
 }

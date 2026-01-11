@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN
+from .entity_translations import get_translation_key
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -127,6 +128,7 @@ async def async_setup_entry(
                 unique_id=f"thz_{name.lower().replace(' ', '_')}",
                 scan_interval=write_interval,
                 device_id=device_id,
+                translation_key=get_translation_key(name),
             )
             entities.append(entity)
 
@@ -154,6 +156,7 @@ class THZSelect(SelectEntity):
         options=None,
         scan_interval: int | None = None,
         device_id: str | None = None,
+        translation_key: str | None = None,
     ) -> None:
         """Initialize a THZ select entity.
 
@@ -172,6 +175,7 @@ class THZSelect(SelectEntity):
             options (list, optional): The list of options for the select entity. If not provided, options are determined by decode_type.
             scan_interval (int, optional): The scan interval in seconds for polling updates.
             device_id (str, optional): The device identifier for linking to device.
+            translation_key (str, optional): Translation key for localization.
         """
 
         self._attr_name = name
@@ -183,6 +187,9 @@ class THZSelect(SelectEntity):
         )
         self._decode_type = decode_type
         self._device_id = device_id
+        self._translation_key = translation_key
+        # Enable entity name translation when translation_key is provided
+        self._attr_has_entity_name = True
 
         if decode_type in SELECT_MAP:
             self._attr_options = list(SELECT_MAP[decode_type].values())
@@ -201,6 +208,23 @@ class THZSelect(SelectEntity):
     def current_option(self) -> str | None:
         """Return the current option."""
         return self._attr_current_option
+
+    @property
+    def name(self) -> str | None:
+        """Return the name of the select, or None if translation_key is set.
+        
+        When translation_key is set, Home Assistant will use the translation
+        system to get the localized name. Return None in that case to allow
+        the translation system to work properly.
+        """
+        if self._translation_key:
+            return None
+        return self._attr_name
+
+    @property
+    def translation_key(self) -> str | None:
+        """Return the translation key for this select, if available."""
+        return self._translation_key
 
     @property
     def device_info(self):

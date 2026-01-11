@@ -157,6 +157,118 @@
             "humidity_air_out": {
                 "name": "Luftfeuchtigkeit Abluft"
             }
+        },
+        "number": {
+            "op_mode": {
+                "name": "Betriebsart"
+            },
+            "room_temp_day": {
+                "name": "Raumtemperatur Tag"
+            },
+            "room_temp_night": {
+                "name": "Raumtemperatur Nacht"
+            },
+            "room_temp_standby": {
+                "name": "Raumtemperatur Standby"
+            },
+            "room_temp_day_hc1": {
+                "name": "Raumtemperatur Tag HK1"
+            },
+            "room_temp_night_hc1": {
+                "name": "Raumtemperatur Nacht HK1"
+            },
+            "room_temp_standby_hc1": {
+                "name": "Raumtemperatur Standby HK1"
+            },
+            "room_temp_day_hc2": {
+                "name": "Raumtemperatur Tag HK2"
+            },
+            "room_temp_night_hc2": {
+                "name": "Raumtemperatur Nacht HK2"
+            },
+            "room_temp_standby_hc2": {
+                "name": "Raumtemperatur Standby HK2"
+            },
+            "dhw_temp_day": {
+                "name": "Warmwassertemperatur Tag"
+            },
+            "dhw_temp_night": {
+                "name": "Warmwassertemperatur Nacht"
+            },
+            "dhw_temp_standby": {
+                "name": "Warmwassertemperatur Standby"
+            },
+            "dhw_temp_manual": {
+                "name": "Warmwassertemperatur Manuell"
+            },
+            "fan_stage_day": {
+                "name": "Lüfterstufe Tag"
+            },
+            "fan_stage_night": {
+                "name": "Lüfterstufe Nacht"
+            },
+            "fan_stage_standby": {
+                "name": "Lüfterstufe Standby"
+            },
+            "fan_stage_manual": {
+                "name": "Lüfterstufe Manuell"
+            },
+            "hc_temp_manual": {
+                "name": "Heizkreistemperatur Manuell"
+            },
+            "gradient_hc1": {
+                "name": "Heizkurve Steilheit HK1"
+            },
+            "low_end_hc1": {
+                "name": "Heizkurve Fußpunkt HK1"
+            },
+            "room_influence_hc1": {
+                "name": "Raumeinfluss HK1"
+            },
+            "gradient_hc2": {
+                "name": "Heizkurve Steilheit HK2"
+            },
+            "low_end_hc2": {
+                "name": "Heizkurve Fußpunkt HK2"
+            },
+            "room_influence_hc2": {
+                "name": "Raumeinfluss HK2"
+            },
+            "flow_proportion_hc1": {
+                "name": "Durchflussanteil HK1"
+            },
+            "flow_proportion_hc2": {
+                "name": "Durchflussanteil HK2"
+            },
+            "hysteresis_1": {
+                "name": "Hysterese 1"
+            },
+            "hysteresis_2": {
+                "name": "Hysterese 2"
+            },
+            "hysteresis_3": {
+                "name": "Hysterese 3"
+            },
+            "hysteresis_4": {
+                "name": "Hysterese 4"
+            },
+            "hysteresis_5": {
+                "name": "Hysterese 5"
+            },
+            "hysteresis_dhw": {
+                "name": "Hysterese Warmwasser"
+            },
+            "summer_mode_temp": {
+                "name": "Sommermodus Temperatur"
+            },
+            "summer_mode_hysteresis": {
+                "name": "Sommermodus Hysterese"
+            }
+        },
+        "select": {
+            "op_mode": {
+                "name": "Betriebsart"
+            }
         }
     }
 }
