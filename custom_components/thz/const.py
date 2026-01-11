@@ -61,9 +61,16 @@ def should_hide_entity_by_default(entity_name: str) -> bool:
     # that most users don't need to adjust
     if name_lower.startswith("p") and len(name_lower) > 2:
         # Check if it starts with p followed by digits
-        potential_num = name_lower[1:3]
-        if potential_num.isdigit():
-            param_num = int(potential_num)
+        # Extract all consecutive digits after 'p'
+        digit_str = ""
+        for char in name_lower[1:]:
+            if char.isdigit():
+                digit_str += char
+            else:
+                break
+        
+        if digit_str:
+            param_num = int(digit_str)
             # Hide technical parameters p13 and above (gradient, hysteresis, etc.)
             if param_num >= 13:
                 return True
