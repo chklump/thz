@@ -16,7 +16,6 @@ This mapping is used for parsing and interpreting data from the THZ device regis
 REGISTER_MAP = {
     "firmware": "214j",
     "pxxF4": [
-        ("outsideTemp: ", 4, 4, "hex2int", 10),
         (" x08: ", 8, 4, "raw", 1),
         (" returnTemp: ", 12, 4, "hex2int", 10),
         (" integralHeat: ", 16, 4, "hex2int", 1),
