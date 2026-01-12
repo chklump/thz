@@ -325,6 +325,27 @@ class THZDevice:
         # 0x2B 0x18 -> 0x2B
         return data.replace(b"\x2b\x18", b"\x2b")
 
+    def escape(self, data: bytes) -> bytes:
+        """Add escape sequences to data before sending.
+        
+        According to the protocol (from FHEM THZ module):
+        - Each 0x10 byte must be escaped as 0x10 0x10
+        - Each 0x2B byte must be escaped as 0x2B 0x18
+        
+        The order of escaping (0x10 first, then 0x2B) matches the FHEM implementation
+        and is safe because these escape sequences don't interfere with each other.
+        
+        Args:
+            data: Raw bytes to escape
+            
+        Returns:
+            Escaped bytes ready to send
+        """
+        # 0x10 -> 0x10 0x10 (matches Perl line 1764)
+        data = data.replace(const.DATALINKESCAPE, const.DATALINKESCAPE + const.DATALINKESCAPE)
+        # 0x2B -> 0x2B 0x18 (matches Perl line 1768)
+        return data.replace(b"\x2b", b"\x2b\x18")
+
     def decode_response(self, data: bytes):
         """Decode the response from the THZ device, checking header, CRC, and unescaping."""
         try:
@@ -410,7 +431,7 @@ class THZDevice:
         r"""Constructs a telegram for the THZ device based on the given address bytes.
 
         Args:
-            addr_bytes: Address bytes (e.g. b'\xfb')
+            addr_bytes: Address bytes including command and optional payload (e.g. b'\xfb' or b'\x0a\x01\x1f')
             header: Header bytes (e.g. b'\x01\x00' or b'\x01\x80')
             footer: Footer bytes (e.g. b'\x10\x03')
             checksum: Checksum bytes (e.g. b'\x5a')
@@ -418,7 +439,11 @@ class THZDevice:
         Returns:
             telegram ready to send.
         """
-        return header + checksum + addr_bytes + footer
+        # Escape the checksum + command (+ payload) bytes according to the protocol
+        # (0x10 -> 0x10 0x10, 0x2B -> 0x2B 0x18)
+        # This matches the FHEM THZ module's THZ_encodecommand() function behavior
+        escaped_data = self.escape(checksum + addr_bytes)
+        return header + escaped_data + footer
 
     def read_firmware_version(self) -> str:
         """Reads the firmware version from the THZ device.
