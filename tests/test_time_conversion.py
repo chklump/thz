@@ -83,7 +83,7 @@ class TestQuartersToTime:
 
     def test_unset_returns_none(self):
         """Test that sentinel value returns None."""
-        assert quarters_to_time(TIME_VALUE_UNSET) == None
+        assert quarters_to_time(TIME_VALUE_UNSET) is None
 
     def test_invalid_value_clamped(self):
         """Test that invalid values are clamped to valid range."""

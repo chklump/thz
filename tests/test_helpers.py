@@ -1,9 +1,17 @@
-"""Copy of decode_value for testing."""
+"""Copy of decode_value for testing without HA dependencies.
+
+This is a standalone copy to avoid importing Home Assistant modules during testing.
+The actual implementation is in custom_components/thz/sensor.py and should be kept in sync.
+"""
 import struct
 
 
 def decode_value(raw: bytes, decode_type: str, factor: float = 1.0) -> int | float | bool | str:
-    """Decode a raw byte value according to the specified decode type."""
+    """Decode a raw byte value according to the specified decode type.
+    
+    This is a test-only copy to avoid Home Assistant dependencies.
+    Keep in sync with custom_components/thz/sensor.py:decode_value().
+    """
     if decode_type == "hex2int":
         return int.from_bytes(raw, byteorder="big", signed=True) / factor
     if decode_type == "hex":
