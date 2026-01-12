@@ -428,7 +428,7 @@ class THZDevice:
         r"""Constructs a telegram for the THZ device based on the given address bytes.
 
         Args:
-            addr_bytes: Address bytes (e.g. b'\xfb')
+            addr_bytes: Address bytes including command and optional payload (e.g. b'\xfb' or b'\x0a\x01\x1f')
             header: Header bytes (e.g. b'\x01\x00' or b'\x01\x80')
             footer: Footer bytes (e.g. b'\x10\x03')
             checksum: Checksum bytes (e.g. b'\x5a')
@@ -436,8 +436,9 @@ class THZDevice:
         Returns:
             telegram ready to send.
         """
-        # Escape the checksum + command bytes according to the protocol
+        # Escape the checksum + command (+ payload) bytes according to the protocol
         # (0x10 -> 0x10 0x10, 0x2B -> 0x2B 0x18)
+        # This matches the FHEM THZ module's THZ_encodecommand() function behavior
         escaped_data = self.escape(checksum + addr_bytes)
         return header + escaped_data + footer
 
