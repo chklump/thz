@@ -236,6 +236,14 @@ class THZTime(TimeEntity):
         self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
 
     @property
+    def name(self) -> str | None:
+        """Return the name of the time entity.
+        
+        Always return the entity name to ensure descriptive names are displayed.
+        """
+        return self._attr_name
+
+    @property
     def native_value(self):
         """Return the native value of the time."""
         return self._attr_native_value
@@ -343,6 +351,14 @@ class THZScheduleTime(TimeEntity):
         interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
         self.SCAN_INTERVAL = timedelta(seconds=interval)
         self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
+
+    @property
+    def name(self) -> str | None:
+        """Return the name of the schedule time entity.
+        
+        Always return the entity name to ensure descriptive names are displayed.
+        """
+        return self._attr_name
 
     @property
     def native_value(self):

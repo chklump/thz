@@ -241,12 +241,8 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
     def name(self) -> str | None:
         """Return the name of the sensor.
         
-        When has_entity_name is True (which means translation_key is set),
-        return None to allow Home Assistant to use the translation system.
-        Otherwise, return the full entity name directly.
+        Always return the entity name to ensure descriptive names are displayed.
         """
-        if self._attr_has_entity_name:
-            return None
         return self._name
 
     @property
