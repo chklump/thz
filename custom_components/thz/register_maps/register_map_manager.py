@@ -143,11 +143,13 @@ class BaseRegisterMapManager:
                 # assume both are lists of entries (for read maps) or dicts (for write maps)
                 if isinstance(merged[block], list) and isinstance(entries, list):
                     try:
-                        override_names = {e[0] for e in entries}
+                        # Normalize names for comparison by stripping whitespace
+                        override_names = {e[0].strip() if isinstance(e[0], str) else e[0] for e in entries}
                     except (AttributeError, TypeError):
                         override_names = set()
                     merged[block] = [
-                        e for e in merged[block] if e[0] not in override_names
+                        e for e in merged[block] 
+                        if (e[0].strip() if isinstance(e[0], str) else e[0]) not in override_names
                     ] + entries
                 else:
                     # fallback: override completely (used for dict-shaped write maps)
