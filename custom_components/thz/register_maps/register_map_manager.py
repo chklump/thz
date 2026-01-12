@@ -132,6 +132,10 @@ class BaseRegisterMapManager:
         # Filter entries by expected type to avoid mixing different map shapes
         return {k: v for k, v in full_map.items() if isinstance(v, entry_type)}
 
+    def _normalize_name(self, name) -> str:
+        """Normalize a sensor name for comparison by stripping whitespace."""
+        return name.strip() if isinstance(name, str) else name
+
     def _merge_maps(self, base: dict, override: dict) -> dict:
         """Merge base and override maps in a predictable way."""
         merged = deepcopy(base) if base else {}
@@ -144,12 +148,13 @@ class BaseRegisterMapManager:
                 if isinstance(merged[block], list) and isinstance(entries, list):
                     try:
                         # Normalize names for comparison by stripping whitespace
-                        override_names = {e[0].strip() if isinstance(e[0], str) else e[0] for e in entries}
+                        override_names = {self._normalize_name(e[0]) for e in entries}
                     except (AttributeError, TypeError):
                         override_names = set()
+                    # Keep entries from base that are not in override, then add all override entries
                     merged[block] = [
-                        e for e in merged[block] 
-                        if (e[0].strip() if isinstance(e[0], str) else e[0]) not in override_names
+                        e for e in merged[block]
+                        if self._normalize_name(e[0]) not in override_names
                     ] + entries
                 else:
                     # fallback: override completely (used for dict-shaped write maps)
