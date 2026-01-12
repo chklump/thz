@@ -302,7 +302,7 @@ class THZTime(TimeEntity):
             )
             await asyncio.sleep(
                 0.01
-            )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
+            )  # Short pause to ensure the device is ready
         self._attr_native_value = t_value
 
 
@@ -394,7 +394,7 @@ class THZScheduleTime(TimeEntity):
             )
             await asyncio.sleep(
                 0.01
-            )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
+            )  # Short pause to ensure the device is ready
 
         # Schedule data format (from FHEM 7prog):
         # - Bytes 0-3: header/other data

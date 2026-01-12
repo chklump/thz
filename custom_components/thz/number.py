@@ -216,5 +216,5 @@ class THZNumber(NumberEntity):
                 )
             await asyncio.sleep(
                 0.01
-            )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
+            )  # Short pause to ensure the device is ready
         self._attr_native_value = value

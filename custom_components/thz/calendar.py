@@ -183,7 +183,7 @@ class THZSchedule:
                 )
                 await asyncio.sleep(
                     0.01
-                )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
+                )  # Short pause to ensure the device is ready
 
             _LOGGER.debug("%s: raw_value=%s", self._name, raw_value.hex() if raw_value else raw_value)
             start_time_raw = int.from_bytes(raw_value[0:1], byteorder="little", signed=False)

@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class THZDevice:
-    """Repräsentiert die Verbindung zur THZ-Wärmepumpe."""
+    """Represents the connection to the THZ heat pump."""
 
     def __init__(
         self,
@@ -28,7 +28,7 @@ class THZDevice:
         baudrate: int = const.DEFAULT_BAUDRATE,
         read_timeout: float = const.TIMEOUT,
     ) -> None:
-        """Nur Grundkonfiguration – noch keine Kommunikation."""
+        """Initialize basic configuration – no communication yet."""
         self.connection = connection
         self.port = port
         self.host = host
@@ -37,7 +37,7 @@ class THZDevice:
         self.read_timeout = read_timeout
         self._initialized = False
 
-        # Platzhalter
+        # Placeholders
         self.ser: serial.Serial | socket.socket | None = None
         self._firmware_version: str | None = None
         self.register_map_manager: RegisterMapManager | None = None
@@ -45,32 +45,32 @@ class THZDevice:
         self._cache = {}
         self._cache_duration = 60
 
-        # Thread-Lock für parallele Zugriffe
+        # Thread lock for parallel access
         self.lock = asyncio.Lock()
         self._last_access = 0
-        self._min_interval = 0.1  # minimale Zeit zwischen zwei Reads in Sekunden
+        self._min_interval = 0.1  # minimum time between reads in seconds
 
         # ---------------------------------------------------------------------
 
     async def async_initialize(self, hass: HomeAssistant) -> None:
-        """Öffnet Verbindung und initialisiert Firmware-abhängige Datenstrukturen."""
-        _LOGGER.debug("Initialisiere THZ-Device (%s)", self.connection)
+        """Open connection and initialize firmware-dependent data structures."""
+        _LOGGER.debug("Initializing THZ device (%s)", self.connection)
 
-        # Verbindung öffnen
+        # Open connection
         if self.connection == "usb":
             self._connect_serial()
         elif self.connection == "ip":
             self._connect_tcp()
         else:
-            raise ValueError(f"Unbekannter Verbindungstyp: {self.connection}")
+            raise ValueError(f"Unknown connection type: {self.connection}")
 
-        # Firmware lesen (läuft synchron im Executor)
+        # Read firmware (runs synchronously in executor)
         self._firmware_version = await hass.async_add_executor_job(
             self.read_firmware_version
         )
-        _LOGGER.info("Firmware-Version erkannt: %s", self._firmware_version)
+        _LOGGER.info("Firmware version detected: %s", self._firmware_version)
 
-        # Firmware-spezifische Register-Maps laden
+        # Load firmware-specific register maps
         if self._firmware_version is None:
             raise RuntimeError("Firmware version could not be determined")
         self.register_map_manager = RegisterMapManager(self._firmware_version)
@@ -84,9 +84,9 @@ class THZDevice:
         self._initialized = True
 
     def _connect_serial(self):
-        """Öffnet die USB/Serielle Verbindung."""
+        """Open the USB/Serial connection."""
         _LOGGER.debug(
-            "Öffne serielle Verbindung: %s @ %s baud", self.port, self.baudrate
+            "Opening serial connection: %s @ %s baud", self.port, self.baudrate
         )
         self.ser = serial.Serial(
             self.port,
@@ -95,8 +95,8 @@ class THZDevice:
         )
 
     def _connect_tcp(self):
-        """Verbindet sich mit ser.net (TCP/IP)."""
-        _LOGGER.debug("Öffne TCP-Verbindung: %s:%s", self.host, self.tcp_port)
+        """Connect to ser2net (TCP/IP)."""
+        _LOGGER.debug("Opening TCP connection: %s:%s", self.host, self.tcp_port)
         self.ser = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.ser.settimeout(self.read_timeout)
         self.ser.connect((self.host, self.tcp_port))
@@ -124,27 +124,27 @@ class THZDevice:
         return data
 
     def send_request(self, telegram: bytes, get_or_set: str) -> bytes:
-        """Sende Anfrage über USB oder TCP, empfange Antwort."""
+        """Send request via USB or TCP, receive response."""
         timeout = self.read_timeout
         data = bytearray()
 
         try:
-            # 1. Greeting senden (0x02)
+            # 1. Send greeting (0x02)
             self._write_bytes(const.STARTOFTEXT)
-            # _LOGGER.info("Greeting gesendet (0x02)")
+            # _LOGGER.info("Greeting sent (0x02)")
 
-            # 2. 0x10 Antwort erwarten
+            # 2. Expect 0x10 response
             response = self._read_exact(1, timeout)
             if response != const.DATALINKESCAPE:
-                _LOGGER.error(f"Handshake 1 fehlgeschlagen, erhalten: {response.hex()}")
+                _LOGGER.error("Handshake 1 failed, received: %s", response.hex())
                 return b""
 
-            # 3. Telegram senden
+            # 3. Send telegram
             self._reset_input_buffer()
             self._write_bytes(telegram)
-            # _LOGGER.info(f"Request gesendet: {telegram.hex()}")
+            # _LOGGER.info("Request sent: %s", telegram.hex())
 
-            # 4. 0x10 0x02 Antwort erwarten
+            # 4. Expect 0x10 0x02 response
             # Note: Device may send 0x10 and 0x02 separately with a delay
             response = self._read_exact(2, timeout)
             
@@ -158,7 +158,7 @@ class THZDevice:
                 if second_byte == const.STARTOFTEXT:
                     response = const.DATALINKESCAPE + const.STARTOFTEXT
                 else:
-                    _LOGGER.error(f"Handshake 2 fehlgeschlagen: erhalten 0x10 dann {second_byte.hex()}")
+                    _LOGGER.error("Handshake 2 failed: received 0x10 then %s", second_byte.hex())
                     return b""
             elif response == const.STARTOFTEXT:
                 # Sometimes device sends just 0x02 (as per Perl code line 1525)
@@ -166,14 +166,14 @@ class THZDevice:
                 response = const.DATALINKESCAPE + const.STARTOFTEXT  # Accept it
             
             if response != const.DATALINKESCAPE + const.STARTOFTEXT:
-                _LOGGER.error(f"Handshake 2 fehlgeschlagen, erhalten: {response.hex()}")
+                _LOGGER.error("Handshake 2 failed, received: %s", response.hex())
                 return b""
 
             if get_or_set == "get":
-                # 5. Bestätigung senden (0x10)
+                # 5. Send confirmation (0x10)
                 self._write_bytes(const.DATALINKESCAPE)
 
-                # 6. Daten-Telegramm empfangen bis 0x10 0x03
+                # 6. Receive data telegram until 0x10 0x03
                 start_time = time.time()
                 while time.time() - start_time < timeout:
                     chunk = self._read_available()
@@ -185,24 +185,24 @@ class THZDevice:
                         ):
                             break
 
-                # _LOGGER.info(f"Empfangene Rohdaten: {data.hex()}")
+                # _LOGGER.info("Received raw data: %s", data.hex())
 
                 if not (
                     len(data) >= 8 and data[-2:] == const.DATALINKESCAPE + const.ENDOFTEXT
                 ):
-                    _LOGGER.error("Keine gültige Antwort nach Datenanfrage erhalten")
+                    _LOGGER.error("No valid response received after data request")
                     return b""
 
-            # 7. Ende der Kommunikation
+            # 7. End of communication
             self._write_bytes(const.STARTOFTEXT)
             return bytes(data)
         except Exception as e:
-            _LOGGER.error(f"Fehler bei send_request: {e}")
+            _LOGGER.error("Error in send_request: %s", e)
             return b""
 
     # Hilfsmethoden ergänzen
     def _write_bytes(self, data: bytes):
-        """Sendet Bytes je nach Verbindungstyp."""
+        """Send bytes depending on connection type."""
         if isinstance(self.ser, socket.socket):  # TCP Socket
             self.ser.send(data)
         elif isinstance(self.ser, serial.Serial):  # Serial
@@ -210,19 +210,18 @@ class THZDevice:
             self.ser.flush()
 
     def _read_exact(self, size: int, timeout: float) -> bytes:
-        """Liest exakt n Bytes, egal ob USB oder TCP."""
+        """Read exactly n bytes, regardless of USB or TCP."""
         end_time = time.time() + timeout
         buf = bytearray()
         while len(buf) < size and time.time() < end_time:
             chunk = self._read_available()
             if chunk:
                 buf.extend(chunk)
-            #else: 
-                #time.sleep(0.01) time.sleep(0.01) causes blocking in async context, let's see if it works without
+            # Note: time.sleep(0.01) was removed as it causes blocking in async context
         return bytes(buf)
 
     def _read_available(self) -> bytes:
-        """Liest verfügbare Bytes."""
+        """Read available bytes."""
         if isinstance(self.ser, socket.socket) and hasattr(
             self.ser, "recv"
         ):  # TCP Socket
@@ -294,51 +293,53 @@ class THZDevice:
         """Decode the response from the THZ device, checking header, CRC, and unescaping."""
         try:
             if len(data) < 6:
-                _LOGGER.error(f"Antwort zu kurz: {data.hex()}")
+                _LOGGER.error("Response too short: %s", data.hex())
                 return None
 
             data = self.unescape(data)
 
-            # Header sind die ersten 2 Bytes
+            # Header is the first 2 bytes
             header = data[0:2]
             if header in (b"\x01\x80", b"\x01\x00"):
-                # normale Antwort b'\x01\x80' for "set" commands, b'\x01\x00' for "get"
-                # CRC ist Byte 2 (index 2)
+                # Normal response b'\x01\x80' for "set" commands, b'\x01\x00' for "get"
+                # CRC is byte 2 (index 2)
                 crc = data[2]
-                # Payload = zwischen Byte 3 und vorletzte 2 Bytes (ETX)
+                # Payload = between byte 3 and last 2 bytes (ETX)
                 payload = data[3:-2]
-                # Prüfe CRC
-                # Für CRC berechnung: alles außer CRC und ETX (letzte 2 Bytes)
-                # hexstring zum Prüfen zusammensetzen
+                # Check CRC
+                # For CRC calculation: everything except CRC and ETX (last 2 bytes)
+                # Assemble hex string for checking
                 check_data = data[:2] + b"\x00" + payload
-                # _LOGGER.debug(f"Payload: {payload.hex()},
-                # Checksumme: {crc:02X}, Checkdaten: {check_data.hex()}")
+                # _LOGGER.debug("Payload: %s, Checksum: %02X, Check data: %s",
+                #               payload.hex(), crc, check_data.hex())
                 checksum_bytes = self.thz_checksum(check_data)
                 calc_crc = checksum_bytes[0]
                 if calc_crc != crc:
                     _LOGGER.error(
-                        f"CRC Fehler in Antwort. Erwartet {crc:02X}, berechnet {calc_crc:02X}"
+                        "CRC error in response. Expected %02X, calculated %02X",
+                        crc,
+                        calc_crc,
                     )
                     return None
 
                 return checksum_bytes + payload
 
             if header == b"\x01\x01":
-                _LOGGER.error("Timing Issue from device")
+                _LOGGER.error("Timing issue from device")
                 return None
             if header == b"\x01\x02":
-                _LOGGER.error("CRC Error in request")
+                _LOGGER.error("CRC error in request")
                 return None
             if header == b"\x01\x03":
-                _LOGGER.error("Unknown Command")
+                _LOGGER.error("Unknown command")
                 return None
             if header == b"\x01\x04":
-                _LOGGER.error("Unknown Register Request")
+                _LOGGER.error("Unknown register request")
                 return None
-            _LOGGER.error(f"Unknown Response: {data.hex()}")
+            _LOGGER.error("Unknown response: %s", data.hex())
             return None
         except Exception as e:
-            _LOGGER.error(f"Fehler beim Dekodieren der Antwort: {e}")
+            _LOGGER.error("Error decoding response: %s", e)
             return None
 
     def read_write_register(
@@ -428,17 +429,17 @@ class THZDevice:
         return response[offset : offset + length]
 
     def write_value(self, addr_bytes: bytes, value: bytes) -> None:
-        r"""Writes a value to the THZ device.
+        r"""Write a value to the THZ device.
 
         Args:
             addr_bytes: bytes (e.g. b'\xfb')
             value: integer value to write
         """
         self.read_write_register(addr_bytes, "set", value)
-        _LOGGER.debug("Wert %s an Adresse %s geschrieben", value, addr_bytes.hex())
+        _LOGGER.debug("Value %s written to address %s", value, addr_bytes.hex())
 
     def read_block(self, addr_bytes: bytes, get_or_set: str) -> bytes:
-        r"""Reads a value from the THZ device.
+        r"""Read a block from the THZ device.
 
         Args:
             addr_bytes: bytes (e.g. b'\xfb')
