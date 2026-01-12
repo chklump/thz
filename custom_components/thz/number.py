@@ -3,7 +3,7 @@ import asyncio
 import logging
 from datetime import timedelta
 
-from homeassistant.components.number import ConfigEntry, NumberEntity
+from homeassistant.components.number import ConfigEntry, NumberEntity, NumberMode
 from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -103,6 +103,7 @@ class THZNumber(NumberEntity):
         self._attr_native_step = float(step) if step != "" else 1
         self._attr_native_unit_of_measurement = unit
         self._attr_device_class = device_class
+        self._attr_mode = NumberMode.BOX  # Use box input instead of slider
         self._decode_type = decode_type
         self._device = device
         self._attr_icon = icon or "mdi:eye"
