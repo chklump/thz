@@ -58,6 +58,7 @@ async def async_setup_entry(
 
     # Create sensors
     sensors = []
+    seen_sensor_names = set()  # Track sensor names to avoid duplicates
     all_registers = register_manager.get_all_registers()
     for block, entries in all_registers.items():
         # Get the coordinator for this block
@@ -69,9 +70,22 @@ async def async_setup_entry(
         block_hex = block.removeprefix("pxx")  # Remove "pxx" prefix
         block_bytes = bytes.fromhex(block_hex)
         for name, offset, length, decode_type, factor in entries:
-            meta = SENSOR_META.get(name.strip(), {})
+            sensor_name = name.strip()
+            
+            # Skip duplicate sensor names - only create the first occurrence
+            if sensor_name in seen_sensor_names:
+                _LOGGER.debug(
+                    "Skipping duplicate sensor '%s' in block %s (already created)",
+                    sensor_name,
+                    block,
+                )
+                continue
+            
+            seen_sensor_names.add(sensor_name)
+            
+            meta = SENSOR_META.get(sensor_name, {})
             entry = {
-                "name": name.strip(),
+                "name": sensor_name,
                 "offset": offset // 2,  # Register-Offset in Bytes
                 "length": (length + 1)
                 // 2,  # Register-Länge in Bytes; +1 um immer mindestens 1 Byte zu haben

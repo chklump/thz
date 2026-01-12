@@ -1,6 +1,6 @@
 """Register map definitions for firmware version 214.
 
-This module provides the `REGISTER_MAP` dictionary, which contains mappings for two register groups ("pxxF4" and "pxxFB") used in the THZ integration. Each group is a list of tuples describing register fields, including:
+This module provides the `REGISTER_MAP` dictionary, which contains mappings for two register groups ("F4" and "FB") used in the THZ integration. Each group is a list of tuples describing register fields, including:
 
 - Field name (str)
 - Start position (int)
@@ -11,13 +11,14 @@ This module provides the `REGISTER_MAP` dictionary, which contains mappings for 
 These mappings are used to interpret raw register data from the device.
 
 Structure:
-    "pxxF4": [ ... ],
-    "pxxFB": [ ... ],
+    "F4": [ ... ],
+    "FB": [ ... ],
 """
 
 REGISTER_MAP = {
     "firmware": "214",
-    "pxxF4": [
+    "F4": [
+        ("outsideTemp: ", 4, 4, "hex2int", 10),
         (" x08: ", 8, 4, "raw", 1),
         (" returnTemp: ", 12, 4, "hex2int", 10),
         (" integralHeat: ", 16, 4, "hex2int", 1),
@@ -37,7 +38,7 @@ REGISTER_MAP = {
         (" offHysteresisNo: ", 34, 2, "hex", 1),
         (" hcBoosterStage: ", 36, 2, "hex", 1),
     ],
-    "pxxFB": [
+    "FB": [
         ("outsideTemp: ", 8, 4, "hex2int", 10),
         (" flowTemp: ", 12, 4, "hex2int", 10),
         (" returnTemp: ", 16, 4, "hex2int", 10),

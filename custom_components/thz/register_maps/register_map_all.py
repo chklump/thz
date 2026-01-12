@@ -87,7 +87,18 @@ REGISTER_MAP = {
             1,
         ),  # either hcStage or dhwStage depending from heatRequest
         ("compBlockTime:", 14, 4, "hex2int", 1),  # remaining compressor block time
+        ("pasteurisationMode:", 18, 2, "hex", 1),  # 0=off 1=on
         ("defrostEvaporator:", 20, 2, "raw", 1),  # 10=off 30=defrostEva
+        ("boosterStage2:", 22, 1, "bit3", 1),  # booster 2
+        ("solarPump:", 22, 1, "bit2", 1),  # solar pump
+        ("boosterStage1:", 22, 1, "bit1", 1),  # booster 1
+        ("compressor:", 22, 1, "bit0", 1),  # compressor
+        ("heatPipeValve:", 23, 1, "bit3", 1),  # heat pipe valve
+        ("diverterValve:", 23, 1, "bit2", 1),  # diverter valve
+        ("dhwPump:", 23, 1, "bit1", 1),  # dhw pump
+        ("heatingCircuitPump:", 23, 1, "bit0", 1),  # hc pump
+        ("mixerOpen:", 25, 1, "bit1", 1),  # mixer open
+        ("mixerClosed:", 25, 1, "bit0", 1),  # mixer closed
         ("sensorBits1:", 26, 2, "raw", 1),  # sensor condenser temperature ??
         ("sensorBits2:", 28, 2, "raw", 1),  # sensor low pressure ??
         (
@@ -100,7 +111,10 @@ REGISTER_MAP = {
         ("boostBlockTimeAfterHD:", 34, 4, "hex2int", 1),  # ??
     ],
     "pxxF3": [
+        ("dhwTemp:", 4, 4, "hex2int", 10),
+        ("outsideTemp:", 8, 4, "hex2int", 10),
         ("dhwSetTemp:", 12, 4, "hex2int", 10),
+        ("compBlockTime:", 16, 4, "hex2int", 1),
         ("out:", 20, 4, "raw", 1),
         ("heatBlockTime:", 24, 4, "hex2int", 1),
         ("dhwBoosterStage:", 28, 2, "hex", 1),
@@ -109,8 +123,11 @@ REGISTER_MAP = {
         # (" x36: ", 36, 4, "raw", 1)
     ],
     "pxxF4": [
+        ("outsideTemp:", 4, 4, "hex2int", 10),
         # (" x08: ", 8, 4, "hex2int", 10),
+        ("returnTemp:", 12, 4, "hex2int", 10),
         ("integralHeat:", 16, 4, "hex2int", 1),
+        ("flowTemp:", 20, 4, "hex2int", 10),
         ("heatSetTemp:", 24, 4, "hex2int", 10),
         ("heatTemp:", 28, 4, "hex2int", 10),
         ("seasonMode:", 38, 2, "somwinmode", 1),
@@ -141,11 +158,11 @@ REGISTER_MAP = {
     "pxxFE": [
         ("HW:", 30, 2, "hex", 1),
         ("SW:", 32, 4, "swver", 1),
-        ("firmwareBuildDate:", 36, 22, "hex2ascii", 1),
+        ("Date:", 36, 22, "hex2ascii", 1),
     ],
     "pxx0A0176": [
         ("switchingProg: ", 11, 1, "bit0", 1),
-        ("compressorDiag:", 11, 1, "bit1", 1),
+        ("compressor:", 11, 1, "bit1", 1),
         ("heatingHC:", 11, 1, "bit2", 1),
         ("heatingDHW:", 10, 1, "bit0", 1),
         ("boosterHC:", 10, 1, "bit1", 1),
