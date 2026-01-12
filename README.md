@@ -128,6 +128,39 @@ Built-in diagnostics make troubleshooting easier:
    - **Network Connection**: Provide the host IP address and port
 5. Complete the setup and the integration will discover your heat pump
 
+## Documentation
+
+- **[Example Automations](docs/EXAMPLES.md)** - Ready-to-use automations for common scenarios
+- **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Solutions for common issues and debugging
+- **[Code Review Report](docs/CODE_REVIEW_REPORT.md)** - Detailed code quality analysis
+
+## Usage Tips
+
+### Accessing Diagnostics
+
+For troubleshooting, you can download diagnostics data:
+1. Go to **Settings** → **Devices & Services**
+2. Find the THZ integration
+3. Click on your device
+4. Click the three dots menu and select **Download Diagnostics**
+
+This provides comprehensive information about your setup, useful for support requests.
+
+### Working with Climate Entity
+
+The climate entity provides direct temperature control:
+- **Comfort Mode**: Uses day temperature settings
+- **Eco Mode**: Uses night temperature settings
+- **Temperature Adjustment**: Changes apply to the active preset mode
+
+### Enabling Hidden Entities
+
+Many advanced entities are hidden by default. To enable them:
+1. Go to your THZ device page
+2. Scroll down and click **Show disabled entities**
+3. Enable any entities you need
+4. Hidden by default: HC2 entities, program schedules, advanced parameters (p13+)
+
 ## Disclaimer
 
 **IMPORTANT**: This is an unofficial, community-developed integration and is not affiliated with, endorsed by, or supported by Stiebel Eltron or Tecalor.

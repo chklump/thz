@@ -282,6 +282,37 @@
       "op_mode": {
         "name": "Operating Mode"
       }
+    },
+    "binary_sensor": {
+      "alarm": {
+        "name": "Alarm"
+      },
+      "error": {
+        "name": "Error"
+      },
+      "warning": {
+        "name": "Warning"
+      },
+      "compressor_running": {
+        "name": "Compressor Running"
+      },
+      "heating_mode": {
+        "name": "Heating Mode Active"
+      },
+      "dhw_mode": {
+        "name": "DHW Mode Active"
+      },
+      "defrost": {
+        "name": "Defrost Active"
+      }
+    },
+    "climate": {
+      "hc1": {
+        "name": "Heating Circuit 1"
+      },
+      "hc2": {
+        "name": "Heating Circuit 2"
+      }
     }
   }
 }
