@@ -264,6 +264,14 @@ class THZCalendar(CalendarEntity):
         self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
 
     @property
+    def name(self) -> str | None:
+        """Return the name of the calendar entity.
+        
+        Always return the entity name to ensure descriptive names are displayed.
+        """
+        return self._attr_name
+
+    @property
     def event(self) -> CalendarEvent | None:
         # Return the next event (next occurrence)
         # Use the timezone of the first event, or UTC if none
