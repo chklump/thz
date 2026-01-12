@@ -332,15 +332,18 @@ class THZDevice:
         - Each 0x10 byte must be escaped as 0x10 0x10
         - Each 0x2B byte must be escaped as 0x2B 0x18
         
+        The order of escaping (0x10 first, then 0x2B) matches the FHEM implementation
+        and is safe because these escape sequences don't interfere with each other.
+        
         Args:
             data: Raw bytes to escape
             
         Returns:
             Escaped bytes ready to send
         """
-        # 0x10 -> 0x10 0x10
+        # 0x10 -> 0x10 0x10 (matches Perl line 1764)
         data = data.replace(const.DATALINKESCAPE, const.DATALINKESCAPE + const.DATALINKESCAPE)
-        # 0x2B -> 0x2B 0x18
+        # 0x2B -> 0x2B 0x18 (matches Perl line 1768)
         return data.replace(b"\x2b", b"\x2b\x18")
 
     def decode_response(self, data: bytes):
