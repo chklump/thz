@@ -7,6 +7,19 @@
         "data": {
           "connection_type": "Connection Type"
         }
+      },
+      "reconfigure": {
+        "title": "Reconfigure THZ Integration",
+        "description": "Update your THZ integration settings. You can change connection parameters, device name, area, and polling intervals.",
+        "data": {
+          "device": "Serial Device",
+          "host": "Host",
+          "port": "Port",
+          "Baudrate": "Baud Rate",
+          "alias": "Device Name",
+          "area": "Area",
+          "write_interval": "Write Interval (seconds)"
+        }
       }
     },
     "abort": {
