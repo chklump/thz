@@ -12,7 +12,10 @@ Key Components:
 The integration reads register mappings from the THZ device, decodes sensor values according
 to their metadata, and exposes them as Home Assistant sensor entities.
 """
+from __future__ import annotations
+
 import logging
+import struct
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -25,8 +28,6 @@ from .const import DOMAIN, should_hide_entity_by_default
 from .register_maps.register_map_manager import RegisterMapManager
 from .sensor_meta import SENSOR_META
 from .thz_device import THZDevice
-import math
-import struct
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -102,7 +103,7 @@ async def async_setup_entry(
     async_add_entities(sensors, True)
 
 
-def decode_value(raw: bytes, decode_type: str, factor: float = 1.0):
+def decode_value(raw: bytes, decode_type: str, factor: float = 1.0) -> int | float | bool | str:
     """Decode a raw byte value according to the specified decode type.
 
     Args:
@@ -129,11 +130,11 @@ def decode_value(raw: bytes, decode_type: str, factor: float = 1.0):
     if decode_type.startswith("bit"):
         bitnum = int(decode_type[3:])
         # _LOGGER.debug(f"Decode bit {bitnum} from raw {raw.hex()}")
-        return (raw[0] >> bitnum) & 0x01
+        return bool((raw[0] >> bitnum) & 0x01)
     if decode_type.startswith("nbit"):
         bitnum = int(decode_type[4:])
         # _LOGGER.debug(f"Decode bit {bitnum} from raw {raw.hex()}")
-        return not ((raw[0] >> bitnum) & 0x01)
+        return not bool((raw[0] >> bitnum) & 0x01)
     if decode_type == "esp_mant":
         # To mimic: sprintf("%.3f", unpack('f', pack('L', reverse(hex($value)))))
         # The FHEM code reverses bytes and unpacks, which is equivalent to big-endian

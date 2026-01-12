@@ -1,4 +1,6 @@
 """Time entity for THZ devices."""
+from __future__ import annotations
+
 import asyncio
 import logging
 from datetime import time, timedelta
@@ -8,7 +10,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN, should_hide_entity_by_default
+from .const import (
+    DEFAULT_UPDATE_INTERVAL,
+    DOMAIN,
+    should_hide_entity_by_default,
+    TIME_VALUE_UNSET,
+    WRITE_REGISTER_OFFSET,
+    WRITE_REGISTER_LENGTH,
+)
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -43,7 +52,7 @@ def time_to_quarters(t: time | None) -> int:
     128
     """
     if t is None:
-        return 128  # 0x80
+        return TIME_VALUE_UNSET  # 0x80 sentinel value for "no time"
     return t.hour * 4 + (t.minute // 15)
 
 
@@ -79,7 +88,7 @@ def quarters_to_time(num: int) -> time | None:
     >>> quarters_to_time(0x80) # sentinel for "no time"
     None
     """
-    if num == 0x80:
+    if num == TIME_VALUE_UNSET:
         return None
     
     # Validate range and clamp if necessary
@@ -260,11 +269,15 @@ class THZTime(TimeEntity):
         """Fetch new state data for the time."""
         async with self._device.lock:
             value_bytes = await self.hass.async_add_executor_job(
-                self._device.read_value, bytes.fromhex(self._command), "get", 4, 2
+                self._device.read_value,
+                bytes.fromhex(self._command),
+                "get",
+                WRITE_REGISTER_OFFSET,
+                WRITE_REGISTER_LENGTH,
             )
             await asyncio.sleep(
                 0.01
-            )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
+            )  # Short pause to ensure the device is ready
         # Time values are stored as single bytes (0-95 quarters)
         num = value_bytes[0]
         self._attr_native_value = quarters_to_time(num)

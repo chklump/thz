@@ -35,7 +35,7 @@ class THZDevice:
         self.tcp_port = tcp_port
         self.baudrate = baudrate
         self.read_timeout = read_timeout
-        self._initialzed = False
+        self._initialized = False
 
         # Platzhalter
         self.ser: serial.Serial | socket.socket | None = None
@@ -81,7 +81,7 @@ class THZDevice:
         self._cache = {}  # { block_name: (timestamp, payload) }
         self._cache_duration = 60  # seconds
 
-        self._initialzed = True
+        self._initialized = True
 
     def _connect_serial(self):
         """Öffnet die USB/Serielle Verbindung."""
@@ -259,62 +259,6 @@ class THZDevice:
         checksum = sum(b for i, b in enumerate(data) if i != 2)
         checksum = checksum % 256
         return bytes([checksum])
-
-    # def send_request(self, telegram: bytes) -> bytes:
-    #     # 1. Send greeting
-    #     self.ser.write(const.STARTOFTEXT)
-    #     self.ser.flush()
-    #     #_LOGGER.debug("Greeting gesendet: 02")
-
-    #     # 2. Wait for 0x10 response
-    #     response = self.ser.read(1)
-    #     #_LOGGER.debug(f"Greeting Antwort: {response.hex()}")
-    #     if response != const.DATALINKESCAPE:
-    #         raise ValueError("Handshake Schritt 1 fehlgeschlagen: keine 0x10 Antwort")
-
-    #     # 3. Send request telegram
-    #     # telegram = self.build_request(telegram)
-    #     self.ser.reset_input_buffer()
-    #     self.ser.write(telegram)
-    #     self.ser.flush()
-    #     _LOGGER.debug("Request gesendet: %s", telegram.hex())
-
-    #     # 4. Wait for 0x10 0x02 response
-    #     response = self.ser.read(2)
-    #     #_LOGGER.debug(f"Antwort nach Request: {response.hex()}")
-    #     if response != const.DATALINKESCAPE + const.STARTOFTEXT:
-    #         raise ValueError("Handshake Schritt 2 fehlgeschlagen: keine 0x10 0x02 Antwort")
-
-    #     # 5. Send confirmation 0x10
-    #     self.ser.write(const.DATALINKESCAPE)
-    #     self.ser.flush()
-    #     #_LOGGER.debug("Bestätigung gesendet: 10")
-
-    #     # 6. Read data telegram (ends with 0x10 0x03)
-    #     data = bytearray()
-    #     start_time = time.time()
-    #     max_wait = self.read_timeout
-    #     while time.time() - start_time < max_wait:
-    #         if self.ser.in_waiting > 0:
-    #             chunk = self.ser.read(self.ser.in_waiting)
-    #             data.extend(chunk)
-    #             # Check for footer (0x10 0x03) and minimum length
-    #             if len(data) >= 8 and data[-2:] == const.DATALINKESCAPE + const.ENDOFTEXT:
-    #                 break
-    #         else:
-    #            asyncio.sleep(0.01)
-    #     _LOGGER.debug(f"Empfangene Rohdaten: {data.hex()}")
-
-    #     if not (len(data) >= 8 and data[-2:] == const.DATALINKESCAPE + const.ENDOFTEXT):
-    #         raise ValueError("Keine gültige Antwort nach Datenanfrage erhalten")
-
-    #     # 7. End of communication
-    #     self.ser.write(const.STARTOFTEXT)
-    #     self.ser.flush()
-    #     #_LOGGER.debug("Greeting gesendet: 02")
-
-    #     # Unescaping is already handled in decode_response
-    #     return bytes(data)
 
     def unescape(self, data: bytes) -> bytes:
         """Remove escape sequences from data."""
@@ -518,23 +462,3 @@ class THZDevice:
         if self.register_map_manager:
             return list(self.register_map_manager.get_all_registers().keys())
         return []
-
-
-# from homeassistant.helpers.update_coordinator import DataUpdateCoordinator # pyright: ignore[reportMissingImports, reportMissingModuleSource]
-# class THZCoordinator(DataUpdateCoordinator):
-#     def __init__(self, hass, device, refresh_interval: int):
-#         super().__init__(
-#             hass,
-#             _LOGGER,
-#             name="THZ Coordinator",
-#             update_interval= time.timedelta(seconds=refresh_interval),
-#         )
-#         self.device = device
-
-#     async def _async_update_data(self):
-#         return await self.device.read_all()
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    dev = THZDevice("/dev/ttyUSB0")

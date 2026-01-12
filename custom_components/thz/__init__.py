@@ -1,5 +1,7 @@
 """Init file for THZ integration."""
 
+from __future__ import annotations
+
 from datetime import timedelta
 import logging
 
@@ -152,5 +154,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry, ["sensor", "select", "number", "time", "switch"]
     )
     if unload_ok:
+        # Clean up device connection
+        entry_data = hass.data[DOMAIN].get(entry.entry_id)
+        if entry_data:
+            device = entry_data.get("device")
+            if device:
+                await hass.async_add_executor_job(device.close)
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok
