@@ -2,8 +2,8 @@
 
 This module defines the SENSOR_META dictionary, which maps sensor names to their metadata.
 Each entry contains information such as data offset, length, decoding method, scaling factor,
-units, device class, icon, and translation key (where applicable). This metadata is used to
-interpret raw sensor data from THZ devices for integration with Home Assistant.
+units, device class, state class, icon, and translation key (where applicable). This metadata 
+is used to interpret raw sensor data from THZ devices for integration with Home Assistant.
 
 Example metadata fields:
     - offset: Byte offset in the data stream.
@@ -12,6 +12,7 @@ Example metadata fields:
     - factor: Scaling factor to apply to the decoded value.
     - unit: Unit of measurement (e.g., "°C", "W", "%").
     - device_class: Home Assistant device class (e.g., "temperature", "humidity").
+    - state_class: Home Assistant state class for long-term statistics (e.g., "measurement").
     - icon: Material Design Icon name for UI representation.
     - translation_key: Key for localization (optional).
 
@@ -26,6 +27,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "°C",
         "device_class": "temperature",
+        "state_class": "measurement",
         "icon": "mdi:thermometer",
         "translation_key": "outside_temp",
     },
@@ -36,6 +38,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "°C",
         "device_class": "temperature",
+        "state_class": "measurement",
         "icon": "mdi:thermometer",
         "translation_key": "flow_temp",
     },
@@ -46,6 +49,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "°C",
         "device_class": "temperature",
+        "state_class": "measurement",
         "icon": "mdi:thermometer",
         "translation_key": "return_temp",
     },
@@ -56,6 +60,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "°C",
         "device_class": "temperature",
+        "state_class": "measurement",
         "icon": "mdi:thermometer",
         "translation_key": "hotgas_temp",
     },
@@ -66,6 +71,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "°C",
         "device_class": "temperature",
+        "state_class": "measurement",
         "icon": "mdi:water-boiler",
         "translation_key": "dhw_temp",
     },
@@ -76,6 +82,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "°C",
         "device_class": "temperature",
+        "state_class": "measurement",
         "icon": "mdi:thermometer",
         "translation_key": "flow_temp_hc2",
     },
@@ -86,6 +93,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "°C",
         "device_class": "temperature",
+        "state_class": "measurement",
         "icon": "mdi:snowflake",
         "translation_key": "evaporator_temp",
     },
@@ -96,6 +104,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "°C",
         "device_class": "temperature",
+        "state_class": "measurement",
         "icon": "mdi:radiator",
         "translation_key": "condenser_temp",
     },
@@ -240,6 +249,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "W",
         "device_class": "power",
+        "state_class": "measurement",
         "icon": "mdi:fan",
         "translation_key": "output_ventilator_power",
     },
@@ -250,6 +260,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "W",
         "device_class": "power",
+        "state_class": "measurement",
         "icon": "mdi:fan",
         "translation_key": "input_ventilator_power",
     },
@@ -260,6 +271,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "W",
         "device_class": "power",
+        "state_class": "measurement",
         "icon": "mdi:fan",
         "translation_key": "main_ventilator_power",
     },
@@ -306,6 +318,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "%",
         "device_class": "humidity",
+        "state_class": "measurement",
         "icon": "mdi:water-percent",
         "translation_key": "rel_humidity",
     },
@@ -325,6 +338,7 @@ SENSOR_META = {
         "factor": 100,
         "unit": "kW",
         "device_class": "power",
+        "state_class": "measurement",
         "icon": "mdi:flash",
         "translation_key": "power_nd",
     },
@@ -335,6 +349,7 @@ SENSOR_META = {
         "factor": 100,
         "unit": "kW",
         "device_class": "power",
+        "state_class": "measurement",
         "icon": "mdi:flash",
         "translation_key": "power_hd",
     },
@@ -345,6 +360,7 @@ SENSOR_META = {
         "factor": 1,
         "unit": "kW",
         "device_class": "power",
+        "state_class": "measurement",
         "icon": "mdi:flash",
         "translation_key": "actual_power_qc",
     },
@@ -355,6 +371,7 @@ SENSOR_META = {
         "factor": 1,
         "unit": "kW",
         "device_class": "power",
+        "state_class": "measurement",
         "icon": "mdi:flash",
         "translation_key": "actual_power_pel",
     },
@@ -365,6 +382,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "°C",
         "device_class": "temperature",
+        "state_class": "measurement",
         "icon": "mdi:solar-power",
         "translation_key": "collector_temp",
     },
@@ -375,6 +393,7 @@ SENSOR_META = {
         "factor": 10,
         "unit": "°C",
         "device_class": "temperature",
+        "state_class": "measurement",
         "icon": "mdi:home-thermometer",
         "translation_key": "inside_temp",
     },
@@ -419,6 +438,7 @@ SENSOR_META = {
         "factor": 100,
         "unit": "%",
         "device_class": "humidity",
+        "state_class": "measurement",
         "icon": "mdi:water-percent",
         "translation_key": "humidity_air_out",
     },

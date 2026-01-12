@@ -17,7 +17,11 @@ from __future__ import annotations
 import logging
 import struct
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -87,13 +91,14 @@ async def async_setup_entry(
             meta = SENSOR_META.get(sensor_name, {})
             entry = {
                 "name": sensor_name,
-                "offset": offset // 2,  # Register-Offset in Bytes
+                "offset": offset // 2,  # Register offset in bytes
                 "length": (length + 1)
-                // 2,  # Register-Länge in Bytes; +1 um immer mindestens 1 Byte zu haben
+                // 2,  # Register length in bytes; +1 to always have at least 1 byte
                 "decode": decode_type,
                 "factor": factor,
                 "unit": meta.get("unit"),
                 "device_class": meta.get("device_class"),
+                "state_class": meta.get("state_class"),
                 "icon": meta.get("icon"),
                 "translation_key": meta.get("translation_key"),
             }
@@ -173,6 +178,7 @@ def normalize_entry(entry):  # um nach und nach Mapping zu erweitern
             "factor": factor,
             "unit": None,
             "device_class": None,
+            "state_class": None,
             "icon": None,
             "translation_key": None,
         }
@@ -243,6 +249,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         self._factor = e["factor"]
         self._unit = e.get("unit")
         self._device_class = e.get("device_class")
+        self._state_class = e.get("state_class")
         self._icon = e.get("icon")
         self._translation_key = e.get("translation_key")
         self._device_id = device_id
@@ -314,6 +321,16 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
             SensorDeviceClass | None: The device class, or None if not set.
         """
         return self._device_class
+
+    @property
+    def state_class(self) -> SensorStateClass | None:
+        """Return the state class of the sensor.
+
+        Returns:
+        -------
+            SensorStateClass | None: The state class for long-term statistics, or None if not set.
+        """
+        return self._state_class
 
     @property
     def icon(self) -> str | None:
