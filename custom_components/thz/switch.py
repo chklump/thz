@@ -1,4 +1,6 @@
 """THZ Switch Entity Platform."""
+from __future__ import annotations
+
 import asyncio
 import logging
 from datetime import timedelta
@@ -10,7 +12,13 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 
 from .entity_translations import get_translation_key
-from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN, should_hide_entity_by_default
+from .const import (
+    DEFAULT_UPDATE_INTERVAL,
+    DOMAIN,
+    should_hide_entity_by_default,
+    WRITE_REGISTER_OFFSET,
+    WRITE_REGISTER_LENGTH,
+)
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -199,13 +207,11 @@ class THZSwitch(SwitchEntity):
             "identifiers": {(DOMAIN, self._device_id)},
         }
 
-    # TODO debugging um die richtigen Werte zu bekommen
     async def async_update(self) -> None:
-        """Asynchronously updates the state of the switch by reading its value from the device.
+        """Update the switch state by reading the current value from the device.
 
-        This method acquires a lock on the device to ensure thread safety, sends a read command to the device,
-        and interprets the returned value as an on/off state. It also includes a short pause to ensure the device
-        is ready for the next operation.
+        Reads the switch value from the device using the configured command and offsets.
+        The value is interpreted as a boolean where non-zero values represent "on" state.
 
         Side Effects:
             - Updates the internal `_is_on` attribute based on the value read from the device.
@@ -220,11 +226,15 @@ class THZSwitch(SwitchEntity):
         )
         async with self._device.lock:
             value_bytes = await self.hass.async_add_executor_job(
-                self._device.read_value, bytes.fromhex(self._command), "get", 4, 2
+                self._device.read_value,
+                bytes.fromhex(self._command),
+                "get",
+                WRITE_REGISTER_OFFSET,
+                WRITE_REGISTER_LENGTH,
             )
             await asyncio.sleep(
                 0.01
-            )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
+            )  # Short pause to ensure the device is ready
         
         # Validate that we received data
         if not value_bytes:

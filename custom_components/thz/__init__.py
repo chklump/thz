@@ -1,5 +1,7 @@
 """Init file for THZ integration."""
 
+from __future__ import annotations
+
 from datetime import timedelta
 import logging
 
@@ -19,9 +21,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     log_level_str = config_entry.data.get("log_level", "info")
     _LOGGER.setLevel(getattr(logging, log_level_str.upper(), logging.INFO))
-    _LOGGER.info("Loglevel gesetzt auf: %s", log_level_str)
+    _LOGGER.info("Log level set to: %s", log_level_str)
     _LOGGER.debug(
-        "THZ async_setup_entry aufgerufen mit entry: %s", config_entry.as_dict()
+        "THZ async_setup_entry called with entry: %s", config_entry.as_dict()
     )
 
     hass.data.setdefault(DOMAIN, {})
@@ -29,19 +31,19 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     data = config_entry.data
     conn_type = data["connection_type"]
 
-    # 1. Device "roh" initialisieren
+    # 1. Initialize device
     if conn_type == "ip":
         device = THZDevice(connection="ip", host=data["host"], port=data["port"])
     elif conn_type == "usb":
         device = THZDevice(connection="usb", port=data["device"])
     else:
-        raise ValueError("Ungültiger Verbindungstyp")
+        raise ValueError("Invalid connection type")
 
     await device.async_initialize(hass)
 
-    # 2. Firmware abfragen
+    # 2. Query firmware version
     _LOGGER.info(
-        "THZ-Device vollständig initialisiert (FW %s)", device.firmware_version
+        "THZ device fully initialized (FW %s)", device.firmware_version
     )
 
     # --- create / update device in Home Assistant device registry using alias/area ---
@@ -65,12 +67,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     )
     _LOGGER.debug("Device registry entry created/updated: %s", device_entry.id)
 
-    # # 3. Mapping laden
+    # 3. Load register mappings
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN]["write_manager"] = device.write_register_map_manager
     hass.data[DOMAIN]["register_manager"] = device.register_map_manager
 
-    # 4. Device speichern
+    # 4. Store device instance
     hass.data[DOMAIN]["device"] = device
     hass.data[DOMAIN]["device_id"] = unique_id
 
@@ -121,7 +123,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         )
         coordinators[block] = coordinator
 
-    # im hass.data speichern
+    # Store in hass.data
     hass.data.setdefault(DOMAIN, {})[config_entry.entry_id] = {
         "device": device,
         "coordinators": coordinators,
@@ -136,14 +138,14 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
 
 async def _async_update_block(hass: HomeAssistant, device: THZDevice, block_name: str):
-    """Wird vom Coordinator aufgerufen, um einen Block zu lesen."""
+    """Called by coordinator to read a data block."""
     block_bytes = bytes.fromhex(block_name.removeprefix("pxx"))
     try:
-        _LOGGER.debug("Lese Block %s", block_name)
+        _LOGGER.debug("Reading block %s", block_name)
         async with device.lock:
             return await hass.async_add_executor_job(device.read_block, block_bytes, "get")
     except Exception as err:
-        raise UpdateFailed(f"Fehler beim Lesen von {block_name}: {err}") from err
+        raise UpdateFailed(f"Error reading {block_name}: {err}") from err
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -152,5 +154,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry, ["sensor", "select", "number", "time", "switch"]
     )
     if unload_ok:
+        # Clean up device connection
+        entry_data = hass.data[DOMAIN].get(entry.entry_id)
+        if entry_data:
+            device = entry_data.get("device")
+            if device:
+                await hass.async_add_executor_job(device.close)
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok

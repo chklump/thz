@@ -237,7 +237,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Get available serial ports."""
         ports = await self.hass.async_add_executor_job(serial.tools.list_ports.comports)
         if ports:
-            ports = [p.device for p in ports]  # <-- Nur den Gerätepfad übernehmen
+            ports = [p.device for p in ports]  # Extract only the device path
         else:
             ports = ["/dev/ttyUSB0", "/dev/ttyACM0", "/dev/ttyAMA0"]
         return ports
@@ -245,7 +245,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_detect_blocks(
         self, user_input=None
     ) -> config_entries.ConfigFlowResult:
-        """Liest dynamisch verfügbare Blöcke aus der Wärmepumpe."""
+        """Dynamically read available blocks from the heat pump."""
         data = self.connection_data
         conn_type = data["connection_type"]
 
@@ -273,13 +273,13 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await device.async_initialize(self.hass)
 
             firmware = device.firmware_version
-            _LOGGER.info("Firmware erkannt: %s", firmware)
+            _LOGGER.info("Firmware detected: %s", firmware)
 
             blocks = device.available_reading_blocks
-            _LOGGER.info("Verfügbare Blöcke: %s", blocks)
+            _LOGGER.info("Available blocks: %s", blocks)
 
         except Exception:
-            _LOGGER.exception("Fehler beim Lesen der Firmware/Blöcke")
+            _LOGGER.exception("Error reading firmware/blocks")
             return self.async_abort(reason="cannot_detect_blocks")
 
         self.blocks = blocks
@@ -289,7 +289,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_refresh_blocks(
         self, user_input=None
     ) -> config_entries.ConfigFlowResult:
-        """Frage nach individuellen Refresh-Intervallen pro Block."""
+        """Ask for individual refresh intervals per block."""
         blocks = self.blocks
 
         if user_input is not None:

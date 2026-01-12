@@ -1,4 +1,6 @@
 """THZ Number Entity Platform."""
+from __future__ import annotations
+
 import asyncio
 import logging
 from datetime import timedelta
@@ -9,7 +11,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .entity_translations import get_translation_key
-from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN, should_hide_entity_by_default
+from .const import (
+    DEFAULT_UPDATE_INTERVAL,
+    DOMAIN,
+    should_hide_entity_by_default,
+    WRITE_REGISTER_OFFSET,
+    WRITE_REGISTER_LENGTH,
+)
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -155,7 +163,11 @@ class THZNumber(NumberEntity):
         # _LOGGER.debug("Updating number %s with command %s", self._attr_name, self._command)
         async with self._device.lock:
             value_bytes = await self.hass.async_add_executor_job(
-                self._device.read_value, bytes.fromhex(self._command), "get", 4, 2
+                self._device.read_value,
+                bytes.fromhex(self._command),
+                "get",
+                WRITE_REGISTER_OFFSET,
+                WRITE_REGISTER_LENGTH,
             )
         
         # Validate that we received data
@@ -204,5 +216,5 @@ class THZNumber(NumberEntity):
                 )
             await asyncio.sleep(
                 0.01
-            )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
+            )  # Short pause to ensure the device is ready
         self._attr_native_value = value

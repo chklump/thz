@@ -12,9 +12,16 @@ Key Components:
 The integration reads register mappings from the THZ device, decodes sensor values according
 to their metadata, and exposes them as Home Assistant sensor entities.
 """
-import logging
+from __future__ import annotations
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+import logging
+import struct
+
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -25,8 +32,6 @@ from .const import DOMAIN, should_hide_entity_by_default
 from .register_maps.register_map_manager import RegisterMapManager
 from .sensor_meta import SENSOR_META
 from .thz_device import THZDevice
-import math
-import struct
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,13 +91,14 @@ async def async_setup_entry(
             meta = SENSOR_META.get(sensor_name, {})
             entry = {
                 "name": sensor_name,
-                "offset": offset // 2,  # Register-Offset in Bytes
+                "offset": offset // 2,  # Register offset in bytes
                 "length": (length + 1)
-                // 2,  # Register-Länge in Bytes; +1 um immer mindestens 1 Byte zu haben
+                // 2,  # Register length in bytes; +1 to always have at least 1 byte
                 "decode": decode_type,
                 "factor": factor,
                 "unit": meta.get("unit"),
                 "device_class": meta.get("device_class"),
+                "state_class": meta.get("state_class"),
                 "icon": meta.get("icon"),
                 "translation_key": meta.get("translation_key"),
             }
@@ -102,7 +108,7 @@ async def async_setup_entry(
     async_add_entities(sensors, True)
 
 
-def decode_value(raw: bytes, decode_type: str, factor: float = 1.0):
+def decode_value(raw: bytes, decode_type: str, factor: float = 1.0) -> int | float | bool | str:
     """Decode a raw byte value according to the specified decode type.
 
     Args:
@@ -129,11 +135,11 @@ def decode_value(raw: bytes, decode_type: str, factor: float = 1.0):
     if decode_type.startswith("bit"):
         bitnum = int(decode_type[3:])
         # _LOGGER.debug(f"Decode bit {bitnum} from raw {raw.hex()}")
-        return (raw[0] >> bitnum) & 0x01
+        return bool((raw[0] >> bitnum) & 0x01)
     if decode_type.startswith("nbit"):
         bitnum = int(decode_type[4:])
         # _LOGGER.debug(f"Decode bit {bitnum} from raw {raw.hex()}")
-        return not ((raw[0] >> bitnum) & 0x01)
+        return not bool((raw[0] >> bitnum) & 0x01)
     if decode_type == "esp_mant":
         # To mimic: sprintf("%.3f", unpack('f', pack('L', reverse(hex($value)))))
         # The FHEM code reverses bytes and unpacks, which is equivalent to big-endian
@@ -172,6 +178,7 @@ def normalize_entry(entry):  # um nach und nach Mapping zu erweitern
             "factor": factor,
             "unit": None,
             "device_class": None,
+            "state_class": None,
             "icon": None,
             "translation_key": None,
         }
@@ -242,6 +249,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         self._factor = e["factor"]
         self._unit = e.get("unit")
         self._device_class = e.get("device_class")
+        self._state_class = e.get("state_class")
         self._icon = e.get("icon")
         self._translation_key = e.get("translation_key")
         self._device_id = device_id
@@ -313,6 +321,16 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
             SensorDeviceClass | None: The device class, or None if not set.
         """
         return self._device_class
+
+    @property
+    def state_class(self) -> SensorStateClass | None:
+        """Return the state class of the sensor.
+
+        Returns:
+        -------
+            SensorStateClass | None: The state class for long-term statistics, or None if not set.
+        """
+        return self._state_class
 
     @property
     def icon(self) -> str | None:
