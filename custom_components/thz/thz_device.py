@@ -325,6 +325,24 @@ class THZDevice:
         # 0x2B 0x18 -> 0x2B
         return data.replace(b"\x2b\x18", b"\x2b")
 
+    def escape(self, data: bytes) -> bytes:
+        """Add escape sequences to data before sending.
+        
+        According to the protocol (from FHEM THZ module):
+        - Each 0x10 byte must be escaped as 0x10 0x10
+        - Each 0x2B byte must be escaped as 0x2B 0x18
+        
+        Args:
+            data: Raw bytes to escape
+            
+        Returns:
+            Escaped bytes ready to send
+        """
+        # 0x10 -> 0x10 0x10
+        data = data.replace(const.DATALINKESCAPE, const.DATALINKESCAPE + const.DATALINKESCAPE)
+        # 0x2B -> 0x2B 0x18
+        return data.replace(b"\x2b", b"\x2b\x18")
+
     def decode_response(self, data: bytes):
         """Decode the response from the THZ device, checking header, CRC, and unescaping."""
         try:
@@ -418,7 +436,10 @@ class THZDevice:
         Returns:
             telegram ready to send.
         """
-        return header + checksum + addr_bytes + footer
+        # Escape the checksum + command bytes according to the protocol
+        # (0x10 -> 0x10 0x10, 0x2B -> 0x2B 0x18)
+        escaped_data = self.escape(checksum + addr_bytes)
+        return header + escaped_data + footer
 
     def read_firmware_version(self) -> str:
         """Reads the firmware version from the THZ device.
