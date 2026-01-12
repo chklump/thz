@@ -219,3 +219,36 @@ class RegisterMapManagerWrite(BaseRegisterMapManager):
         merged = deepcopy(base) if base else {}
         merged.update(deepcopy(override) or {})
         return merged
+    
+    def get_parameter(self, param_name: str) -> dict | None:
+        """Get a specific parameter by name from write maps.
+        
+        Args:
+            param_name: The name of the parameter to retrieve
+            
+        Returns:
+            Dictionary containing parameter info or None if not found
+        """
+        # Write maps are structured as nested dicts, typically:
+        # { block: { param_name: { register: ..., info: ... } } }
+        for block_key, block_data in self._merged_map.items():
+            if isinstance(block_data, dict) and param_name in block_data:
+                return block_data[param_name]
+        return None
+    
+    def get_parameters_by_prefix(self, prefix: str) -> list[tuple[str, dict]]:
+        """Get all parameters that start with a given prefix.
+        
+        Args:
+            prefix: The prefix to search for (e.g., "p01_roomTemp")
+            
+        Returns:
+            List of tuples (param_name, param_info)
+        """
+        results = []
+        for block_key, block_data in self._merged_map.items():
+            if isinstance(block_data, dict):
+                for param_name, param_info in block_data.items():
+                    if param_name.startswith(prefix):
+                        results.append((param_name, param_info))
+        return results

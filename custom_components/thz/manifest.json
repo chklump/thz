@@ -3,10 +3,10 @@
   "name": "Stiebel Eltron LWZ / Tecalor THZ Integration (unofficial)",
   "codeowners": ["@bigbadoooff"],
   "config_flow": true,
-  "dependencies": ["sensor", "switch", "number", "time"],
+  "dependencies": ["sensor", "switch", "number", "time", "climate", "binary_sensor"],
   "documentation": "https://github.com/bigbadoooff/thz",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/bigbadoooff/thz/issues",
   "requirements": ["pyserial"],
-  "version": "0.0.1"
+  "version": "0.1.0"
 }

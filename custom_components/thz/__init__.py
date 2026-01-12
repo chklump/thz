@@ -131,7 +131,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Forward setup to platforms
     await hass.config_entries.async_forward_entry_setups(
-        config_entry, ["sensor", "number", "switch", "select", "time"]
+        config_entry, ["sensor", "binary_sensor", "climate", "number", "switch", "select", "time"]
     )
 
     return True
@@ -151,7 +151,7 @@ async def _async_update_block(hass: HomeAssistant, device: THZDevice, block_name
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Remove Config Entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(
-        entry, ["sensor", "select", "number", "time", "switch"]
+        entry, ["sensor", "binary_sensor", "climate", "select", "number", "time", "switch"]
     )
     if unload_ok:
         # Clean up device connection

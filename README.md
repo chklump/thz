@@ -19,6 +19,8 @@ The integration communicates with the heat pump using the serial protocol, suppo
 - ✅ **Full UI Configuration**: Easy setup through Home Assistant's integration interface - no YAML configuration required
 - ✅ **Connection Options**: Support for both USB serial and network (ser2net) connections
 - ✅ **Sensor Platform**: Monitor various heat pump parameters (temperatures, pressures, operating states, etc.)
+- ✅ **Binary Sensor Platform**: Monitor alarm/error states, compressor status, heating mode, and defrost status
+- ✅ **Climate Platform**: Direct temperature control for heating circuits with preset modes (comfort/eco)
 - ✅ **Switch Platform**: Control heat pump functions on/off
 - ✅ **Number Platform**: Adjust numeric settings and parameters
 - ✅ **Select Platform**: Choose between predefined options for various settings
@@ -27,6 +29,8 @@ The integration communicates with the heat pump using the serial protocol, suppo
 - ✅ **Device Registry Integration**: Proper device identification in Home Assistant
 - ✅ **Automatic Polling**: Regular updates of sensor values
 - ✅ **Smart Entity Management**: Non-essential entities are hidden by default to reduce clutter
+- ✅ **Long-term Statistics**: Sensors support state_class for energy dashboard integration
+- ✅ **Diagnostics Support**: Built-in diagnostics for troubleshooting connection and device issues
 
 ### Hidden Entities by Default
 
@@ -42,6 +46,30 @@ To provide a cleaner initial setup experience, the following entity types are hi
 3. Click on the device
 4. Click "Show disabled entities" at the bottom
 5. Enable any entities you need
+
+### New in v0.1.0
+
+#### Climate Entity
+The integration now includes a climate entity for each heating circuit (HC1 and HC2 if available), providing:
+- Direct temperature control from Home Assistant's climate interface
+- Support for comfort and eco preset modes
+- Integration with Home Assistant automations and climate cards
+- Automatic synchronization with heat pump settings
+
+#### Binary Sensors
+New binary sensors provide real-time monitoring of critical system states:
+- **Alarm/Error/Warning**: Immediate notification of system issues
+- **Compressor Running**: Monitor compressor operation status
+- **Heating Mode**: Track when heating is active
+- **DHW Mode**: Monitor domestic hot water heating
+- **Defrost Active**: Know when defrost cycle is running
+
+#### Diagnostics Support
+Built-in diagnostics make troubleshooting easier:
+- Access via **Settings** → **Devices & Services** → **THZ** → **Device** → **Download Diagnostics**
+- Includes connection status, firmware version, coordinator states, and entity counts
+- Automatically redacts sensitive information (IP addresses, serial numbers)
+- Useful for reporting issues and getting support
 
 ### Planned Features
 
