@@ -140,8 +140,11 @@ class THZNumber(NumberEntity):
     def name(self) -> str | None:
         """Return the name of the number.
         
-        Always return the entity name to ensure descriptive names are displayed.
+        When has_entity_name is True, return None to use translation key.
+        Otherwise, return the entity name for backward compatibility.
         """
+        if self._attr_has_entity_name:
+            return None
         return self._attr_name
 
     @property

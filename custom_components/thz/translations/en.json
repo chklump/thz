@@ -263,6 +263,132 @@
       },
       "summer_mode_hysteresis": {
         "name": "Summer Mode Hysteresis"
+      },
+      "hysteresis_6": {
+        "name": "Hysteresis 6"
+      },
+      "hysteresis_7": {
+        "name": "Hysteresis 7"
+      },
+      "hysteresis_8": {
+        "name": "Hysteresis 8"
+      },
+      "hysteresis_asymmetry": {
+        "name": "Hysteresis Asymmetry"
+      },
+      "integral_component": {
+        "name": "Integral Component"
+      },
+      "max_boost_stages": {
+        "name": "Max Boost Stages"
+      },
+      "booster_timeout_dhw": {
+        "name": "Booster Timeout DHW"
+      },
+      "temp_limit_boost_dhw": {
+        "name": "Temperature Limit Boost DHW"
+      },
+      "booster_timeout_hc": {
+        "name": "Booster Timeout HC"
+      },
+      "pasteurization_interval": {
+        "name": "Pasteurization Interval"
+      },
+      "max_duration_dhw_load": {
+        "name": "Max Duration DHW Load"
+      },
+      "fan_stage1_airflow_inlet": {
+        "name": "Fan Stage 1 Airflow Inlet"
+      },
+      "fan_stage2_airflow_inlet": {
+        "name": "Fan Stage 2 Airflow Inlet"
+      },
+      "fan_stage3_airflow_inlet": {
+        "name": "Fan Stage 3 Airflow Inlet"
+      },
+      "fan_stage1_airflow_outlet": {
+        "name": "Fan Stage 1 Airflow Outlet"
+      },
+      "fan_stage2_airflow_outlet": {
+        "name": "Fan Stage 2 Airflow Outlet"
+      },
+      "fan_stage3_airflow_outlet": {
+        "name": "Fan Stage 3 Airflow Outlet"
+      },
+      "unsched_vent_3": {
+        "name": "Unscheduled Ventilation 3"
+      },
+      "unsched_vent_2": {
+        "name": "Unscheduled Ventilation 2"
+      },
+      "unsched_vent_1": {
+        "name": "Unscheduled Ventilation 1"
+      },
+      "unsched_vent_0": {
+        "name": "Unscheduled Ventilation 0"
+      },
+      "compressor_restart_delay": {
+        "name": "Compressor Restart Delay"
+      },
+      "main_fan_speed": {
+        "name": "Main Fan Speed"
+      },
+      "min_pump_cycles": {
+        "name": "Min Pump Cycles"
+      },
+      "max_pump_cycles": {
+        "name": "Max Pump Cycles"
+      },
+      "out_temp_max_pump_cycles": {
+        "name": "Outside Temperature Max Pump Cycles"
+      },
+      "out_temp_min_pump_cycles": {
+        "name": "Outside Temperature Min Pump Cycles"
+      },
+      "suppress_temp_capt_pump_start": {
+        "name": "Suppress Temperature Capture Pump Start"
+      },
+      "passive_cooling": {
+        "name": "Passive Cooling"
+      },
+      "out_temp_filter_time": {
+        "name": "Outside Temperature Filter Time"
+      },
+      "dual_mode_point": {
+        "name": "Dual Mode Point"
+      },
+      "enable_solar": {
+        "name": "Enable Solar"
+      },
+      "diff_temp_solar_loading": {
+        "name": "Differential Temperature Solar Loading"
+      },
+      "delay_comp_start_solar": {
+        "name": "Delay Compressor Start Solar"
+      },
+      "dhw_temp_solar_mode": {
+        "name": "DHW Temperature Solar Mode"
+      },
+      "enable_dhw_buffer": {
+        "name": "Enable DHW Buffer"
+      },
+      "room_temp_day_hc1_summer": {
+        "name": "Room Temperature Day HC1 Summer"
+      },
+      "room_temp_night_hc1_summer": {
+        "name": "Room Temperature Night HC1 Summer"
+      },
+      "room_temp_standby_hc1_summer": {
+        "name": "Room Temperature Standby HC1 Summer"
+      },
+      "room_temp_day_hc2_summer": {
+        "name": "Room Temperature Day HC2 Summer"
+      },
+      "room_temp_night_hc2_summer": {
+        "name": "Room Temperature Night HC2 Summer"
+      },
+      "room_temp_standby_hc2_summer": {
+        "name": "Room Temperature Standby HC2 Summer"
       }
     },
     "select": {
