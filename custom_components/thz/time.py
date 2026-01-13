@@ -257,6 +257,11 @@ class THZTime(TimeEntity):
         return self._attr_name
 
     @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added to the registry."""
+        return self._attr_entity_registry_enabled_default
+
+    @property
     def native_value(self):
         """Return the native value of the time."""
         return self._attr_native_value
@@ -380,6 +385,11 @@ class THZScheduleTime(TimeEntity):
         Always return the entity name since time entities don't use translation keys.
         """
         return self._attr_name
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added to the registry."""
+        return self._attr_entity_registry_enabled_default
 
     @property
     def native_value(self):
