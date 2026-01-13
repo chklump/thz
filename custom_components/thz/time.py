@@ -238,6 +238,10 @@ class THZTime(TimeEntity):
         self._attr_native_value = None
         self._device_id = device_id
         
+        # Time entities don't have translation keys in the current implementation
+        # so we always use has_entity_name = False for backward compatibility
+        self._attr_has_entity_name = False
+        
         # Always set SCAN_INTERVAL to avoid HA's 30-second default
         # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
         interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
@@ -248,9 +252,14 @@ class THZTime(TimeEntity):
     def name(self) -> str | None:
         """Return the name of the time entity.
         
-        Always return the entity name to ensure descriptive names are displayed.
+        Always return the entity name since time entities don't use translation keys.
         """
         return self._attr_name
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added to the registry."""
+        return self._attr_entity_registry_enabled_default
 
     @property
     def native_value(self):
@@ -359,6 +368,10 @@ class THZScheduleTime(TimeEntity):
         self._attr_native_value = None
         self._device_id = device_id
         
+        # Time entities don't have translation keys in the current implementation
+        # so we always use has_entity_name = False for backward compatibility
+        self._attr_has_entity_name = False
+        
         # Always set SCAN_INTERVAL to avoid HA's 30-second default
         # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
         interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
@@ -369,9 +382,14 @@ class THZScheduleTime(TimeEntity):
     def name(self) -> str | None:
         """Return the name of the schedule time entity.
         
-        Always return the entity name to ensure descriptive names are displayed.
+        Always return the entity name since time entities don't use translation keys.
         """
         return self._attr_name
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added to the registry."""
+        return self._attr_entity_registry_enabled_default
 
     @property
     def native_value(self):

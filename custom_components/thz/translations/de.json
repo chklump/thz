@@ -263,6 +263,132 @@
             },
             "summer_mode_hysteresis": {
                 "name": "Sommermodus Hysterese"
+            },
+            "hysteresis_6": {
+                "name": "Hysterese 6"
+            },
+            "hysteresis_7": {
+                "name": "Hysterese 7"
+            },
+            "hysteresis_8": {
+                "name": "Hysterese 8"
+            },
+            "hysteresis_asymmetry": {
+                "name": "Hysterese Asymmetrie"
+            },
+            "integral_component": {
+                "name": "Integralanteil"
+            },
+            "max_boost_stages": {
+                "name": "Max. Heizstufen"
+            },
+            "booster_timeout_dhw": {
+                "name": "Zusatzheizung Timeout Warmwasser"
+            },
+            "temp_limit_boost_dhw": {
+                "name": "Temperaturlimit Zusatzheizung Warmwasser"
+            },
+            "booster_timeout_hc": {
+                "name": "Zusatzheizung Timeout Heizkreis"
+            },
+            "pasteurization_interval": {
+                "name": "Pasteurisierungsintervall"
+            },
+            "max_duration_dhw_load": {
+                "name": "Max. Dauer Warmwasserladung"
+            },
+            "fan_stage1_airflow_inlet": {
+                "name": "Lüfterstufe 1 Zuluftvolumen"
+            },
+            "fan_stage2_airflow_inlet": {
+                "name": "Lüfterstufe 2 Zuluftvolumen"
+            },
+            "fan_stage3_airflow_inlet": {
+                "name": "Lüfterstufe 3 Zuluftvolumen"
+            },
+            "fan_stage1_airflow_outlet": {
+                "name": "Lüfterstufe 1 Abluftvolumen"
+            },
+            "fan_stage2_airflow_outlet": {
+                "name": "Lüfterstufe 2 Abluftvolumen"
+            },
+            "fan_stage3_airflow_outlet": {
+                "name": "Lüfterstufe 3 Abluftvolumen"
+            },
+            "unsched_vent_3": {
+                "name": "Außerzeitplan Lüftung 3"
+            },
+            "unsched_vent_2": {
+                "name": "Außerzeitplan Lüftung 2"
+            },
+            "unsched_vent_1": {
+                "name": "Außerzeitplan Lüftung 1"
+            },
+            "unsched_vent_0": {
+                "name": "Außerzeitplan Lüftung 0"
+            },
+            "compressor_restart_delay": {
+                "name": "Verdichter Wiederanlauffverzögerung"
+            },
+            "main_fan_speed": {
+                "name": "Hauptlüfter Drehzahl"
+            },
+            "min_pump_cycles": {
+                "name": "Min. Pumpenzyklen"
+            },
+            "max_pump_cycles": {
+                "name": "Max. Pumpenzyklen"
+            },
+            "out_temp_max_pump_cycles": {
+                "name": "Außentemperatur Max. Pumpenzyklen"
+            },
+            "out_temp_min_pump_cycles": {
+                "name": "Außentemperatur Min. Pumpenzyklen"
+            },
+            "suppress_temp_capt_pump_start": {
+                "name": "Temperaturerfassung beim Pumpenstart unterdrücken"
+            },
+            "passive_cooling": {
+                "name": "Passive Kühlung"
+            },
+            "out_temp_filter_time": {
+                "name": "Außentemperatur Filterzeit"
+            },
+            "dual_mode_point": {
+                "name": "Bivalenzpunkt"
+            },
+            "enable_solar": {
+                "name": "Solar aktivieren"
+            },
+            "diff_temp_solar_loading": {
+                "name": "Temperaturdifferenz Solarbeladung"
+            },
+            "delay_comp_start_solar": {
+                "name": "Verdichterstart-Verzögerung Solar"
+            },
+            "dhw_temp_solar_mode": {
+                "name": "Warmwassertemperatur Solarmodus"
+            },
+            "enable_dhw_buffer": {
+                "name": "Warmwasserspeicher aktivieren"
+            },
+            "room_temp_day_hc1_summer": {
+                "name": "Raumtemperatur Tag HK1 Sommer"
+            },
+            "room_temp_night_hc1_summer": {
+                "name": "Raumtemperatur Nacht HK1 Sommer"
+            },
+            "room_temp_standby_hc1_summer": {
+                "name": "Raumtemperatur Standby HK1 Sommer"
+            },
+            "room_temp_day_hc2_summer": {
+                "name": "Raumtemperatur Tag HK2 Sommer"
+            },
+            "room_temp_night_hc2_summer": {
+                "name": "Raumtemperatur Nacht HK2 Sommer"
+            },
+            "room_temp_standby_hc2_summer": {
+                "name": "Raumtemperatur Standby HK2 Sommer"
             }
         },
         "select": {
