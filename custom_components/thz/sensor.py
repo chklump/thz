@@ -75,7 +75,8 @@ async def async_setup_entry(
         block_hex = block.removeprefix("pxx")  # Remove "pxx" prefix
         block_bytes = bytes.fromhex(block_hex)
         for name, offset, length, decode_type, factor in entries:
-            sensor_name = name.strip()
+            # Strip whitespace and trailing colons from sensor name
+            sensor_name = name.strip().rstrip(':')
             
             # Skip duplicate sensor names - only create the first occurrence
             if sensor_name in seen_sensor_names:
