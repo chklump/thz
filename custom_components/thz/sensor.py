@@ -255,20 +255,17 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         self._translation_key = e.get("translation_key")
         self._device_id = device_id
         
-        # Enable entity name translation only when translation_key is provided
-        # This prevents entities from showing as just the device name when no translation exists
-        self._attr_has_entity_name = self._translation_key is not None
+        # Always use has_entity_name=False to ensure entity names are descriptive
+        # rather than showing as just the device name
+        self._attr_has_entity_name = False
         self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(self._name)
 
     @property
     def name(self) -> str | None:
         """Return the name of the sensor.
         
-        When has_entity_name is True, return None to use translation key.
-        Otherwise, return the entity name for backward compatibility.
+        Always return the entity name to ensure descriptive names are displayed.
         """
-        if self._attr_has_entity_name:
-            return None
         return self._name
 
     @property

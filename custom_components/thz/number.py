@@ -121,9 +121,9 @@ class THZNumber(NumberEntity):
         self._attr_native_value = None
         self._device_id = device_id
         self._translation_key = translation_key
-        # Enable entity name translation only when translation_key is provided
-        # This prevents entities from showing as just the device name when no translation exists
-        self._attr_has_entity_name = translation_key is not None
+        # Always use has_entity_name=False to ensure entity names are descriptive
+        # rather than showing as just the device name
+        self._attr_has_entity_name = False
         # Always set should_poll and SCAN_INTERVAL to avoid HA's 30-second default
         self._attr_should_poll = True
         # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
@@ -140,11 +140,8 @@ class THZNumber(NumberEntity):
     def name(self) -> str | None:
         """Return the name of the number.
         
-        When has_entity_name is True, return None to use translation key.
-        Otherwise, return the entity name for backward compatibility.
+        Always return the entity name to ensure descriptive names are displayed.
         """
-        if self._attr_has_entity_name:
-            return None
         return self._attr_name
 
     @property

@@ -197,9 +197,9 @@ class THZSelect(SelectEntity):
         self._decode_type = decode_type
         self._device_id = device_id
         self._translation_key = translation_key
-        # Enable entity name translation only when translation_key is provided
-        # This prevents entities from showing as just the device name when no translation exists
-        self._attr_has_entity_name = translation_key is not None
+        # Always use has_entity_name=False to ensure entity names are descriptive
+        # rather than showing as just the device name
+        self._attr_has_entity_name = False
 
         if decode_type in SELECT_MAP:
             self._attr_options = list(SELECT_MAP[decode_type].values())
@@ -224,11 +224,8 @@ class THZSelect(SelectEntity):
     def name(self) -> str | None:
         """Return the name of the select.
         
-        When has_entity_name is True, return None to use translation key.
-        Otherwise, return the entity name for backward compatibility.
+        Always return the entity name to ensure descriptive names are displayed.
         """
-        if self._attr_has_entity_name:
-            return None
         return self._attr_name
 
     @property
