@@ -239,10 +239,18 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
             _translation_key (str, optional): Translation key for localization.
             _device_id: Device identifier for linking to device.
         """
-        super().__init__(coordinator)
-
+        # Extract entry info before super init to set attributes that parent class may need
         e = normalize_entry(entry)
         self._name = e["name"]
+        
+        # Set entity registry attributes BEFORE super().__init__() so the parent class
+        # can access them during initialization
+        self._attr_has_entity_name = False
+        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(self._name)
+        
+        super().__init__(coordinator)
+
+        # Set remaining attributes after super init
         self._block = block
         self._offset = e["offset"]
         self._length = e["length"]
@@ -254,11 +262,6 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         self._icon = e.get("icon")
         self._translation_key = e.get("translation_key")
         self._device_id = device_id
-        
-        # Always use has_entity_name=False to ensure entity names are descriptive
-        # rather than showing as just the device name
-        self._attr_has_entity_name = False
-        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(self._name)
 
     @property
     def name(self) -> str | None:
