@@ -84,9 +84,6 @@ def should_hide_entity_by_default(entity_name: str) -> bool:
                 return True
     
     # Hide specific advanced/technical sensors
-    # Note: "booster" is NOT in this list because boosterStage1/2/3 are operational
-    # status sensors that users need to see. Booster config parameters (p31, p33, etc.)
-    # are already hidden by the p13+ rule above.
     advanced_keywords = [
         "gradient",
         "lowend",
@@ -94,6 +91,7 @@ def should_hide_entity_by_default(entity_name: str) -> bool:
         "flowproportion",
         "hyst",  # Hysteresis settings
         "integral",
+        "booster",
         "pasteurisation",
         "asymmetry",
     ]
