@@ -46,6 +46,11 @@ sys.modules['homeassistant.config_entries'] = MagicMock()
 sys.modules['homeassistant.core'] = MagicMock()
 sys.modules['homeassistant.helpers'] = MagicMock()
 
+# Mock entity module
+entity_mock = MagicMock()
+entity_mock.Entity = MockEntity
+sys.modules['homeassistant.helpers.entity'] = entity_mock
+
 # Mock update coordinator module with mock classes
 update_coordinator_mock = MagicMock()
 update_coordinator_mock.CoordinatorEntity = MockCoordinatorEntity

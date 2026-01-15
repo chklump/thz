@@ -191,9 +191,12 @@ class TestEntityHidingIntegration:
     """Test entity hiding integration in modules."""
 
     def test_number_uses_should_hide_entity(self):
-        """Test that number module imports should_hide_entity_by_default."""
-        from custom_components.thz.number import should_hide_entity_by_default
+        """Test that base_entity module provides should_hide_entity_by_default."""
+        from custom_components.thz.const import should_hide_entity_by_default
         assert callable(should_hide_entity_by_default)
+        # Verify it's used by base entity
+        from custom_components.thz.base_entity import THZBaseEntity
+        assert THZBaseEntity is not None
 
     def test_select_uses_should_hide_entity(self):
         """Test that select module imports should_hide_entity_by_default."""

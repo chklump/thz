@@ -3,23 +3,23 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import timedelta
 
-from homeassistant.components.number import ConfigEntry, NumberEntity, NumberMode
-from homeassistant.const import CONF_SCAN_INTERVAL
+from homeassistant.components.number import NumberEntity, NumberMode
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .base_entity import THZBaseEntity
 from .entity_translations import get_translation_key
 from .const import (
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
-    should_hide_entity_by_default,
     WRITE_REGISTER_OFFSET,
     WRITE_REGISTER_LENGTH,
 )
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
+from .value_codec import THZValueCodec
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,10 +27,9 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    async_add_entities: AddConfigEntryEntitiesCallback,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up THZ number entities from config entry."""
-    entities = []
     write_manager: RegisterMapManagerWrite = hass.data[DOMAIN]["write_manager"]
     device: THZDevice = hass.data[DOMAIN]["device"]
     device_id = hass.data[DOMAIN]["device_id"]
@@ -39,7 +38,9 @@ async def async_setup_entry(
     write_interval = config_entry.data.get("write_interval", DEFAULT_UPDATE_INTERVAL)
     
     write_registers = write_manager.get_all_registers()
-    _LOGGER.debug("write_registers: %s", write_registers)
+    _LOGGER.debug("Loading number platform with %d registers", len(write_registers))
+    
+    entities = []
     for name, entry in write_registers.items():
         if entry["type"] == "number":
             _LOGGER.debug(
@@ -47,128 +48,69 @@ async def async_setup_entry(
             )
             entity = THZNumber(
                 name=name,
-                command=entry["command"],
-                min_value=entry["min"],
-                max_value=entry["max"],
-                step=entry.get("step", 1),
-                unit=entry.get("unit", ""),
-                device_class=entry.get("device_class"),
+                entry=entry,
                 device=device,
-                icon=entry.get("icon"),
-                unique_id=f"thz_{name.lower().replace(' ', '_')}",
-                decode_type=entry["decode_type"],
-                scan_interval=write_interval,
                 device_id=device_id,
-                translation_key=get_translation_key(name),
+                scan_interval=write_interval,
             )
             entities.append(entity)
 
+    _LOGGER.info("Created %d number entities", len(entities))
     async_add_entities(entities, True)
 
 
-class THZNumber(NumberEntity):
+class THZNumber(THZBaseEntity, NumberEntity):
     """Representation of a THZ Number entity."""
 
     def __init__(
         self,
         name: str,
-        command: str,
-        min_value,
-        max_value,
-        step,
-        unit,
-        device_class,
-        decode_type,
-        device,
-        icon=None,
-        unique_id=None,
-        scan_interval=None,
-        device_id=None,
-        translation_key=None,
+        entry: dict,
+        device: THZDevice,
+        device_id: str,
+        scan_interval: int | None = None,
     ) -> None:
-        """Initialize a new instance of the class.
+        """Initialize a THZ number entity.
 
         Args:
-            name (str): The name of the number entity.
-            command (str): The command associated with this entity.
-            min_value: The minimum allowed value (can be empty string, defaults to 0.0).
-            max_value: The maximum allowed value (can be empty string, defaults to 100.0).
-            step: The step size for value changes (can be empty string, defaults to 1).
-            unit: The unit of measurement for the value.
-            device_class: The device class for the entity.
-            decode_type: The type used for decoding values.
+            name: The name of the number entity.
+            entry: The register entry dict containing configuration.
             device: The device instance this entity belongs to.
-            icon (optional): The icon to use for this entity. Defaults to "mdi:eye".
-            unique_id (optional): The unique identifier for this entity. If not provided, a unique ID is generated.
-            scan_interval (optional): The scan interval in seconds for polling updates.
-            device_id (optional): The device identifier for linking to device.
-            translation_key (optional): Translation key for localization.
+            device_id: The device identifier for linking to device.
+            scan_interval: The scan interval in seconds for polling updates.
         """
-        self._attr_name = name
-        self._command = command
+        # Initialize base class with common properties
+        super().__init__(
+            name=name,
+            command=entry["command"],
+            device=device,
+            device_id=device_id,
+            icon=entry.get("icon"),
+            scan_interval=scan_interval,
+            translation_key=get_translation_key(name),
+        )
+        
+        # Number-specific attributes
+        min_value = entry["min"]
+        max_value = entry["max"]
+        step = entry.get("step", 1)
+        
         self._attr_native_min_value = float(min_value) if min_value != "" else 0.0
         self._attr_native_max_value = float(max_value) if max_value != "" else 100.0
-        self._attr_native_step = float(step) if step != "" else 1
-        self._attr_native_unit_of_measurement = unit
-        self._attr_device_class = device_class
+        self._attr_native_step = float(step) if step != "" else 1.0
+        self._attr_native_unit_of_measurement = entry.get("unit", "")
+        self._attr_device_class = entry.get("device_class")
         self._attr_mode = NumberMode.BOX  # Use box input instead of slider
-        self._decode_type = decode_type
-        self._device = device
-        self._attr_icon = icon or "mdi:eye"
-        self._attr_unique_id = (
-            unique_id or f"thz_set_{command.lower()}_{name.lower().replace(' ', '_')}"
-        )
+        self._decode_type = entry["decode_type"]
         self._attr_native_value = None
-        self._device_id = device_id
-        self._translation_key = translation_key
-        # Enable entity name translation only when translation_key is provided
-        # This prevents entities from showing as just the device name when no translation exists
-        self._attr_has_entity_name = translation_key is not None
-        # Always set should_poll and SCAN_INTERVAL to avoid HA's 30-second default
-        self._attr_should_poll = True
-        # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
-        interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
-        self.SCAN_INTERVAL = timedelta(seconds=interval)
-        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
 
     @property
     def native_value(self) -> float | None:
         """Return the native value of the number."""
         return self._attr_native_value
 
-    @property
-    def name(self) -> str | None:
-        """Return the name of the number.
-        
-        When has_entity_name is True, return None to use translation key.
-        Otherwise, return the entity name for backward compatibility.
-        """
-        if self._attr_has_entity_name:
-            return None
-        return self._attr_name
-
-    @property
-    def translation_key(self) -> str | None:
-        """Return the translation key for this number, if available."""
-        return self._translation_key
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return if the entity should be enabled when first added to the registry."""
-        return self._attr_entity_registry_enabled_default
-
-    @property
-    def device_info(self):
-        """Return device information to link this entity with the device."""
-        from .const import DOMAIN
-        return {
-            "identifiers": {(DOMAIN, self._device_id)},
-        }
-
-
     async def async_update(self) -> None:
         """Fetch new state data for the number."""
-        # _LOGGER.debug("Updating number %s with command %s", self._attr_name, self._command)
         async with self._device.lock:
             value_bytes = await self.hass.async_add_executor_job(
                 self._device.read_value,
@@ -185,17 +127,16 @@ class THZNumber(NumberEntity):
             )
             return
         
-        _LOGGER.debug("Recv number %s with value %s", self._attr_name, value_bytes)
+        _LOGGER.debug("Received bytes for %s: %s", self._attr_name, value_bytes.hex())
         
         try:
-            if self._decode_type != "0clean":
-                value = (
-                    int.from_bytes(value_bytes, byteorder="big", signed=True)
-                    * self._attr_native_step
-                )
-            else:
-                value = value_bytes[0]
-            _LOGGER.debug("Recv number %s with real value %s", self._attr_name, value)
+            # Use centralized codec for decoding
+            value = THZValueCodec.decode_number(
+                value_bytes, 
+                self._attr_native_step, 
+                self._decode_type
+            )
+            _LOGGER.debug("Decoded value for %s: %s", self._attr_name, value)
             self._attr_native_value = value
         except (ValueError, IndexError, TypeError) as err:
             _LOGGER.error(
@@ -203,26 +144,30 @@ class THZNumber(NumberEntity):
             )
             # Keep previous value on error
 
-
     async def async_set_native_value(self, value: float) -> None:
         """Set new value for the number."""
-        value_int = int(value / self._attr_native_step)
-        _LOGGER.debug("Send number %s with real value %s", self._attr_name, value_int)
-        # value_bytes = value_int.to_bytes(2, byteorder='big', signed=True)) #_LOGGER.debug("Send number %s with value %s", self._attr_name, value_bytes)
-        async with self._device.lock:
-            if self._decode_type != "0clean":
+        _LOGGER.debug("Setting value for %s to %s", self._attr_name, value)
+        
+        try:
+            # Use centralized codec for encoding
+            value_bytes = THZValueCodec.encode_number(
+                value, 
+                self._attr_native_step, 
+                self._decode_type
+            )
+            
+            async with self._device.lock:
                 await self.hass.async_add_executor_job(
                     self._device.write_value,
                     bytes.fromhex(self._command),
-                    value_int.to_bytes(2, byteorder="big", signed=True),
+                    value_bytes,
                 )
-            else:
-                await self.hass.async_add_executor_job(
-                    self._device.write_value,
-                    bytes.fromhex(self._command),
-                    value_int.to_bytes(1, byteorder="big", signed=True),
-                )
-            await asyncio.sleep(
-                0.01
-            )  # Short pause to ensure the device is ready
-        self._attr_native_value = value
+                # Short pause to ensure the device is ready
+                await asyncio.sleep(0.01)
+            
+            self._attr_native_value = value
+        except (ValueError, TypeError) as err:
+            _LOGGER.error(
+                "Error encoding number %s value %s: %s", 
+                self._attr_name, value, err, exc_info=True
+            )
