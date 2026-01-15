@@ -12,12 +12,10 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .base_entity import THZBaseEntity
 from .entity_translations import get_translation_key
 from .const import (
-    DEFAULT_UPDATE_INTERVAL,
-    DOMAIN,
     WRITE_REGISTER_OFFSET,
     WRITE_REGISTER_LENGTH,
 )
-from .register_maps.register_map_manager import RegisterMapManagerWrite
+from .platform_setup import async_setup_write_platform
 from .thz_device import THZDevice
 from .value_codec import THZValueCodec
 from .value_maps import SELECT_MAP
@@ -31,33 +29,9 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Create THZSelect entities."""
-    write_manager: RegisterMapManagerWrite = hass.data[DOMAIN]["write_manager"]
-    device: THZDevice = hass.data[DOMAIN]["device"]
-    device_id = hass.data[DOMAIN]["device_id"]
-    
-    # Get write interval from config, default to DEFAULT_UPDATE_INTERVAL
-    write_interval = config_entry.data.get("write_interval", DEFAULT_UPDATE_INTERVAL)
-    
-    write_registers = write_manager.get_all_registers()
-    _LOGGER.debug("Loading select platform with %d registers", len(write_registers))
-    
-    entities = []
-    for name, entry in write_registers.items():
-        if entry["type"] == "select":
-            _LOGGER.debug(
-                "Creating THZSelect for %s with command %s", name, entry.get("command")
-            )
-            entity = THZSelect(
-                name=name,
-                entry=entry,
-                device=device,
-                device_id=device_id,
-                scan_interval=write_interval,
-            )
-            entities.append(entity)
-
-    _LOGGER.info("Created %d select entities", len(entities))
-    async_add_entities(entities, True)
+    await async_setup_write_platform(
+        hass, config_entry, async_add_entities, THZSelect, "select"
+    )
 
 
 

@@ -28,6 +28,7 @@ async def async_setup_write_platform(
     async_add_entities: AddEntitiesCallback,
     entity_type: type,
     platform_type: str,
+    entity_factory: Callable | None = None,
 ) -> None:
     """Generic setup for write platforms (number, switch, select, time).
     
@@ -40,6 +41,9 @@ async def async_setup_write_platform(
         async_add_entities: Callback function to register new entities.
         entity_type: The entity class to instantiate (e.g., THZNumber, THZSwitch).
         platform_type: The type filter for register entries (e.g., "number", "switch").
+        entity_factory: Optional custom factory function for creating entities.
+                       If provided, called with (name, entry, device, device_id, write_interval)
+                       and should return a list of entities.
     """
     write_manager: RegisterMapManagerWrite = hass.data[DOMAIN]["write_manager"]
     device: THZDevice = hass.data[DOMAIN]["device"]
@@ -49,7 +53,7 @@ async def async_setup_write_platform(
     write_interval = config_entry.data.get("write_interval", DEFAULT_UPDATE_INTERVAL)
     
     write_registers = write_manager.get_all_registers()
-    _LOGGER.debug("Loading %s platform with %d registers", platform_type, len(write_registers))
+    _LOGGER.debug("Loading %s platform with %d registers", len(write_registers), platform_type)
     
     entities = []
     for name, entry in write_registers.items():
@@ -61,15 +65,20 @@ async def async_setup_write_platform(
                 entry["command"]
             )
             
-            # Create entity instance with common parameters
-            entity = entity_type(
-                name=name,
-                entry=entry,
-                device=device,
-                device_id=device_id,
-                scan_interval=write_interval,
-            )
-            entities.append(entity)
+            # Use custom factory if provided, otherwise use default
+            if entity_factory:
+                new_entities = entity_factory(name, entry, device, device_id, write_interval)
+                entities.extend(new_entities if isinstance(new_entities, list) else [new_entities])
+            else:
+                # Create entity instance with common parameters
+                entity = entity_type(
+                    name=name,
+                    entry=entry,
+                    device=device,
+                    device_id=device_id,
+                    scan_interval=write_interval,
+                )
+                entities.append(entity)
     
     _LOGGER.info("Created %d %s entities", len(entities), platform_type)
     async_add_entities(entities, True)

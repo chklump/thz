@@ -153,13 +153,15 @@ class TestModuleConstants:
         assert WRITE_REGISTER_LENGTH == 2
 
     def test_select_uses_domain(self):
-        """Test that select module uses DOMAIN constant."""
-        from custom_components.thz.select import DOMAIN
+        """Test that select module or its dependencies use DOMAIN constant."""
+        # DOMAIN is now used via platform_setup helper
+        from custom_components.thz.const import DOMAIN
         assert DOMAIN == "thz"
 
     def test_switch_uses_domain(self):
-        """Test that switch module uses DOMAIN constant."""
-        from custom_components.thz.switch import DOMAIN
+        """Test that switch module or its dependencies use DOMAIN constant."""
+        # DOMAIN is now used via platform_setup helper
+        from custom_components.thz.const import DOMAIN
         assert DOMAIN == "thz"
 
     def test_time_has_time_value_unset(self):

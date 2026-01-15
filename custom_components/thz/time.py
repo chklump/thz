@@ -12,12 +12,12 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .base_entity import THZBaseEntity
 from .const import (
-    DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
     TIME_VALUE_UNSET,
     WRITE_REGISTER_OFFSET,
     WRITE_REGISTER_LENGTH,
 )
+from .platform_setup import async_setup_write_platform
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -106,17 +106,53 @@ def quarters_to_time(num: int) -> time | None:
     return time(hour, quarters * 15)
 
 
+
+
+def _create_time_entities(name, entry, device, device_id, write_interval):
+    """Factory function to create time entities, handling schedule types specially."""
+    if entry["type"] == "schedule":
+        # Create both start and end time entities for schedule type
+        return [
+            THZScheduleTime(
+                name=f"{name} Start",
+                entry=entry,
+                device=device,
+                device_id=device_id,
+                time_type="start",
+                scan_interval=write_interval,
+            ),
+            THZScheduleTime(
+                name=f"{name} End",
+                entry=entry,
+                device=device,
+                device_id=device_id,
+                time_type="end",
+                scan_interval=write_interval,
+            ),
+        ]
+    else:
+        # Regular time entity
+        return THZTime(
+            name=name,
+            entry=entry,
+            device=device,
+            device_id=device_id,
+            scan_interval=write_interval,
+        )
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up THZ Time entities from a config entry."""
+    # Use platform setup for both "time" and "schedule" types
     write_manager: RegisterMapManagerWrite = hass.data[DOMAIN]["write_manager"]
     device: THZDevice = hass.data[DOMAIN]["device"]
     device_id = hass.data[DOMAIN]["device_id"]
     
-    # Get write interval from config, default to DEFAULT_UPDATE_INTERVAL
+    from .const import DEFAULT_UPDATE_INTERVAL
     write_interval = config_entry.data.get("write_interval", DEFAULT_UPDATE_INTERVAL)
     
     write_registers = write_manager.get_all_registers()
@@ -124,45 +160,14 @@ async def async_setup_entry(
     
     entities = []
     for name, entry in write_registers.items():
-        if entry["type"] == "time":
+        if entry["type"] in ("time", "schedule"):
             _LOGGER.debug(
-                "Creating THZTime for %s with command %s", name, entry["command"]
+                "Creating time entities for %s (type: %s) with command %s",
+                name, entry["type"], entry["command"]
             )
-            entity = THZTime(
-                name=name,
-                entry=entry,
-                device=device,
-                device_id=device_id,
-                scan_interval=write_interval,
-            )
-            entities.append(entity)
-        elif entry["type"] == "schedule":
-            _LOGGER.debug(
-                "Creating THZScheduleTime (start/end) for %s with command %s", 
-                name, entry["command"]
-            )
-            # Create start time entity
-            start_entity = THZScheduleTime(
-                name=f"{name} Start",
-                entry=entry,
-                device=device,
-                device_id=device_id,
-                time_type="start",
-                scan_interval=write_interval,
-            )
-            entities.append(start_entity)
-
-            # Create end time entity
-            end_entity = THZScheduleTime(
-                name=f"{name} End",
-                entry=entry,
-                device=device,
-                device_id=device_id,
-                time_type="end",
-                scan_interval=write_interval,
-            )
-            entities.append(end_entity)
-
+            new_entities = _create_time_entities(name, entry, device, device_id, write_interval)
+            entities.extend(new_entities if isinstance(new_entities, list) else [new_entities])
+    
     _LOGGER.info("Created %d time entities", len(entities))
     async_add_entities(entities, True)
 
