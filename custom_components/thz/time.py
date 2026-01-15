@@ -3,17 +3,17 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import time, timedelta
+from datetime import time
 
 from homeassistant.components.time import TimeEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .base_entity import THZBaseEntity
 from .const import (
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
-    should_hide_entity_by_default,
     TIME_VALUE_UNSET,
     WRITE_REGISTER_OFFSET,
     WRITE_REGISTER_LENGTH,
@@ -109,29 +109,9 @@ def quarters_to_time(num: int) -> time | None:
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    async_add_entities: AddConfigEntryEntitiesCallback,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up THZ Time entities from a config entry.
-
-    This function creates THZTime entities based on write registers of type "time"
-    from the device's register map. It also creates start and end time entities
-    for schedule-type registers.
-
-    Args:
-        hass: The Home Assistant instance.
-        config_entry: The config entry to set up.
-        async_add_entities: Callback to add new entities.
-
-    Returns:
-        None. Entities are added via the async_add_entities callback.
-
-    Note:
-        - Requires 'write_manager' and 'device' to be present in hass.data['thz']
-        - Creates a THZTime entity for each register with type 'time'
-        - Creates THZScheduleTime entities (start and end) for each register with type 'schedule'
-        - Entity IDs are generated from the register name, converted to lowercase with spaces replaced by underscores
-    """
-    entities = []
+    """Set up THZ Time entities from a config entry."""
     write_manager: RegisterMapManagerWrite = hass.data[DOMAIN]["write_manager"]
     device: THZDevice = hass.data[DOMAIN]["device"]
     device_id = hass.data[DOMAIN]["device_id"]
@@ -140,113 +120,91 @@ async def async_setup_entry(
     write_interval = config_entry.data.get("write_interval", DEFAULT_UPDATE_INTERVAL)
     
     write_registers = write_manager.get_all_registers()
-    _LOGGER.debug("write_registers: %s", write_registers)
+    _LOGGER.debug("Loading time platform with %d registers", len(write_registers))
+    
+    entities = []
     for name, entry in write_registers.items():
         if entry["type"] == "time":
             _LOGGER.debug(
-                "Creating Time for %s with command %s", name, entry["command"]
+                "Creating THZTime for %s with command %s", name, entry["command"]
             )
             entity = THZTime(
                 name=name,
-                command=entry["command"],
+                entry=entry,
                 device=device,
-                icon=entry.get("icon"),
-                unique_id=f"thz_{name.lower().replace(' ', '_')}",
-                scan_interval=write_interval,
                 device_id=device_id,
+                scan_interval=write_interval,
             )
             entities.append(entity)
         elif entry["type"] == "schedule":
             _LOGGER.debug(
-                "Creating Schedule Start and End Time for %s with command %s", name, entry["command"]
+                "Creating THZScheduleTime (start/end) for %s with command %s", 
+                name, entry["command"]
             )
             # Create start time entity
             start_entity = THZScheduleTime(
                 name=f"{name} Start",
-                command=entry["command"],
+                entry=entry,
                 device=device,
-                icon=entry.get("icon", "mdi:calendar-clock"),
-                unique_id=f"thz_{name.lower().replace(' ', '_')}_start",
+                device_id=device_id,
                 time_type="start",
                 scan_interval=write_interval,
-                device_id=device_id,
             )
             entities.append(start_entity)
 
             # Create end time entity
             end_entity = THZScheduleTime(
                 name=f"{name} End",
-                command=entry["command"],
+                entry=entry,
                 device=device,
-                icon=entry.get("icon", "mdi:calendar-clock"),
-                unique_id=f"thz_{name.lower().replace(' ', '_')}_end",
+                device_id=device_id,
                 time_type="end",
                 scan_interval=write_interval,
-                device_id=device_id,
             )
             entities.append(end_entity)
 
+    _LOGGER.info("Created %d time entities", len(entities))
     async_add_entities(entities, True)
 
 
-class THZTime(TimeEntity):
-    """Time entity for THZ devices.
 
-    This class represents a time entity that can read and write time values from/to THZ devices.
-    It handles conversion between quarter-hour based time values used by the device and standard
-    time format used by Home Assistant.
 
-    Attributes:
-        _attr_should_poll (bool): Indicates if entity should be polled for updates.
-        _attr_name (str): Name of the entity.
-        _command (str): Command hex string to communicate with device.
-        _device (THZDevice): Device instance this entity belongs to.
-        _attr_icon (str): Icon to display for this entity.
-        _attr_unique_id (str): Unique ID for this entity.
-        _attr_native_value (str): Current time value in HH:MM format.
+class THZTime(THZBaseEntity, TimeEntity):
+    """Time entity for THZ devices."""
 
-    Args:
-        name (str): Name of the time entity.
-        command (str): Hex command string for device communication.
-        device (THZDevice): THZ device instance.
-        icon (str, optional): Custom icon for the entity. Defaults to "mdi:clock".
-        unique_id (str, optional): Custom unique ID. Defaults to generated ID based on command and name.
-    """
-
-    _attr_should_poll = True
-
-    def __init__(self, name, command, device, icon=None, unique_id=None, scan_interval=None, device_id=None) -> None:
-        """Initialize a new instance of the class.
+    def __init__(
+        self, 
+        name: str, 
+        entry: dict, 
+        device: THZDevice, 
+        device_id: str, 
+        scan_interval: int | None = None
+    ) -> None:
+        """Initialize a THZ time entity.
 
         Args:
-            name (str): The name of the entity.
-            command (str): The command associated with the entity.
-            device: The device instance this entity is associated with.
-            icon (str, optional): The icon to use for this entity. Defaults to "mdi:clock" if not provided.
-            unique_id (str, optional): A unique identifier for this entity. If not provided, a unique ID is generated.
-            scan_interval (int, optional): The scan interval in seconds for polling updates.
-            device_id (str, optional): The device identifier for linking to device.
+            name: The name of the time entity.
+            entry: The register entry dict containing configuration.
+            device: THZ device instance.
+            device_id: The device identifier for linking to device.
+            scan_interval: The scan interval in seconds for polling updates.
         """
-
-        self._attr_name = name
-        self._command = command
-        self._device = device
-        self._attr_icon = icon or "mdi:clock"
-        self._attr_unique_id = (
-            unique_id or f"thz_time_{command.lower()}_{name.lower().replace(' ', '_')}"
+        # Initialize base class with common properties
+        # Note: Time entities don't use translation keys, so we pass None
+        super().__init__(
+            name=name,
+            command=entry["command"],
+            device=device,
+            device_id=device_id,
+            icon=entry.get("icon", "mdi:clock"),
+            scan_interval=scan_interval,
+            translation_key=None,  # Time entities don't have translation keys
         )
-        self._attr_native_value = None
-        self._device_id = device_id
         
-        # Time entities don't have translation keys in the current implementation
-        # so we always use has_entity_name = False for backward compatibility
+        # Override has_entity_name for time entities (always False for backward compatibility)
         self._attr_has_entity_name = False
         
-        # Always set SCAN_INTERVAL to avoid HA's 30-second default
-        # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
-        interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
-        self.SCAN_INTERVAL = timedelta(seconds=interval)
-        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
+        self._attr_native_value = None
 
     @property
     def name(self) -> str | None:
@@ -257,22 +215,9 @@ class THZTime(TimeEntity):
         return self._attr_name
 
     @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return if the entity should be enabled when first added to the registry."""
-        return self._attr_entity_registry_enabled_default
-
-    @property
     def native_value(self):
         """Return the native value of the time."""
         return self._attr_native_value
-
-    @property
-    def device_info(self):
-        """Return device information to link this entity with the device."""
-        from .const import DOMAIN
-        return {
-            "identifiers": {(DOMAIN, self._device_id)},
-        }
 
     async def async_update(self):
         """Fetch new state data for the time."""
@@ -284,99 +229,85 @@ class THZTime(TimeEntity):
                 WRITE_REGISTER_OFFSET,
                 WRITE_REGISTER_LENGTH,
             )
-            await asyncio.sleep(
-                0.01
-            )  # Short pause to ensure the device is ready
+            # Short pause to ensure the device is ready
+            await asyncio.sleep(0.01)
+        
         # Time values are stored as single bytes (0-95 quarters)
         num = value_bytes[0]
         self._attr_native_value = quarters_to_time(num)
+        _LOGGER.debug("Updated time %s: %s quarters -> %s", self._attr_name, num, self._attr_native_value)
 
     async def async_set_native_value(self, value: str):
         """Set new value for the time."""
-
         # Convert string (e.g., "12:30") to datetime.time
         if value is None:
             t_value = None
         else:
             hour, minute = map(int, value.split(":"))
             t_value = time(hour, minute)
+        
         num = time_to_quarters(t_value)
+        _LOGGER.debug("Setting time %s to %s (%s quarters)", self._attr_name, t_value, num)
+        
         # Write as 2 bytes to match the protocol's read format (offset=4, length=2)
         # even though only the first byte contains the meaningful time value (0-95 quarters).
         # Second byte is set to 0 as it appears to be unused by the device.
         num_bytes = bytes([num, 0])
+        
         async with self._device.lock:
             await self.hass.async_add_executor_job(
                 self._device.write_value, bytes.fromhex(self._command), num_bytes
             )
-            await asyncio.sleep(
-                0.01
-            )  # Short pause to ensure the device is ready
+            # Short pause to ensure the device is ready
+            await asyncio.sleep(0.01)
+        
         self._attr_native_value = t_value
 
 
-class THZScheduleTime(TimeEntity):
-    """Time entity for THZ schedule start/end times.
 
-    This class represents a time entity that can read and write schedule start or end times
-    from/to THZ devices. Each schedule has two time values (start and end) stored sequentially
-    in the device's memory.
 
-    Attributes:
-        _attr_should_poll (bool): Indicates if entity should be polled for updates.
-        _attr_name (str): Name of the entity.
-        _command (str): Command hex string to communicate with device.
-        _device (THZDevice): Device instance this entity belongs to.
-        _attr_icon (str): Icon to display for this entity.
-        _attr_unique_id (str): Unique ID for this entity.
-        _attr_native_value (str): Current time value in HH:MM format.
-        _time_type (str): Either "start" or "end" to indicate which time value this entity represents.
+class THZScheduleTime(THZBaseEntity, TimeEntity):
+    """Time entity for THZ schedule start/end times."""
 
-    Args:
-        name (str): Name of the time entity.
-        command (str): Hex command string for device communication.
-        device (THZDevice): THZ device instance.
-        time_type (str): Either "start" or "end".
-        icon (str, optional): Custom icon for the entity. Defaults to "mdi:calendar-clock".
-        unique_id (str, optional): Custom unique ID. Defaults to generated ID based on command and name.
-    """
-
-    _attr_should_poll = True
-
-    def __init__(self, name, command, device, time_type, icon=None, unique_id=None, scan_interval=None, device_id=None) -> None:
-        """Initialize a new instance of the schedule time class.
+    def __init__(
+        self, 
+        name: str, 
+        entry: dict, 
+        device: THZDevice, 
+        device_id: str, 
+        time_type: str,
+        scan_interval: int | None = None
+    ) -> None:
+        """Initialize a THZ schedule time entity.
 
         Args:
-            name (str): The name of the entity.
-            command (str): The command associated with the entity.
-            device: The device instance this entity is associated with.
-            time_type (str): Either "start" or "end".
-            icon (str, optional): The icon to use for this entity. Defaults to "mdi:calendar-clock" if not provided.
-            unique_id (str, optional): A unique identifier for this entity. If not provided, a unique ID is generated.
-            scan_interval (int, optional): The scan interval in seconds for polling updates.
-            device_id (str, optional): The device identifier for linking to device.
+            name: The name of the time entity.
+            entry: The register entry dict containing configuration.
+            device: THZ device instance.
+            device_id: The device identifier for linking to device.
+            time_type: Either "start" or "end".
+            scan_interval: The scan interval in seconds for polling updates.
         """
-
-        self._attr_name = name
-        self._command = command
-        self._device = device
-        self._time_type = time_type
-        self._attr_icon = icon or "mdi:calendar-clock"
-        self._attr_unique_id = (
-            unique_id or f"thz_schedule_time_{command.lower()}_{name.lower().replace(' ', '_')}_{time_type}"
+        # Initialize base class with common properties
+        # Note: Time entities don't use translation keys, so we pass None
+        super().__init__(
+            name=name,
+            command=entry["command"],
+            device=device,
+            device_id=device_id,
+            icon=entry.get("icon", "mdi:calendar-clock"),
+            scan_interval=scan_interval,
+            translation_key=None,  # Time entities don't have translation keys
         )
-        self._attr_native_value = None
-        self._device_id = device_id
         
-        # Time entities don't have translation keys in the current implementation
-        # so we always use has_entity_name = False for backward compatibility
+        # Override has_entity_name for time entities (always False for backward compatibility)
         self._attr_has_entity_name = False
         
-        # Always set SCAN_INTERVAL to avoid HA's 30-second default
-        # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
-        interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
-        self.SCAN_INTERVAL = timedelta(seconds=interval)
-        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
+        self._time_type = time_type
+        self._attr_native_value = None
+        
+        # Override unique_id to include time_type
+        self._attr_unique_id = f"thz_schedule_time_{self._command.lower()}_{name.lower().replace(' ', '_')}_{time_type}"
 
     @property
     def name(self) -> str | None:
@@ -387,22 +318,9 @@ class THZScheduleTime(TimeEntity):
         return self._attr_name
 
     @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return if the entity should be enabled when first added to the registry."""
-        return self._attr_entity_registry_enabled_default
-
-    @property
     def native_value(self):
         """Return the native value of the time."""
         return self._attr_native_value
-
-    @property
-    def device_info(self):
-        """Return device information to link this entity with the device."""
-        from .const import DOMAIN
-        return {
-            "identifiers": {(DOMAIN, self._device_id)},
-        }
 
     async def async_update(self):
         """Fetch new state data for the schedule time."""
@@ -410,9 +328,8 @@ class THZScheduleTime(TimeEntity):
             value_bytes = await self.hass.async_add_executor_job(
                 self._device.read_value, bytes.fromhex(self._command), "get", 4, 4
             )
-            await asyncio.sleep(
-                0.01
-            )  # Short pause to ensure the device is ready
+            # Short pause to ensure the device is ready
+            await asyncio.sleep(0.01)
 
         # Schedule data format (from FHEM 7prog):
         # - Bytes 0-3: header/other data
@@ -427,10 +344,13 @@ class THZScheduleTime(TimeEntity):
             num = value_bytes[1]
 
         self._attr_native_value = quarters_to_time(num)
+        _LOGGER.debug(
+            "Updated schedule time %s (%s): %s quarters -> %s", 
+            self._attr_name, self._time_type, num, self._attr_native_value
+        )
 
     async def async_set_native_value(self, value: str):
         """Set new value for the schedule time."""
-
         # Convert string (e.g., "12:30") to datetime.time
         if value is None:
             t_value = None
@@ -448,28 +368,32 @@ class THZScheduleTime(TimeEntity):
                 raise
 
         new_num = time_to_quarters(t_value)
+        _LOGGER.debug(
+            "Setting schedule time %s (%s) to %s (%s quarters)", 
+            self._attr_name, self._time_type, t_value, new_num
+        )
 
-        # Read the current schedule data (4 bytes)
+        # Read the current schedule data (4 bytes total)
         async with self._device.lock:
             current_bytes = await self.hass.async_add_executor_job(
                 self._device.read_value, bytes.fromhex(self._command), "get", 4, 4
             )
-            await asyncio.sleep(0.01)
 
-        # Time values are single bytes (0-95 quarters)
-        # Modify only the relevant byte (start at byte 0 or end at byte 1)
-        new_bytes = bytearray(current_bytes)
+        # Modify only the relevant byte (start or end time)
+        schedule_bytes = bytearray(current_bytes)
         if self._time_type == "start":
-            new_bytes[0] = new_num
+            schedule_bytes[0] = new_num
         else:  # "end"
-            new_bytes[1] = new_num
+            schedule_bytes[1] = new_num
 
-        # Write the modified schedule data back to device
+        # Write the modified schedule back
         async with self._device.lock:
             await self.hass.async_add_executor_job(
-                self._device.write_value, bytes.fromhex(self._command), bytes(new_bytes)
+                self._device.write_value, 
+                bytes.fromhex(self._command), 
+                bytes(schedule_bytes)
             )
+            # Short pause to ensure the device is ready
             await asyncio.sleep(0.01)
 
-        # Set to the rounded time value that was actually written to the device
-        self._attr_native_value = quarters_to_time(new_num)
+        self._attr_native_value = t_value
