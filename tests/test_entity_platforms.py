@@ -199,11 +199,11 @@ class TestEntityHidingIntegration:
         assert THZBaseEntity is not None
 
     def test_select_uses_should_hide_entity(self):
-        """Test that select module imports should_hide_entity_by_default."""
-        from custom_components.thz.select import should_hide_entity_by_default
+        """Test that base_entity module provides should_hide_entity_by_default."""
+        from custom_components.thz.const import should_hide_entity_by_default
         assert callable(should_hide_entity_by_default)
 
     def test_switch_uses_should_hide_entity(self):
-        """Test that switch module imports should_hide_entity_by_default."""
-        from custom_components.thz.switch import should_hide_entity_by_default
+        """Test that base_entity module provides should_hide_entity_by_default."""
+        from custom_components.thz.const import should_hide_entity_by_default
         assert callable(should_hide_entity_by_default)
