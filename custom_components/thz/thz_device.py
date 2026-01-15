@@ -200,7 +200,7 @@ class THZDevice:
             _LOGGER.error("Error in send_request: %s", e)
             return b""
 
-    # Hilfsmethoden ergänzen
+    # Helper methods
     def _write_bytes(self, data: bytes):
         """Send bytes depending on connection type."""
         if isinstance(self.ser, socket.socket):  # TCP Socket

@@ -30,7 +30,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow für Stiebel Eltron THZ (LAN or USB)."""
+    """Config flow for Stiebel Eltron THZ (LAN or USB)."""
 
     VERSION = 1
 
@@ -319,6 +319,6 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="refresh_blocks",
             data_schema=schema,
             description_placeholders={
-                "hint": "Aktualisierungsintervall je Block (Sekunden), write_interval für Schreibentitäten (number/switch/select/time)"
+                "hint": "Update interval per block (seconds), write_interval for write entities (number/switch/select/time)"
             },
         )
