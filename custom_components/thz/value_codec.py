@@ -85,13 +85,17 @@ class THZValueCodec:
             raise ValueError(f"Unknown decode_type: {decode_type}")
         
         # Create reverse mapping from option strings to numeric keys
-        reverse_map = {v: int(k) for k, v in SELECT_MAP[decode_type].items()}
+        # Note: Keys in SELECT_MAP are strings, possibly zero-padded
+        reverse_map = {v: k for k, v in SELECT_MAP[decode_type].items()}
         
         if option not in reverse_map:
             raise ValueError(f"Invalid option '{option}' for decode_type '{decode_type}'")
         
+        # Get the string key and convert to int
+        key_str = reverse_map[option]
+        value = int(key_str)
+        
         # Encode as single byte (little-endian as per original select.py)
-        value = reverse_map[option]
         return value.to_bytes(1, byteorder="little", signed=False)
 
     @staticmethod
@@ -116,7 +120,12 @@ class THZValueCodec:
         
         # Decode as little-endian (as per original select.py)
         value = int.from_bytes(value_bytes, byteorder="little", signed=False)
-        value_str = str(value)
+        
+        # Special case for SomWinMode: zero-pad to 2 digits
+        if decode_type == "SomWinMode":
+            value_str = str(value).zfill(2)
+        else:
+            value_str = str(value)
         
         # Map to option string
         if value_str in SELECT_MAP[decode_type]:
@@ -141,7 +150,7 @@ class THZValueCodec:
             Encoded bytes (1 for on, 0 for off).
         """
         value = 1 if is_on else 0
-        return value.to_bytes(2, byteorder="big", signed=True)
+        return value.to_bytes(2, byteorder="big", signed=False)
 
     @staticmethod
     def decode_switch(value_bytes: bytes) -> bool:
@@ -159,5 +168,5 @@ class THZValueCodec:
         if not value_bytes:
             raise ValueError("No data to decode")
         
-        value = int.from_bytes(value_bytes, byteorder="big", signed=True)
+        value = int.from_bytes(value_bytes, byteorder="big", signed=False)
         return value != 0
