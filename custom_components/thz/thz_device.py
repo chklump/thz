@@ -142,7 +142,9 @@ class THZDevice:
         if self.ser is None:
             return False
         
-        if isinstance(self.ser, socket.socket):
+        # Check if it's a socket - use hasattr to avoid issues with mocks
+        if hasattr(self.ser, 'fileno') and hasattr(self.ser, 'recv'):
+            # This is likely a socket
             try:
                 # Check if socket is still valid
                 if self.ser.fileno() == -1:
@@ -165,8 +167,14 @@ class THZDevice:
                 return True
             except (OSError, socket.error, AttributeError):
                 return False
-        elif isinstance(self.ser, serial.Serial):
-            return self.ser.is_open
+        elif hasattr(self.ser, 'is_open'):
+            # This is likely a serial connection
+            try:
+                return self.ser.is_open
+            except AttributeError:
+                return False
+        
+        # Unknown connection type or uninitialized
         return False
 
     def _reconnect(self):
@@ -215,15 +223,20 @@ class THZDevice:
         """Send request via USB or TCP, receive response.
         
         Automatically reconnects if connection is lost.
+        
+        Raises:
+            ConnectionError: If connection fails and reconnection is unsuccessful
+            RuntimeError: If device communication fails (handshake, timeout, invalid response)
         """
         timeout = self.read_timeout
         data = bytearray()
         max_retries = 1  # Allow one retry on connection error
+        last_error = None
 
         for attempt in range(max_retries + 1):
             try:
-                # Check connection health before sending
-                if not self._is_connection_alive():
+                # Check connection health before sending (only if device was initialized)
+                if self._initialized and not self._is_connection_alive():
                     _LOGGER.warning("Connection not alive, attempting reconnect (attempt %d/%d)", 
                                   attempt + 1, max_retries + 1)
                     self._reconnect()
@@ -235,8 +248,9 @@ class THZDevice:
                 # 2. Expect 0x10 response
                 response = self._read_exact(1, timeout)
                 if response != const.DATALINKESCAPE:
-                    _LOGGER.error("Handshake 1 failed, received: %s", response.hex())
-                    return b""
+                    error_msg = f"Handshake 1 failed, received: {response.hex() if response else 'no data'}"
+                    _LOGGER.error(error_msg)
+                    raise RuntimeError(error_msg)
 
                 # 3. Send telegram
                 self._reset_input_buffer()
@@ -259,16 +273,18 @@ class THZDevice:
                     if second_byte == const.STARTOFTEXT:
                         response = const.DATALINKESCAPE + const.STARTOFTEXT
                     else:
-                        _LOGGER.error("Handshake 2 failed: received 0x10 then %s", second_byte.hex())
-                        return b""
+                        error_msg = f"Handshake 2 failed: received 0x10 then {second_byte.hex() if second_byte else 'no data'}"
+                        _LOGGER.error(error_msg)
+                        raise RuntimeError(error_msg)
                 elif response == const.STARTOFTEXT:
                     # Sometimes device sends just 0x02 (as per Perl code line 1525)
                     _LOGGER.debug("Received only 0x02 as response")
                     response = const.DATALINKESCAPE + const.STARTOFTEXT  # Accept it
                 
                 if response != const.DATALINKESCAPE + const.STARTOFTEXT:
-                    _LOGGER.error("Handshake 2 failed, received: %s", response.hex())
-                    return b""
+                    error_msg = f"Handshake 2 failed, received: {response.hex() if response else 'no data'}"
+                    _LOGGER.error(error_msg)
+                    raise RuntimeError(error_msg)
 
                 if get_or_set == "get":
                     # 5. Send confirmation (0x10)
@@ -291,31 +307,44 @@ class THZDevice:
                     if not (
                         len(data) >= 8 and data[-2:] == const.DATALINKESCAPE + const.ENDOFTEXT
                     ):
-                        _LOGGER.error("No valid response received after data request")
-                        return b""
+                        error_msg = "No valid response received after data request - timeout or incomplete data"
+                        _LOGGER.error(error_msg)
+                        raise RuntimeError(error_msg)
 
                 # 7. End of communication
                 self._write_bytes(const.STARTOFTEXT)
                 return bytes(data)
             
             except ConnectionError as e:
+                last_error = e
                 _LOGGER.error("Connection error in send_request (attempt %d/%d): %s", 
                             attempt + 1, max_retries + 1, e)
                 if attempt < max_retries:
                     # Try to reconnect for next attempt
                     try:
                         self._reconnect()
+                        continue  # Retry after successful reconnection
                     except Exception as reconnect_error:
                         _LOGGER.error("Reconnect failed: %s", reconnect_error)
-                        if attempt == max_retries:
-                            return b""
-                else:
-                    return b""
+                        # Fall through to raise the original connection error
+                # Re-raise the connection error after max retries
+                raise ConnectionError(f"Connection failed after {max_retries + 1} attempts: {e}") from e
+            
+            except RuntimeError as e:
+                # Protocol/handshake errors - don't retry these
+                last_error = e
+                _LOGGER.error("Protocol error in send_request: %s", e)
+                raise
+            
             except Exception as e:
-                _LOGGER.error("Error in send_request: %s", e)
-                return b""
+                last_error = e
+                _LOGGER.error("Unexpected error in send_request: %s", e)
+                raise RuntimeError(f"Device communication failed: {e}") from e
         
-        return b""
+        # Should not reach here, but just in case
+        if last_error:
+            raise last_error
+        raise RuntimeError("send_request failed without specific error")
 
     # Hilfsmethoden ergänzen
     def _write_bytes(self, data: bytes):
@@ -325,11 +354,17 @@ class THZDevice:
             ConnectionError: If the connection is closed or broken
         """
         try:
-            if isinstance(self.ser, socket.socket):  # TCP Socket
+            # Use hasattr to check connection type instead of isinstance
+            # This is more robust when modules are mocked in tests
+            if hasattr(self.ser, 'send') and hasattr(self.ser, 'recv'):
+                # This is a socket
                 self.ser.send(data)
-            elif isinstance(self.ser, serial.Serial):  # Serial
+            elif hasattr(self.ser, 'write') and hasattr(self.ser, 'flush'):
+                # This is serial
                 self.ser.write(data)
                 self.ser.flush()
+            else:
+                raise ConnectionError("Unknown connection type")
         except (OSError, socket.error, BrokenPipeError) as e:
             # Connection reset, broken pipe, or other socket/serial errors
             _LOGGER.error("Connection error during write: %s", e)
@@ -352,13 +387,14 @@ class THZDevice:
         Raises:
             ConnectionError: If the connection is closed or broken
         """
-        if isinstance(self.ser, socket.socket) and hasattr(
-            self.ser, "recv"
-        ):  # TCP Socket
+        # Use hasattr to check connection type instead of isinstance
+        # This is more robust when modules are mocked in tests
+        if hasattr(self.ser, 'recv') and hasattr(self.ser, 'setblocking'):
+            # This is a socket
             try:
                 self.ser.setblocking(False)
                 data = self.ser.recv(1024)
-                if not data and self.ser.fileno() == -1:
+                if not data and hasattr(self.ser, 'fileno') and self.ser.fileno() == -1:
                     # Socket is closed
                     raise ConnectionError("TCP socket connection closed")
                 return data
@@ -368,7 +404,8 @@ class THZDevice:
                 # Connection reset, broken pipe, or other socket errors
                 _LOGGER.error("TCP socket error during read: %s", e)
                 raise ConnectionError(f"TCP connection error: {e}") from e
-        elif isinstance(self.ser, serial.Serial):  # Serial
+        elif hasattr(self.ser, 'in_waiting') and hasattr(self.ser, 'read'):
+            # This is serial
             waiting = getattr(self.ser, "in_waiting", 0)
             if waiting > 0:
                 return self.ser.read(waiting)
@@ -382,9 +419,11 @@ class THZDevice:
         TCP sockets do not have an input buffer to reset, so this is only
         relevant for serial connections.
         """
-        if self.ser is not None and isinstance(self.ser, serial.Serial):
-            if hasattr(self.ser, "reset_input_buffer"):
+        if self.ser is not None and hasattr(self.ser, "reset_input_buffer"):
+            try:
                 self.ser.reset_input_buffer()
+            except AttributeError:
+                pass
 
     def close(self):
         """Close the connection."""
@@ -486,7 +525,12 @@ class THZDevice:
         get_or_set: str = "get",
         payload_to_deliver: bytes = b"",
     ) -> bytes:
-        """Reads or writes a register from/to the THZ device."""
+        """Reads or writes a register from/to the THZ device.
+        
+        Raises:
+            ConnectionError: If connection fails
+            RuntimeError: If device communication fails
+        """
         header = b"\x01\x00" if get_or_set == "get" else b"\x01\x80"
         # Standard Header für "get" und "set"
         footer = const.DATALINKESCAPE + const.ENDOFTEXT  # Standard Footer
@@ -504,7 +548,9 @@ class THZDevice:
         # _LOGGER.debug("Payload dekodiert: %s", payload.hex())
         if get_or_set == "get":
             decoded = self.decode_response(raw_response)
-            return decoded if decoded is not None else b""
+            if decoded is None:
+                raise RuntimeError("Failed to decode device response")
+            return decoded
 
         return b""
 

@@ -184,7 +184,7 @@ class TestCaching:
         device._cache[block] = (time.time() - 100, cached_data)
         
         # Cache should be expired with duration of 60 seconds
-        # This will try to read from device, which will return empty bytes without connection
-        result = device.read_block_cached(block, cache_duration=60)
-        # Should get empty bytes when read fails
-        assert result == b""
+        # This will try to read from device, which should raise an exception without a connection
+        import pytest
+        with pytest.raises((ConnectionError, RuntimeError)):
+            device.read_block_cached(block, cache_duration=60)
