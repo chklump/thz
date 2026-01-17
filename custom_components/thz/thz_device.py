@@ -49,7 +49,6 @@ class THZDevice:
         self.lock = asyncio.Lock()
         self._last_access = 0
         self._min_interval = 0.1  # minimum time between reads in seconds
-        self._connection_validated = False  # Track if connection has been validated
 
         # ---------------------------------------------------------------------
 
@@ -132,6 +131,11 @@ class THZDevice:
     def _is_connection_alive(self) -> bool:
         """Check if the connection is still alive.
         
+        Uses multiple methods to verify connection health:
+        1. Check if socket/serial file descriptor is valid
+        2. For TCP: Try MSG_PEEK to detect closed connections
+        3. For serial: Check is_open status
+        
         Returns:
             bool: True if connection is alive, False otherwise
         """
@@ -143,17 +147,23 @@ class THZDevice:
                 # Check if socket is still valid
                 if self.ser.fileno() == -1:
                     return False
-                # Try a quick peek without blocking
+                
+                # Try a quick peek without blocking to detect closed connections
+                # This is a best-effort check; MSG_PEEK may not work on all platforms
                 self.ser.setblocking(False)
-                # recv with MSG_PEEK doesn't remove data from buffer
-                # If it returns empty bytes, connection is likely closed
                 try:
+                    # recv with MSG_PEEK doesn't remove data from buffer
+                    # Empty return on non-blocking socket just means no data available
                     self.ser.recv(1, socket.MSG_PEEK)
                 except BlockingIOError:
                     # No data available but connection is alive
                     pass
+                except (OSError, socket.error):
+                    # Connection is broken
+                    return False
+                
                 return True
-            except (OSError, socket.error):
+            except (OSError, socket.error, AttributeError):
                 return False
         elif isinstance(self.ser, serial.Serial):
             return self.ser.is_open
@@ -174,7 +184,6 @@ class THZDevice:
             elif self.connection == "ip":
                 self._connect_tcp()
             
-            self._connection_validated = False
             _LOGGER.info("Reconnection successful")
         except Exception as e:
             _LOGGER.error("Reconnection failed: %s", e)
@@ -242,6 +251,8 @@ class THZDevice:
                 if response == const.DATALINKESCAPE:
                     _LOGGER.debug("Received 0x10, waiting for 0x02...")
                     # Add delay for firmware 2.x as per Perl module
+                    # Note: time.sleep() is used here instead of asyncio.sleep() because
+                    # this method runs in an executor job (blocking context)
                     if self._firmware_version and self._firmware_version.startswith("2"):
                         time.sleep(0.005)
                     second_byte = self._read_exact(1, timeout)
@@ -285,7 +296,6 @@ class THZDevice:
 
                 # 7. End of communication
                 self._write_bytes(const.STARTOFTEXT)
-                self._connection_validated = True
                 return bytes(data)
             
             except ConnectionError as e:
