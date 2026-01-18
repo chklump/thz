@@ -173,6 +173,39 @@
       },
       "humidity_air_out": {
         "name": "Humidity Air Out"
+      },
+      "heat_set_temp": {
+        "name": "Heat Setpoint Temperature"
+      },
+      "heat_temp": {
+        "name": "Heat Temperature"
+      },
+      "room_set_temp": {
+        "name": "Room Setpoint Temperature"
+      },
+      "inside_temp_rc": {
+        "name": "Inside Temperature (Room Controller)"
+      },
+      "season_mode": {
+        "name": "Season Mode"
+      },
+      "hc_op_mode": {
+        "name": "Heating Circuit Operating Mode"
+      },
+      "integral_heat": {
+        "name": "Integral Heat"
+      },
+      "integral_switch": {
+        "name": "Integral Switch"
+      },
+      "on_hysteresis_no": {
+        "name": "On Hysteresis Number"
+      },
+      "off_hysteresis_no": {
+        "name": "Off Hysteresis Number"
+      },
+      "hc_booster_stage": {
+        "name": "Heating Circuit Booster Stage"
       }
     },
     "number": {
