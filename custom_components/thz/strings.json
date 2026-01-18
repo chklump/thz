@@ -173,6 +173,39 @@
       },
       "humidity_air_out": {
         "name": "Humidity Air Out"
+      },
+      "heat_set_temp": {
+        "name": "Heat Setpoint Temperature"
+      },
+      "heat_temp": {
+        "name": "Heat Temperature"
+      },
+      "room_set_temp": {
+        "name": "Room Setpoint Temperature"
+      },
+      "inside_temp_rc": {
+        "name": "Inside Temperature (Room Controller)"
+      },
+      "season_mode": {
+        "name": "Season Mode"
+      },
+      "hc_op_mode": {
+        "name": "Heating Circuit Operating Mode"
+      },
+      "integral_heat": {
+        "name": "Integral Heat"
+      },
+      "integral_switch": {
+        "name": "Integral Switch"
+      },
+      "on_hysteresis_no": {
+        "name": "On Hysteresis Number"
+      },
+      "off_hysteresis_no": {
+        "name": "Off Hysteresis Number"
+      },
+      "hc_booster_stage": {
+        "name": "Heating Circuit Booster Stage"
       }
     },
     "number": {
@@ -406,6 +439,171 @@
       },
       "room_temp_standby_hc2_summer": {
         "name": "Room Temperature Standby HC2 Summer"
+      },
+      "clock_day": {
+        "name": "Clock Day"
+      },
+      "clock_hour": {
+        "name": "Clock Hour"
+      },
+      "clock_minutes": {
+        "name": "Clock Minutes"
+      },
+      "clock_month": {
+        "name": "Clock Month"
+      },
+      "clock_year": {
+        "name": "Clock Year"
+      },
+      "prog_dhw_enable": {
+        "name": "DHW Program Enable"
+      },
+      "prog_dhw_start_time": {
+        "name": "DHW Program Start Time"
+      },
+      "prog_dhw_end_time": {
+        "name": "DHW Program End Time"
+      },
+      "prog_dhw_monday": {
+        "name": "DHW Program Monday"
+      },
+      "prog_dhw_tuesday": {
+        "name": "DHW Program Tuesday"
+      },
+      "prog_dhw_wednesday": {
+        "name": "DHW Program Wednesday"
+      },
+      "prog_dhw_thursday": {
+        "name": "DHW Program Thursday"
+      },
+      "prog_dhw_friday": {
+        "name": "DHW Program Friday"
+      },
+      "prog_dhw_saturday": {
+        "name": "DHW Program Saturday"
+      },
+      "prog_dhw_sunday": {
+        "name": "DHW Program Sunday"
+      },
+      "prog_fan1_enable": {
+        "name": "Fan 1 Program Enable"
+      },
+      "prog_fan1_start_time": {
+        "name": "Fan 1 Program Start Time"
+      },
+      "prog_fan1_end_time": {
+        "name": "Fan 1 Program End Time"
+      },
+      "prog_fan1_monday": {
+        "name": "Fan 1 Program Monday"
+      },
+      "prog_fan1_tuesday": {
+        "name": "Fan 1 Program Tuesday"
+      },
+      "prog_fan1_wednesday": {
+        "name": "Fan 1 Program Wednesday"
+      },
+      "prog_fan1_thursday": {
+        "name": "Fan 1 Program Thursday"
+      },
+      "prog_fan1_friday": {
+        "name": "Fan 1 Program Friday"
+      },
+      "prog_fan1_saturday": {
+        "name": "Fan 1 Program Saturday"
+      },
+      "prog_fan1_sunday": {
+        "name": "Fan 1 Program Sunday"
+      },
+      "prog_fan2_enable": {
+        "name": "Fan 2 Program Enable"
+      },
+      "prog_fan2_start_time": {
+        "name": "Fan 2 Program Start Time"
+      },
+      "prog_fan2_end_time": {
+        "name": "Fan 2 Program End Time"
+      },
+      "prog_fan2_monday": {
+        "name": "Fan 2 Program Monday"
+      },
+      "prog_fan2_tuesday": {
+        "name": "Fan 2 Program Tuesday"
+      },
+      "prog_fan2_wednesday": {
+        "name": "Fan 2 Program Wednesday"
+      },
+      "prog_fan2_thursday": {
+        "name": "Fan 2 Program Thursday"
+      },
+      "prog_fan2_friday": {
+        "name": "Fan 2 Program Friday"
+      },
+      "prog_fan2_saturday": {
+        "name": "Fan 2 Program Saturday"
+      },
+      "prog_fan2_sunday": {
+        "name": "Fan 2 Program Sunday"
+      },
+      "prog_hc1_enable": {
+        "name": "HC1 Program Enable"
+      },
+      "prog_hc1_start_time": {
+        "name": "HC1 Program Start Time"
+      },
+      "prog_hc1_end_time": {
+        "name": "HC1 Program End Time"
+      },
+      "prog_hc1_monday": {
+        "name": "HC1 Program Monday"
+      },
+      "prog_hc1_tuesday": {
+        "name": "HC1 Program Tuesday"
+      },
+      "prog_hc1_wednesday": {
+        "name": "HC1 Program Wednesday"
+      },
+      "prog_hc1_thursday": {
+        "name": "HC1 Program Thursday"
+      },
+      "prog_hc1_friday": {
+        "name": "HC1 Program Friday"
+      },
+      "prog_hc1_saturday": {
+        "name": "HC1 Program Saturday"
+      },
+      "prog_hc1_sunday": {
+        "name": "HC1 Program Sunday"
+      },
+      "prog_hc2_enable": {
+        "name": "HC2 Program Enable"
+      },
+      "prog_hc2_start_time": {
+        "name": "HC2 Program Start Time"
+      },
+      "prog_hc2_end_time": {
+        "name": "HC2 Program End Time"
+      },
+      "prog_hc2_monday": {
+        "name": "HC2 Program Monday"
+      },
+      "prog_hc2_tuesday": {
+        "name": "HC2 Program Tuesday"
+      },
+      "prog_hc2_wednesday": {
+        "name": "HC2 Program Wednesday"
+      },
+      "prog_hc2_thursday": {
+        "name": "HC2 Program Thursday"
+      },
+      "prog_hc2_friday": {
+        "name": "HC2 Program Friday"
+      },
+      "prog_hc2_saturday": {
+        "name": "HC2 Program Saturday"
+      },
+      "prog_hc2_sunday": {
+        "name": "HC2 Program Sunday"
       }
     },
     "select": {
