@@ -195,7 +195,6 @@ class THZTime(THZBaseEntity, TimeEntity):
             scan_interval: The scan interval in seconds for polling updates.
         """
         # Initialize base class with common properties
-        # Note: Time entities don't use translation keys, so we pass None
         super().__init__(
             name=name,
             command=entry["command"],
@@ -203,11 +202,11 @@ class THZTime(THZBaseEntity, TimeEntity):
             device_id=device_id,
             icon=entry.get("icon", "mdi:clock"),
             scan_interval=scan_interval,
-            translation_key=None,  # Time entities don't have translation keys
+            translation_key=None,  # TODO add translation keys for time entities
         )
         
         # Override has_entity_name for time entities (always False for backward compatibility)
-        self._attr_has_entity_name = False
+        self._attr_has_entity_name = True
         
         self._attr_native_value = None
 
@@ -302,11 +301,11 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
             device_id=device_id,
             icon=entry.get("icon", "mdi:calendar-clock"),
             scan_interval=scan_interval,
-            translation_key=None,  # Time entities don't have translation keys
+            translation_key=None,  # TODO add translation keys for time entities
         )
         
         # Override has_entity_name for time entities (always False for backward compatibility)
-        self._attr_has_entity_name = False
+        self._attr_has_entity_name = True
         
         self._time_type = time_type
         self._attr_native_value = None

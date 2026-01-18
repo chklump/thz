@@ -64,9 +64,7 @@ class THZBaseEntity(Entity):
             unique_id or self._generate_unique_id(command, name)
         )
         
-        # Enable entity name translation only when translation_key is provided
-        # This prevents entities from showing as just the device name when no translation exists
-        self._attr_has_entity_name = translation_key is not None
+        self._attr_has_entity_name = True
         
         # Configure update interval
         interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
@@ -92,10 +90,10 @@ class THZBaseEntity(Entity):
     def name(self) -> str | None:
         """Return the name of the entity.
         
-        When has_entity_name is True, return None to use translation key.
+        When translation_key is True, return None to use translation key.
         Otherwise, return the entity name for backward compatibility.
         """
-        if self._attr_has_entity_name:
+        if self.translation_key is not None:
             return None
         return self._attr_name
 
