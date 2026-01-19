@@ -7,7 +7,7 @@ import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN
@@ -162,3 +162,38 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 await hass.async_add_executor_job(device.close)
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, config_entry: ConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Remove a config entry from a device.
+    
+    This is called when a user manually removes a device from the UI.
+    Return False to prevent removal if there's an issue.
+    """
+    return True
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Handle removal of an entry.
+    
+    This is called when the config entry is completely removed (not just unloaded).
+    Clean up all entity registry entries to ensure a fresh start on re-setup.
+    """
+    # Get entity registry
+    entity_reg = er.async_get(hass)
+    
+    # Get all entities for this config entry
+    entities = er.async_entries_for_config_entry(entity_reg, entry.entry_id)
+    
+    # Remove all entities associated with this config entry
+    for entity in entities:
+        entity_reg.async_remove(entity.entity_id)
+        _LOGGER.debug("Removed entity %s from registry", entity.entity_id)
+    
+    _LOGGER.info(
+        "Removed %d entities from registry for config entry %s",
+        len(entities),
+        entry.entry_id,
+    )
