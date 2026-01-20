@@ -30,7 +30,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow für Stiebel Eltron THZ (LAN or USB)."""
+    """Config flow for Stiebel Eltron THZ (LAN or USB)."""
 
     VERSION = 1
 
@@ -89,9 +89,27 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input=None
     ) -> config_entries.ConfigFlowResult:
         """Input for IP connection."""
+        errors = {}
+        
         if user_input is not None:
-            self.connection_data = user_input
-            return await self.async_step_name()
+            # Validate IP address
+            host = user_input.get(CONF_HOST, "").strip()
+            port = user_input.get(CONF_PORT)
+            
+            # Basic IP validation
+            if not host:
+                errors[CONF_HOST] = "invalid_host"
+            elif not self._is_valid_ip_or_hostname(host):
+                errors[CONF_HOST] = "invalid_host"
+            
+            # Port validation
+            if port is None or not (1 <= port <= 65535):
+                errors[CONF_PORT] = "invalid_port"
+            
+            if not errors:
+                user_input[CONF_HOST] = host  # Use stripped version
+                self.connection_data = user_input
+                return await self.async_step_name()
 
         schema = vol.Schema(
             {
@@ -102,7 +120,35 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ),
             }
         )
-        return self.async_show_form(step_id="setup_ip", data_schema=schema)
+        return self.async_show_form(step_id="setup_ip", data_schema=schema, errors=errors)
+    
+    @staticmethod
+    def _is_valid_ip_or_hostname(host: str) -> bool:
+        """Validate IP address or hostname.
+        
+        Args:
+            host: The hostname or IP address to validate.
+            
+        Returns:
+            True if valid, False otherwise.
+        """
+        import re
+        import ipaddress
+        
+        # Try to parse as IP address
+        try:
+            ipaddress.ip_address(host)
+            return True
+        except ValueError:
+            pass
+        
+        # Check if it's a valid hostname
+        # Hostname can contain letters, numbers, dots, and hyphens
+        hostname_pattern = r'^[a-zA-Z0-9]([a-zA-Z0-9\-\.]{0,253}[a-zA-Z0-9])?$'
+        if re.match(hostname_pattern, host):
+            return True
+        
+        return False
 
     async def async_step_setup_usb(
         self, user_input: dict[str, Any] | None = None
@@ -319,6 +365,6 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="refresh_blocks",
             data_schema=schema,
             description_placeholders={
-                "hint": "Aktualisierungsintervall je Block (Sekunden), write_interval für Schreibentitäten (number/switch/select/time)"
+                "hint": "Update interval per block (seconds), write_interval for write entities (number/switch/select/time)"
             },
         )

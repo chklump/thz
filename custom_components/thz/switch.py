@@ -3,24 +3,22 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import timedelta
 from typing import Any
 
-from homeassistant.components.switch import ConfigEntry, SwitchEntity
+from homeassistant.components.switch import SwitchEntity
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-
+from .base_entity import THZBaseEntity
 from .entity_translations import get_translation_key
 from .const import (
-    DEFAULT_UPDATE_INTERVAL,
-    DOMAIN,
-    should_hide_entity_by_default,
     WRITE_REGISTER_OFFSET,
     WRITE_REGISTER_LENGTH,
 )
-from .register_maps.register_map_manager import RegisterMapManagerWrite
+from .platform_setup import async_setup_write_platform
 from .thz_device import THZDevice
+from .value_codec import THZValueCodec
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,210 +26,61 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    async_add_entities: AddConfigEntryEntitiesCallback,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up switch entities for the THZ integration.
-
-    This coroutine retrieves all write registers from the write manager,
-    filters for switch-type registers, and creates THZSwitch entities for each one.
-    The created entities are then added to Home Assistant.
-
-    Args:
-        hass: The Home Assistant instance.
-        config_entry: The config entry that triggered this setup.
-        async_add_entities: Callback function to register new entities.
-
-    Returns:
-        None
-    """
-
-    entities = []
-    write_manager: RegisterMapManagerWrite = hass.data[DOMAIN]["write_manager"]
-    device: THZDevice = hass.data[DOMAIN]["device"]
-    device_id = hass.data[DOMAIN]["device_id"]
-    
-    # Get write interval from config, default to DEFAULT_UPDATE_INTERVAL
-    write_interval = config_entry.data.get("write_interval", DEFAULT_UPDATE_INTERVAL)
-    
-    write_registers = write_manager.get_all_registers()
-    _LOGGER.debug("write_registers: %s", write_registers)
-    for name, entry in write_registers.items():
-        if entry["type"] == "switch":
-            _LOGGER.debug(
-                "Creating Switch for %s with command %s", name, entry["command"]
-            )
-            entity = THZSwitch(
-                name=name,
-                command=entry["command"],
-                min_value=entry["min"],
-                max_value=entry["max"],
-                step=entry.get("step", 1),
-                unit=entry.get("unit", ""),
-                device_class=entry.get("device_class"),
-                device=device,
-                icon=entry.get("icon"),
-                unique_id=f"thz_{name.lower().replace(' ', '_')}",
-                scan_interval=write_interval,
-                device_id=device_id,
-                translation_key=get_translation_key(name),
-            )
-            entities.append(entity)
-
-    async_add_entities(entities, True)
+    """Set up switch entities for the THZ integration."""
+    await async_setup_write_platform(
+        hass, config_entry, async_add_entities, THZSwitch, "switch"
+    )
 
 
-class THZSwitch(SwitchEntity):
-    """Represents a switch entity for a THZ device in Home Assistant.
 
-    This class provides asynchronous methods to control and monitor a switch on a THZ device.
-    It handles reading the switch state from the device, as well as turning the switch on and off
-    by sending the appropriate commands. Thread safety is ensured by acquiring a lock on the device
-    during communication operations.
 
-    Attributes:
-        _attr_should_poll (bool): Indicates if the entity should be polled for updates.
-        _attr_name (str): The name of the switch entity.
-        _command (str): The command code used to communicate with the device.
-        _device: The device instance used for communication.
-        _attr_icon (str): The icon representing the switch in the UI.
-        _attr_unique_id (str): A unique identifier for the switch entity.
-        _is_on (bool): The current state of the switch (on/off).
-        name (str): The name of the switch.
-        command (str): The command code for the switch.
-        min_value (int): Minimum value for the switch (unused in this implementation).
-        max_value (int): Maximum value for the switch (unused in this implementation).
-        step (int): Step value for the switch (unused in this implementation).
-        unit (str): Unit of measurement (unused in this implementation).
-        device_class (str): Device class for the switch (unused in this implementation).
-        device: The device instance for communication.
-        icon (str, optional): Icon for the switch. Defaults to "mdi:eye".
-        unique_id (str, optional): Unique identifier for the switch.
-
-    Properties:
-        is_on (bool): Returns the current state of the switch.
-
-    Methods:
-        async_update(): Asynchronously updates the state of the switch by reading its value from the device.
-        turn_on(**kwargs): Asynchronously turns on the switch by sending a command to the device.
-        turn_off(**kwargs): Asynchronously turns off the switch by sending a command to the device.
-    """
-
-    _attr_should_poll = True
+class THZSwitch(THZBaseEntity, SwitchEntity):
+    """Representation of a THZ Switch entity."""
 
     def __init__(
         self,
         name: str,
-        command: str,
-        min_value: int,
-        max_value: int,
-        step: int,
-        unit: str,
-        device_class: str,
-        device,
-        icon: str | None = None,
-        unique_id: str | None = None,
+        entry: dict,
+        device: THZDevice,
+        device_id: str,
         scan_interval: int | None = None,
-        device_id: str | None = None,
-        translation_key: str | None = None,
     ) -> None:
-        """Initialize a new switch entity for the THZ integration.
+        """Initialize a THZ switch entity.
 
         Args:
-            name (str): The name of the switch.
-            command (str): The command associated with the switch.
-            min_value (int): The minimum value for the switch.
-            max_value (int): The maximum value for the switch.
-            step (int): The step size for value changes.
-            unit (str): The unit of measurement for the switch.
-            device_class (str): The device class for the switch.
+            name: The name of the switch.
+            entry: The register entry dict containing configuration.
             device: The device instance this switch is associated with.
-            icon (str, optional): The icon to use for the switch. Defaults to "mdi:eye" if not provided.
-            unique_id (str, optional): The unique identifier for the switch. If not provided, a unique ID is generated.
-            scan_interval (int, optional): The scan interval in seconds for polling updates.
-            device_id (str, optional): The device identifier for linking to device.
-            translation_key (str, optional): Translation key for localization.
+            device_id: The device identifier for linking to device.
+            scan_interval: The scan interval in seconds for polling updates.
         """
-
-        self._attr_name = name
-        self._command = command
-        self._device = device
-        self._attr_icon = icon or "mdi:eye"
-        self._attr_unique_id = (
-            unique_id or f"thz_set_{command.lower()}_{name.lower().replace(' ', '_')}"
+        # Initialize base class with common properties
+        super().__init__(
+            name=name,
+            command=entry["command"],
+            device=device,
+            device_id=device_id,
+            icon=entry.get("icon"),
+            scan_interval=scan_interval,
+            translation_key=get_translation_key(name),
         )
+        
+        # Switch-specific attributes
         self._is_on = False
-        self._device_id = device_id
-        self._translation_key = translation_key
-        # Enable entity name translation only when translation_key is provided
-        # This prevents entities from showing as just the device name when no translation exists
-        self._attr_has_entity_name = translation_key is not None
-        # Always set SCAN_INTERVAL to avoid HA's 30-second default
-        # Use provided scan_interval or fall back to DEFAULT_UPDATE_INTERVAL
-        interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
-        self.SCAN_INTERVAL = timedelta(seconds=interval)
-        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
 
     @property
     def is_on(self) -> bool | None:
-        """Return whether the switch is currently on.
-
-        Returns:
-            bool: True if the switch is on, False otherwise.
-
-        Note:
-            This property returns the entity's last known state and does not perform
-            any I/O or communicate with the underlying device. Call the entity's
-            update methods to refresh the state if necessary.
-        """
-
+        """Return whether the switch is currently on."""
         return self._is_on
 
-    @property
-    def name(self) -> str | None:
-        """Return the name of the switch.
-        
-        When has_entity_name is True, return None to use translation key.
-        Otherwise, return the entity name for backward compatibility.
-        """
-        if self._attr_has_entity_name:
-            return None
-        return self._attr_name
-
-    @property
-    def translation_key(self) -> str | None:
-        """Return the translation key for this switch, if available."""
-        return self._translation_key
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return if the entity should be enabled when first added to the registry."""
-        return self._attr_entity_registry_enabled_default
-
-    @property
-    def device_info(self):
-        """Return device information to link this entity with the device."""
-        from .const import DOMAIN
-        return {
-            "identifiers": {(DOMAIN, self._device_id)},
-        }
-
     async def async_update(self) -> None:
-        """Update the switch state by reading the current value from the device.
-
-        Reads the switch value from the device using the configured command and offsets.
-        The value is interpreted as a boolean where non-zero values represent "on" state.
-
-        Side Effects:
-            - Updates the internal `_is_on` attribute based on the value read from the device.
-
-        Raises:
-            Any exceptions raised by the underlying device communication methods.
-        """
-
-        # Read the value from the device and interpret as on/off
+        """Update the switch state by reading the current value from the device."""
         _LOGGER.debug(
             "Updating switch %s with command %s", self._attr_name, self._command
         )
+        
         async with self._device.lock:
             value_bytes = await self.hass.async_add_executor_job(
                 self._device.read_value,
@@ -240,9 +89,8 @@ class THZSwitch(SwitchEntity):
                 WRITE_REGISTER_OFFSET,
                 WRITE_REGISTER_LENGTH,
             )
-            await asyncio.sleep(
-                0.01
-            )  # Short pause to ensure the device is ready
+            # Short pause to ensure the device is ready
+            await asyncio.sleep(0.01)
         
         # Validate that we received data
         if not value_bytes:
@@ -251,9 +99,12 @@ class THZSwitch(SwitchEntity):
             )
             return
         
+        _LOGGER.debug("Received bytes for %s: %s", self._attr_name, value_bytes.hex())
+        
         try:
-            value = int.from_bytes(value_bytes, byteorder="big", signed=False)
-            self._is_on = bool(value)
+            # Use centralized codec for decoding
+            self._is_on = THZValueCodec.decode_switch(value_bytes)
+            _LOGGER.debug("Decoded switch state for %s: %s", self._attr_name, self._is_on)
         except (ValueError, IndexError, TypeError) as err:
             _LOGGER.error(
                 "Error decoding switch %s: %s", self._attr_name, err, exc_info=True
@@ -261,52 +112,45 @@ class THZSwitch(SwitchEntity):
             # Keep previous value on error
 
     async def turn_on(self, **kwargs: Any) -> None:
-        """Asynchronously turns on the switch by sending a command to the device.
-
-        Acquires the device lock to ensure thread safety, then writes the 'on' value (1)
-        to the device using the specified command. Updates the internal state to reflect
-        that the switch is now on.
-
-        Args:
-            **kwargs: Additional keyword arguments (not used).
-
-        Returns:
-            None
-        """
-
-        value_int = 1
-        async with self._device.lock:
-            await self.hass.async_add_executor_job(
-                self._device.write_value,
-                bytes.fromhex(self._command),
-                value_int.to_bytes(2, byteorder="big", signed=False),
+        """Turn on the switch by sending a command to the device."""
+        _LOGGER.debug("Turning on switch %s", self._attr_name)
+        
+        try:
+            # Use centralized codec for encoding
+            value_bytes = THZValueCodec.encode_switch(True)
+            
+            async with self._device.lock:
+                await self.hass.async_add_executor_job(
+                    self._device.write_value,
+                    bytes.fromhex(self._command),
+                    value_bytes,
+                )
+            
+            self._is_on = True
+        except (ValueError, TypeError) as err:
+            _LOGGER.error(
+                "Error encoding switch %s to turn on: %s", 
+                self._attr_name, err, exc_info=True
             )
-        self._is_on = True
 
     async def turn_off(self, **kwargs: Any) -> None:
-        """Turn off the switch by writing a zero value to the device.
-
-        This method sends a command to the device to turn off the switch. It acquires
-        a lock to ensure thread-safe access to the device, then writes a zero integer
-        value (as 2 bytes in big-endian format) along with the command to the device.
-        After the write operation completes, the internal state is updated to reflect
-        that the switch is now off.
-
-        Args:
-            **kwargs: Additional keyword arguments (unused).
-
-        Returns:
-            None
-
-        Raises:
-            Any exceptions raised by self._device.write_value() will propagate.
-        """
-
-        value_int = 0
-        async with self._device.lock:
-            await self.hass.async_add_executor_job(
-                self._device.write_value,
-                bytes.fromhex(self._command),
-                value_int.to_bytes(2, byteorder="big", signed=False),
+        """Turn off the switch by sending a command to the device."""
+        _LOGGER.debug("Turning off switch %s", self._attr_name)
+        
+        try:
+            # Use centralized codec for encoding
+            value_bytes = THZValueCodec.encode_switch(False)
+            
+            async with self._device.lock:
+                await self.hass.async_add_executor_job(
+                    self._device.write_value,
+                    bytes.fromhex(self._command),
+                    value_bytes,
+                )
+            
+            self._is_on = False
+        except (ValueError, TypeError) as err:
+            _LOGGER.error(
+                "Error encoding switch %s to turn off: %s", 
+                self._attr_name, err, exc_info=True
             )
-        self._is_on = False

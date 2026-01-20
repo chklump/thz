@@ -256,25 +256,27 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         self._device_id = device_id
         
         # Enable entity name translation only when translation_key is provided
-        # This prevents entities from showing as just the device name when no translation exists
-        self._attr_has_entity_name = self._translation_key is not None
-        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(self._name)
+        self._attr_has_entity_name = True
+
+        # Set default visibility based on entity naming conventions
+        #TODO check implementation, until then, keep entities visible by default
+        #self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(self._name)
 
     @property
     def name(self) -> str | None:
-        """Return the name of the sensor.
+        """Return the name of the entity.
         
-        When has_entity_name is True, return None to use translation key.
+        When translation_key is True, return None to use translation key.
         Otherwise, return the entity name for backward compatibility.
         """
-        if self._attr_has_entity_name:
+        if self.translation_key is not None:
             return None
-        return self._name
+        return self._attr_name
 
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return if the entity should be enabled when first added to the registry."""
-        return self._attr_entity_registry_enabled_default
+    # @property
+    # def entity_registry_enabled_default(self) -> bool:
+    #     """Return if the entity should be enabled when first added to the registry."""
+    #     return self._attr_entity_registry_enabled_default
 
     @property
     def native_value(self) -> StateType | int | float | bool | str | None:

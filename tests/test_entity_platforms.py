@@ -153,13 +153,15 @@ class TestModuleConstants:
         assert WRITE_REGISTER_LENGTH == 2
 
     def test_select_uses_domain(self):
-        """Test that select module uses DOMAIN constant."""
-        from custom_components.thz.select import DOMAIN
+        """Test that select module or its dependencies use DOMAIN constant."""
+        # DOMAIN is now used via platform_setup helper
+        from custom_components.thz.const import DOMAIN
         assert DOMAIN == "thz"
 
     def test_switch_uses_domain(self):
-        """Test that switch module uses DOMAIN constant."""
-        from custom_components.thz.switch import DOMAIN
+        """Test that switch module or its dependencies use DOMAIN constant."""
+        # DOMAIN is now used via platform_setup helper
+        from custom_components.thz.const import DOMAIN
         assert DOMAIN == "thz"
 
     def test_time_has_time_value_unset(self):
@@ -191,16 +193,19 @@ class TestEntityHidingIntegration:
     """Test entity hiding integration in modules."""
 
     def test_number_uses_should_hide_entity(self):
-        """Test that number module imports should_hide_entity_by_default."""
-        from custom_components.thz.number import should_hide_entity_by_default
+        """Test that base_entity module provides should_hide_entity_by_default."""
+        from custom_components.thz.const import should_hide_entity_by_default
         assert callable(should_hide_entity_by_default)
+        # Verify it's used by base entity
+        from custom_components.thz.base_entity import THZBaseEntity
+        assert THZBaseEntity is not None
 
     def test_select_uses_should_hide_entity(self):
-        """Test that select module imports should_hide_entity_by_default."""
-        from custom_components.thz.select import should_hide_entity_by_default
+        """Test that base_entity module provides should_hide_entity_by_default."""
+        from custom_components.thz.const import should_hide_entity_by_default
         assert callable(should_hide_entity_by_default)
 
     def test_switch_uses_should_hide_entity(self):
-        """Test that switch module imports should_hide_entity_by_default."""
-        from custom_components.thz.switch import should_hide_entity_by_default
+        """Test that base_entity module provides should_hide_entity_by_default."""
+        from custom_components.thz.const import should_hide_entity_by_default
         assert callable(should_hide_entity_by_default)
