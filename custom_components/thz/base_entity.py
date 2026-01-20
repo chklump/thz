@@ -102,10 +102,10 @@ class THZBaseEntity(Entity):
         """Return the translation key for this entity, if available."""
         return self._translation_key
 
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return if the entity should be enabled when first added to the registry."""
-        return self._attr_entity_registry_enabled_default
+    # @property
+    # def entity_registry_enabled_default(self) -> bool:
+    #     """Return if the entity should be enabled when first added to the registry."""
+    #     return self._attr_entity_registry_enabled_default
 
     @property
     def device_info(self):

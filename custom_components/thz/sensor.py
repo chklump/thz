@@ -273,10 +273,10 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
             return None
         return self._attr_name
 
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return if the entity should be enabled when first added to the registry."""
-        return self._attr_entity_registry_enabled_default
+    # @property
+    # def entity_registry_enabled_default(self) -> bool:
+    #     """Return if the entity should be enabled when first added to the registry."""
+    #     return self._attr_entity_registry_enabled_default
 
     @property
     def native_value(self) -> StateType | int | float | bool | str | None:
