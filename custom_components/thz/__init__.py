@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN
+from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN, should_hide_entity_by_default
 from .thz_device import THZDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -144,22 +144,55 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 async def _async_enable_integration_disabled_entities(
     hass: HomeAssistant, config_entry: ConfigEntry
 ) -> None:
-    """Re-enable entities that were previously disabled by the integration.
+    """Sync entity registry state with current code's visibility settings.
 
-    When the visibility code is changed (e.g., from hiding certain entities to showing all),
-    Home Assistant's entity registry may still have cached "disabled_by: integration" entries.
-    This function clears that flag so the current code's settings take effect.
+    This function ensures the entity registry reflects the current code's visibility
+    logic, overriding any cached state from previous code versions.
+    
+    It handles both directions:
+    - Re-enables entities that should be visible but are cached as disabled
+    - Disables entities that should be hidden but are cached as enabled
+    - Updates entity names to match current code (clears cached name overrides)
     """
     entity_reg = er.async_get(hass)
     entities = er.async_entries_for_config_entry(entity_reg, config_entry.entry_id)
-    count = 0
+    enabled_count = 0
+    disabled_count = 0
+    name_count = 0
+    
     for entity in entities:
-        if entity.disabled_by == er.RegistryEntryDisabler.INTEGRATION:
-            entity_reg.async_update_entity(entity.entity_id, disabled_by=None)
-            _LOGGER.debug("Re-enabled entity %s (was disabled by integration)", entity.entity_id)
-            count += 1
-    if count > 0:
-        _LOGGER.info("Re-enabled %d entities that were previously disabled by integration", count)
+        # Get the entity's original name to check visibility
+        entity_name = entity.original_name or ""
+        should_hide = should_hide_entity_by_default(entity_name)
+        
+        # Sync visibility state
+        if should_hide:
+            # Entity should be hidden - disable if not already disabled by integration
+            if entity.disabled_by != er.RegistryEntryDisabler.INTEGRATION:
+                entity_reg.async_update_entity(
+                    entity.entity_id, 
+                    disabled_by=er.RegistryEntryDisabler.INTEGRATION
+                )
+                _LOGGER.debug("Disabled entity %s (should be hidden)", entity.entity_id)
+                disabled_count += 1
+        else:
+            # Entity should be visible - enable if disabled by integration
+            if entity.disabled_by == er.RegistryEntryDisabler.INTEGRATION:
+                entity_reg.async_update_entity(entity.entity_id, disabled_by=None)
+                _LOGGER.debug("Re-enabled entity %s (should be visible)", entity.entity_id)
+                enabled_count += 1
+        
+        # Sync entity name - clear any cached name override to use current code's name
+        if entity.name is not None:
+            entity_reg.async_update_entity(entity.entity_id, name=None)
+            _LOGGER.debug("Reset entity name for %s to use original_name", entity.entity_id)
+            name_count += 1
+    
+    if enabled_count > 0 or disabled_count > 0 or name_count > 0:
+        _LOGGER.info(
+            "Entity registry sync: enabled %d, disabled %d, reset %d names",
+            enabled_count, disabled_count, name_count
+        )
 
 
 async def _async_update_block(hass: HomeAssistant, device: THZDevice, block_name: str):
