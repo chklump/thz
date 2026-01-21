@@ -71,8 +71,7 @@ class THZBaseEntity(Entity):
         self.SCAN_INTERVAL = timedelta(seconds=interval)
         
         # Set default visibility based on entity naming conventions
-        #TODO check implementation, until then, keep entities visible by default
-        #self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
+        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
 
     def _generate_unique_id(self, command: str, name: str) -> str:
         """Generate a unique identifier for the entity.

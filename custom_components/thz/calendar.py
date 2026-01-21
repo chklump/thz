@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-#from .const import should_hide_entity_by_default  # Unused: visibility feature disabled
+from .const import should_hide_entity_by_default
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 from .time import quarters_to_time, time_to_quarters
@@ -261,8 +261,7 @@ class THZCalendar(CalendarEntity):
             _LOGGER.error("Could not add 'UTC' to zoneinfo_cache: %s", e)
         
         # Hide calendar entities for program schedules by default
-        #TODO: check implementation, until then, keep entities visible by default
-        #self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
+        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
 
     @property
     def name(self) -> str | None:

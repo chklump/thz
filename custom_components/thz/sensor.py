@@ -259,8 +259,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         self._attr_has_entity_name = True
 
         # Set default visibility based on entity naming conventions
-        #TODO check implementation, until then, keep entities visible by default
-        #self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(self._name)
+        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(self._name)
 
     @property
     def name(self) -> str | None:
