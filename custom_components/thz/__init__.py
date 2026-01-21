@@ -134,7 +134,32 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         config_entry, ["sensor", "number", "switch", "select", "time"]
     )
 
+    # Re-enable any entities that were previously disabled by the integration
+    # This ensures the current code's visibility settings take precedence over cached registry state
+    await _async_enable_integration_disabled_entities(hass, config_entry)
+
     return True
+
+
+async def _async_enable_integration_disabled_entities(
+    hass: HomeAssistant, config_entry: ConfigEntry
+) -> None:
+    """Re-enable entities that were previously disabled by the integration.
+
+    When the visibility code is changed (e.g., from hiding certain entities to showing all),
+    Home Assistant's entity registry may still have cached "disabled_by: integration" entries.
+    This function clears that flag so the current code's settings take effect.
+    """
+    entity_reg = er.async_get(hass)
+    entities = er.async_entries_for_config_entry(entity_reg, config_entry.entry_id)
+    count = 0
+    for entity in entities:
+        if entity.disabled_by == er.RegistryEntryDisabler.INTEGRATION:
+            entity_reg.async_update_entity(entity.entity_id, disabled_by=None)
+            _LOGGER.debug("Re-enabled entity %s (was disabled by integration)", entity.entity_id)
+            count += 1
+    if count > 0:
+        _LOGGER.info("Re-enabled %d entities that were previously disabled by integration", count)
 
 
 async def _async_update_block(hass: HomeAssistant, device: THZDevice, block_name: str):
