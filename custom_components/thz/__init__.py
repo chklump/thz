@@ -26,6 +26,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         "THZ async_setup_entry called with entry: %s", config_entry.as_dict()
     )
 
+    # Clean up any orphaned THZ entities from previous installations
+    # This ensures a fresh start without ghost entities with broken names
+    await _async_cleanup_orphaned_entities(hass)
+
     hass.data.setdefault(DOMAIN, {})
 
     data = config_entry.data
@@ -139,6 +143,27 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     await _async_enable_integration_disabled_entities(hass, config_entry)
 
     return True
+
+
+async def _async_cleanup_orphaned_entities(hass: HomeAssistant) -> None:
+    """Remove orphaned THZ entities from the entity registry.
+    
+    Orphaned entities are those with platform="thz" but config_entry_id=None.
+    These can occur when the integration is deleted but HA doesn't fully clean up
+    the entity registry entries, leaving "ghost" entities with broken names.
+    """
+    entity_reg = er.async_get(hass)
+    orphaned_count = 0
+    
+    # Get all entities and filter for orphaned THZ entities
+    for entity in list(entity_reg.entities.values()):
+        if entity.platform == "thz" and entity.config_entry_id is None:
+            entity_reg.async_remove(entity.entity_id)
+            _LOGGER.debug("Removed orphaned THZ entity: %s", entity.entity_id)
+            orphaned_count += 1
+    
+    if orphaned_count > 0:
+        _LOGGER.info("Cleaned up %d orphaned THZ entities from registry", orphaned_count)
 
 
 async def _async_enable_integration_disabled_entities(
