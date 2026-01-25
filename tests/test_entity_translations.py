@@ -27,10 +27,17 @@ class TestEntityTranslationKeys:
         assert "p03RoomTempStandby" in ENTITY_TRANSLATION_KEYS
 
     def test_dhw_temp_keys_exist(self):
-        """Test that DHW temperature keys exist."""
+        """Test that DHW temperature keys exist (write_map_206 format)."""
         assert "p04DHWsetTempDay" in ENTITY_TRANSLATION_KEYS
         assert "p05DHWsetTempNight" in ENTITY_TRANSLATION_KEYS
         assert "p06DHWsetTempStandby" in ENTITY_TRANSLATION_KEYS
+    
+    def test_dhw_temp_keys_exist_439_539(self):
+        """Test that DHW temperature keys exist (write_map_439_539 format)."""
+        assert "p04DHWsetDayTemp" in ENTITY_TRANSLATION_KEYS
+        assert "p05DHWsetNightTemp" in ENTITY_TRANSLATION_KEYS
+        assert "p06DHWsetStandbyTemp" in ENTITY_TRANSLATION_KEYS
+        assert "p11DHWsetManualTemp" in ENTITY_TRANSLATION_KEYS
 
     def test_fan_stage_keys_exist(self):
         """Test that fan stage keys exist."""
@@ -72,9 +79,16 @@ class TestGetTranslationKey:
         assert result == "room_temp_day"
 
     def test_dhw_temp(self):
-        """Test getting DHW temperature key."""
+        """Test getting DHW temperature key (write_map_206 format)."""
         result = get_translation_key("p04DHWsetTempDay")
         assert result == "dhw_temp_day"
+    
+    def test_dhw_temp_439_539(self):
+        """Test getting DHW temperature key (write_map_439_539 format)."""
+        result = get_translation_key("p04DHWsetDayTemp")
+        assert result == "dhw_temp_day"
+        result = get_translation_key("p05DHWsetNightTemp")
+        assert result == "dhw_temp_night"
 
     def test_non_existing_key(self):
         """Test getting a non-existing key returns None."""
@@ -108,3 +122,21 @@ class TestGetTranslationKey:
         """Test solar-related keys."""
         assert get_translation_key("p80EnableSolar") == "enable_solar"
         assert get_translation_key("p81DiffTempSolarLoading") == "diff_temp_solar_loading"
+    
+    def test_cooling_keys(self):
+        """Test cooling parameter keys (p99 extended parameters)."""
+        assert get_translation_key("p99CoolingHC1SetTemp") == "cooling_hc1_set_temp"
+        assert get_translation_key("p99CoolingHC2SetTemp") == "cooling_hc2_set_temp"
+    
+    def test_pump_rate_keys(self):
+        """Test pump rate keys."""
+        assert get_translation_key("p99PumpRateDHW") == "pump_rate_dhw"
+        assert get_translation_key("p99PumpRateHC") == "pump_rate_hc"
+    
+    def test_alternative_naming(self):
+        """Test that alternative naming conventions map to the same keys."""
+        # DHW temp variations
+        assert get_translation_key("p04DHWsetTempDay") == get_translation_key("p04DHWsetDayTemp")
+        assert get_translation_key("p05DHWsetTempNight") == get_translation_key("p05DHWsetNightTemp")
+        # Passive cooling case variation
+        assert get_translation_key("p75PassiveCooling") == get_translation_key("p75passiveCooling")
