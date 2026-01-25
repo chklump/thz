@@ -604,11 +604,111 @@
       },
       "prog_hc2_sunday": {
         "name": "HC2 Program Sunday"
+      },
+      "cooling_hc1_hyster_flow_temp": {
+        "name": "Cooling HC1 Hysteresis Flow Temperature"
+      },
+      "cooling_hc1_hyster_room_temp": {
+        "name": "Cooling HC1 Hysteresis Room Temperature"
+      },
+      "cooling_hc1_set_temp": {
+        "name": "Cooling HC1 Set Temperature"
+      },
+      "cooling_hc2_hyster_flow_temp": {
+        "name": "Cooling HC2 Hysteresis Flow Temperature"
+      },
+      "cooling_hc2_hyster_room_temp": {
+        "name": "Cooling HC2 Hysteresis Room Temperature"
+      },
+      "cooling_hc2_set_temp": {
+        "name": "Cooling HC2 Set Temperature"
+      },
+      "defrost_start_threshold": {
+        "name": "Defrost Start Threshold"
+      },
+      "dhw_eco": {
+        "name": "DHW Economy Mode"
+      },
+      "dhw_max_flow_temp": {
+        "name": "DHW Maximum Flow Temperature"
+      },
+      "fan_stage_party": {
+        "name": "Fan Stage Party"
+      },
+      "filter_speed": {
+        "name": "Filter Speed"
+      },
+      "frost_protection_boost": {
+        "name": "Frost Protection Boost"
+      },
+      "frost_protection_cancel": {
+        "name": "Frost Protection Cancel"
+      },
+      "hc1_max_flow_temp": {
+        "name": "HC1 Maximum Flow Temperature"
+      },
+      "holiday_begin_day": {
+        "name": "Holiday Begin Day"
+      },
+      "holiday_begin_month": {
+        "name": "Holiday Begin Month"
+      },
+      "holiday_begin_year": {
+        "name": "Holiday Begin Year"
+      },
+      "holiday_end_day": {
+        "name": "Holiday End Day"
+      },
+      "holiday_end_month": {
+        "name": "Holiday End Month"
+      },
+      "holiday_end_year": {
+        "name": "Holiday End Year"
+      },
+      "max_defrost_duration": {
+        "name": "Maximum Defrost Duration"
+      },
+      "out_temp_correction": {
+        "name": "Outside Temperature Correction"
+      },
+      "oven_fireplace": {
+        "name": "Oven/Fireplace"
+      },
+      "pump_rate_dhw": {
+        "name": "Pump Rate DHW"
+      },
+      "pump_rate_hc": {
+        "name": "Pump Rate HC"
+      },
+      "room_therm_correction": {
+        "name": "Room Thermostat Correction"
+      },
+      "start_unsched_vent": {
+        "name": "Start Unscheduled Ventilation"
       }
     },
     "select": {
       "op_mode": {
         "name": "Operating Mode"
+      }
+    },
+    "switch": {
+      "cooling_hc1_switch": {
+        "name": "Cooling HC1 Switch"
+      },
+      "cooling_hc2_switch": {
+        "name": "Cooling HC2 Switch"
+      }
+    },
+    "time": {
+      "holiday_begin_time": {
+        "name": "Holiday Begin Time"
+      },
+      "holiday_end_time": {
+        "name": "Holiday End Time"
+      },
+      "party_time": {
+        "name": "Party Time"
       }
     }
   }
