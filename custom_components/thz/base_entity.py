@@ -57,7 +57,7 @@ class THZBaseEntity(Entity):
         self._device = device
         self._device_id = device_id
         self._attr_icon = icon or "mdi:eye"
-        self._translation_key = translation_key
+        self._attr_translation_key = translation_key
         
         # When translation_key is set, we need to provide original_name as fallback
         # but return None from the name property to trigger translation lookup
@@ -101,14 +101,14 @@ class THZBaseEntity(Entity):
         The fallback name is stored in _attr_original_name (set in __init__)
         so if translation fails, HA can still display: device_name + original_name
         """
-        if self.translation_key is not None:
+        if self._attr_translation_key is not None:
             return None
         return self._attr_name
 
     @property
     def translation_key(self) -> str | None:
         """Return the translation key for this entity, if available."""
-        return self._translation_key
+        return self._attr_translation_key
 
     @property
     def entity_registry_enabled_default(self) -> bool:
