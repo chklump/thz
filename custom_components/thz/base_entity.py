@@ -59,21 +59,12 @@ class THZBaseEntity(Entity):
         self._attr_icon = icon or "mdi:eye"
         self._attr_translation_key = translation_key
         
-        # Home Assistant naming patterns are mutually exclusive:
-        # - Pattern 1 (legacy): has_entity_name=True, name returns string → "Device Name Entity Name"
-        # - Pattern 2 (translations): has_entity_name=False, translation_key set, name returns None → "Translated Name"
-        # Cannot mix patterns! Setting has_entity_name=True with translation_key causes HA to ignore translations.
-        if translation_key is not None:
-            # Use translation pattern: no device prefix, just translated name
-            self._attr_has_entity_name = False
-            _LOGGER.debug(
-                "Entity %s: translation_key='%s', has_entity_name=False (translation mode)",
-                name, translation_key
-            )
-        else:
-            # Use legacy pattern: device prefix + entity name
-            self._attr_has_entity_name = True
-            _LOGGER.debug("Entity %s: No translation_key, has_entity_name=True (legacy mode)", name)
+        # Per Home Assistant documentation, has_entity_name=True is MANDATORY for new integrations.
+        # When has_entity_name=True:
+        # - If translation_key is set and name returns None, HA uses: "Device Name" + translated name
+        # - If translation_key is None, name returns string, HA uses: "Device Name" + entity name
+        # See: https://developers.home-assistant.io/docs/core/entity/#entity-naming
+        self._attr_has_entity_name = True
         
         # Generate unique ID if not provided
         self._attr_unique_id = (
@@ -109,19 +100,17 @@ class THZBaseEntity(Entity):
     def name(self) -> str | None:
         """Return the name of the entity.
         
-        Home Assistant entity naming is based on mutually exclusive patterns:
+        Per Home Assistant documentation (has_entity_name=True is mandatory for new integrations):
+        - When translation_key is set: return None to use translated name
+        - When translation_key is None: return entity name string
         
-        1. Legacy pattern (has_entity_name=True):
-           - name returns a string
-           - HA displays: "Device Name" + "Entity Name"
-           
-        2. Translation pattern (has_entity_name=False):
-           - name returns None
-           - translation_key is set
-           - HA displays: "Translated Name" (no device prefix)
-           - If translation fails, HA falls back to entity_id
+        With has_entity_name=True and translation_key set:
+        - name returns None → HA displays "Device Name" + translated name from strings.json
+        - Example: "THZ" + "Room Temperature Day HC1" = "THZ Room Temperature Day HC1"
         
-        We use translation pattern when translation_key is set.
+        With has_entity_name=True and no translation_key:
+        - name returns string → HA displays "Device Name" + entity name
+        - Example: "THZ" + "p01RoomTempDayHC1" = "THZ p01RoomTempDayHC1"
         """
         result = None if self._attr_translation_key is not None else self._attr_name
         _LOGGER.debug(
