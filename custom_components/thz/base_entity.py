@@ -64,7 +64,10 @@ class THZBaseEntity(Entity):
             unique_id or self._generate_unique_id(command, name)
         )
         
-        self._attr_has_entity_name = True
+        # Set has_entity_name based on whether we have a translation key
+        # When translation_key is set, use has_entity_name=False to avoid "THZ" prefix
+        # This allows translations to display as just the translated name
+        self._attr_has_entity_name = translation_key is None
         
         # Configure update interval
         interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
@@ -89,10 +92,15 @@ class THZBaseEntity(Entity):
     def name(self) -> str | None:
         """Return the name of the entity.
         
-        Always return the entity name. When translation_key is set,
-        Home Assistant will use it for translation while still having
-        a fallback name in original_name.
+        When translation_key is set, return None to use the translation system.
+        When translation_key is None, return the entity name for backward compatibility.
+        
+        With has_entity_name=False (when translation_key is set), Home Assistant will:
+        - Use the translated name from strings.json when available
+        - Fall back to the entity_id if translation is missing
         """
+        if self.translation_key is not None:
+            return None
         return self._attr_name
 
     @property
