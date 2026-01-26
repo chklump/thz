@@ -59,15 +59,17 @@ class THZBaseEntity(Entity):
         self._attr_icon = icon or "mdi:eye"
         self._translation_key = translation_key
         
+        # When translation_key is set, we need to provide original_name as fallback
+        # but return None from the name property to trigger translation lookup
+        if translation_key is not None:
+            self._attr_original_name = name
+        
         # Generate unique ID if not provided
         self._attr_unique_id = (
             unique_id or self._generate_unique_id(command, name)
         )
         
-        # Set has_entity_name based on whether we have a translation key
-        # When translation_key is set, use has_entity_name=False to avoid "THZ" prefix
-        # This allows translations to display as just the translated name
-        self._attr_has_entity_name = translation_key is None
+        self._attr_has_entity_name = True
         
         # Configure update interval
         interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
@@ -92,12 +94,12 @@ class THZBaseEntity(Entity):
     def name(self) -> str | None:
         """Return the name of the entity.
         
-        When translation_key is set, return None to use the translation system.
-        When translation_key is None, return the entity name for backward compatibility.
+        When translation_key is set, return None to trigger Home Assistant's
+        translation system. HA will use translation_key to look up the translated
+        name and combine it with the device name.
         
-        With has_entity_name=False (when translation_key is set), Home Assistant will:
-        - Use the translated name from strings.json when available
-        - Fall back to the entity_id if translation is missing
+        The fallback name is stored in _attr_original_name (set in __init__)
+        so if translation fails, HA can still display: device_name + original_name
         """
         if self.translation_key is not None:
             return None
