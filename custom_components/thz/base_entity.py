@@ -96,14 +96,26 @@ class THZBaseEntity(Entity):
         """
         return f"thz_set_{command.lower()}_{name.lower().replace(' ', '_')}"
 
-    # Do not override the name property.
-    # Home Assistant's Entity base class will handle name resolution:
-    # - With has_entity_name=True and translation_key set:
-    #   HA reads _attr_translation_key, looks up translation, combines with device name
-    #   Result: "THZ Room Temperature Day HC1"
-    # - With has_entity_name=True and no translation_key:
-    #   HA uses _attr_name combined with device name
-    #   Result: "THZ p01RoomTempDayHC1"
+    @property
+    def name(self) -> str | None:
+        """Return the name of the entity.
+        
+        Per Home Assistant documentation:
+        - When translation_key is set: return None to trigger translation lookup
+        - When no translation_key: return the entity name
+        
+        With has_entity_name=True:
+        - If name returns None: HA looks up translation_key and combines with device name
+          Result: "THZ Room Temperature Day HC1"
+        - If name returns string: HA combines device name + entity name
+          Result: "THZ p01RoomTempDayHC1"
+        """
+        result = None if self._attr_translation_key is not None else self._attr_name
+        _LOGGER.debug(
+            "Entity.name called for %s: returning %s (translation_key=%s, has_entity_name=%s)",
+            self._attr_name, result, self._attr_translation_key, self._attr_has_entity_name
+        )
+        return result
 
     @property
     def translation_key(self) -> str | None:
