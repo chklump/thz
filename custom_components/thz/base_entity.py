@@ -59,23 +59,26 @@ class THZBaseEntity(Entity):
         self._attr_icon = icon or "mdi:eye"
         self._attr_translation_key = translation_key
         
-        # When translation_key is set, we need to provide original_name as fallback
-        # but return None from the name property to trigger translation lookup
+        # Home Assistant naming patterns are mutually exclusive:
+        # - Pattern 1 (legacy): has_entity_name=True, name returns string → "Device Name Entity Name"
+        # - Pattern 2 (translations): has_entity_name=False, translation_key set, name returns None → "Translated Name"
+        # Cannot mix patterns! Setting has_entity_name=True with translation_key causes HA to ignore translations.
         if translation_key is not None:
-            self._attr_original_name = name
+            # Use translation pattern: no device prefix, just translated name
+            self._attr_has_entity_name = False
             _LOGGER.debug(
-                "Entity %s: translation_key='%s', original_name='%s'",
-                name, translation_key, name
+                "Entity %s: translation_key='%s', has_entity_name=False (translation mode)",
+                name, translation_key
             )
         else:
-            _LOGGER.debug("Entity %s: No translation_key set", name)
+            # Use legacy pattern: device prefix + entity name
+            self._attr_has_entity_name = True
+            _LOGGER.debug("Entity %s: No translation_key, has_entity_name=True (legacy mode)", name)
         
         # Generate unique ID if not provided
         self._attr_unique_id = (
             unique_id or self._generate_unique_id(command, name)
         )
-        
-        self._attr_has_entity_name = True
         
         # Debug log entity attributes
         _LOGGER.debug(
@@ -106,17 +109,24 @@ class THZBaseEntity(Entity):
     def name(self) -> str | None:
         """Return the name of the entity.
         
-        When translation_key is set, return None to trigger Home Assistant's
-        translation system. HA will use translation_key to look up the translated
-        name and combine it with the device name.
+        Home Assistant entity naming is based on mutually exclusive patterns:
         
-        The fallback name is stored in _attr_original_name (set in __init__)
-        so if translation fails, HA can still display: device_name + original_name
+        1. Legacy pattern (has_entity_name=True):
+           - name returns a string
+           - HA displays: "Device Name" + "Entity Name"
+           
+        2. Translation pattern (has_entity_name=False):
+           - name returns None
+           - translation_key is set
+           - HA displays: "Translated Name" (no device prefix)
+           - If translation fails, HA falls back to entity_id
+        
+        We use translation pattern when translation_key is set.
         """
         result = None if self._attr_translation_key is not None else self._attr_name
         _LOGGER.debug(
-            "Entity.name called for %s: returning %s (translation_key=%s)",
-            self._attr_name, result, self._attr_translation_key
+            "Entity.name called for %s: returning %s (translation_key=%s, has_entity_name=%s)",
+            self._attr_name, result, self._attr_translation_key, self._attr_has_entity_name
         )
         return result
 
