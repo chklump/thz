@@ -89,11 +89,10 @@ class THZBaseEntity(Entity):
     def name(self) -> str | None:
         """Return the name of the entity.
         
-        When translation_key is True, return None to use translation key.
-        Otherwise, return the entity name for backward compatibility.
+        Always return the entity name. When translation_key is set,
+        Home Assistant will use it for translation while still having
+        a fallback name in original_name.
         """
-        if self.translation_key is not None:
-            return None
         return self._attr_name
 
     @property
