@@ -63,6 +63,12 @@ class THZBaseEntity(Entity):
         # but return None from the name property to trigger translation lookup
         if translation_key is not None:
             self._attr_original_name = name
+            _LOGGER.debug(
+                "Entity %s: translation_key='%s', original_name='%s'",
+                name, translation_key, name
+            )
+        else:
+            _LOGGER.debug("Entity %s: No translation_key set", name)
         
         # Generate unique ID if not provided
         self._attr_unique_id = (
@@ -70,6 +76,12 @@ class THZBaseEntity(Entity):
         )
         
         self._attr_has_entity_name = True
+        
+        # Debug log entity attributes
+        _LOGGER.debug(
+            "Entity %s initialized: has_entity_name=%s, translation_key=%s",
+            name, self._attr_has_entity_name, self._attr_translation_key
+        )
         
         # Configure update interval
         interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
@@ -101,13 +113,20 @@ class THZBaseEntity(Entity):
         The fallback name is stored in _attr_original_name (set in __init__)
         so if translation fails, HA can still display: device_name + original_name
         """
-        if self._attr_translation_key is not None:
-            return None
-        return self._attr_name
+        result = None if self._attr_translation_key is not None else self._attr_name
+        _LOGGER.debug(
+            "Entity.name called for %s: returning %s (translation_key=%s)",
+            self._attr_name, result, self._attr_translation_key
+        )
+        return result
 
     @property
     def translation_key(self) -> str | None:
         """Return the translation key for this entity, if available."""
+        _LOGGER.debug(
+            "Entity.translation_key called for %s: returning '%s'",
+            self._attr_name, self._attr_translation_key
+        )
         return self._attr_translation_key
 
     @property
