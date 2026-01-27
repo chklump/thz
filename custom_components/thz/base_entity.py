@@ -52,19 +52,28 @@ class THZBaseEntity(Entity):
             scan_interval: Update interval in seconds (uses DEFAULT_UPDATE_INTERVAL if not provided).
             translation_key: Optional translation key for localization.
         """
-        self._attr_name = name
         self._command = command
         self._device = device
         self._device_id = device_id
         self._attr_icon = icon or "mdi:eye"
-        self._attr_translation_key = translation_key
         
         # Per Home Assistant documentation, has_entity_name=True is MANDATORY for new integrations.
-        # When has_entity_name=True:
-        # - If translation_key is set and name returns None, HA uses: "Device Name" + translated name
-        # - If translation_key is None, name returns string, HA uses: "Device Name" + entity name
         # See: https://developers.home-assistant.io/docs/core/entity/#entity-naming
         self._attr_has_entity_name = True
+        
+        # When translation_key is set:
+        # - Set _attr_name to None so HA looks up the translation
+        # - Set _attr_translation_key for the translation system
+        # - Result: HA displays "Device Name" + translated name
+        #
+        # When translation_key is None (legacy entities):
+        # - Set _attr_name to the entity name
+        # - Result: HA displays "Device Name" + entity name
+        if translation_key is not None:
+            self._attr_translation_key = translation_key
+            self._attr_name = None  # Trigger translation lookup
+        else:
+            self._attr_name = name  # Use provided name directly
         
         # Generate unique ID if not provided
         self._attr_unique_id = (
@@ -73,8 +82,9 @@ class THZBaseEntity(Entity):
         
         # Debug log entity attributes
         _LOGGER.debug(
-            "Entity %s initialized: has_entity_name=%s, translation_key=%s",
-            name, self._attr_has_entity_name, self._attr_translation_key
+            "Entity %s initialized: has_entity_name=%s, name=%s, translation_key=%s",
+            name, self._attr_has_entity_name, self._attr_name, 
+            getattr(self, '_attr_translation_key', None)
         )
         
         # Configure update interval
@@ -96,15 +106,14 @@ class THZBaseEntity(Entity):
         """
         return f"thz_set_{command.lower()}_{name.lower().replace(' ', '_')}"
 
-    # Do NOT override name or translation_key properties!
+    # No property overrides needed!
+    # By setting _attr_name = None when translation_key is set,
     # Home Assistant's Entity base class will:
-    # 1. Check _attr_translation_key attribute
-    # 2. If set, look up translation in strings.json
-    # 3. Use translated string as entity name
-    # 4. Combine with device name per has_entity_name=True
+    # 1. See that name is None
+    # 2. Check _attr_translation_key attribute
+    # 3. Look up translation in strings.json
+    # 4. Combine translated name with device name per has_entity_name=True
     # Result: "THZ Room Temperature Day HC1"
-    #
-    # If we override these properties, we break HA's translation resolution.
 
     @property
     def entity_registry_enabled_default(self) -> bool:
