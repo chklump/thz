@@ -61,19 +61,14 @@ class THZBaseEntity(Entity):
         # See: https://developers.home-assistant.io/docs/core/entity/#entity-naming
         self._attr_has_entity_name = True
         
-        # When translation_key is set:
-        # - Set _attr_name to None so HA looks up the translation
-        # - Set _attr_translation_key for the translation system
-        # - Result: HA displays "Device Name" + translated name
-        #
-        # When translation_key is None (legacy entities):
-        # - Set _attr_name to the entity name
-        # - Result: HA displays "Device Name" + entity name
+        # Following the TP-Link Router integration pattern:
+        # - Always set _attr_name to the entity name (fallback)
+        # - When translation_key is provided, also set _attr_translation_key
+        # - HA will look up translation using translation_key, falling back to name if not found
+        # - Result: HA displays "Device Name" + (translated name OR fallback name)
+        self._attr_name = name
         if translation_key is not None:
             self._attr_translation_key = translation_key
-            self._attr_name = None  # Trigger translation lookup
-        else:
-            self._attr_name = name  # Use provided name directly
         
         # Generate unique ID if not provided
         self._attr_unique_id = (
@@ -107,13 +102,14 @@ class THZBaseEntity(Entity):
         return f"thz_set_{command.lower()}_{name.lower().replace(' ', '_')}"
 
     # No property overrides needed!
-    # By setting _attr_name = None when translation_key is set,
+    # Following the TP-Link Router integration pattern:
+    # By setting both _attr_name (fallback) and _attr_translation_key,
     # Home Assistant's Entity base class will:
-    # 1. See that name is None
-    # 2. Check _attr_translation_key attribute
-    # 3. Look up translation in strings.json
-    # 4. Combine translated name with device name per has_entity_name=True
-    # Result: "THZ Room Temperature Day HC1"
+    # 1. Check _attr_translation_key attribute
+    # 2. Look up translation in strings.json
+    # 3. If found: use translated name, if not found: use _attr_name fallback
+    # 4. Combine with device name per has_entity_name=True
+    # Result: "THZ Room Temperature Day HC1" (or "THZ p01RoomTempDayHC1" as fallback)
 
     @property
     def entity_registry_enabled_default(self) -> bool:
