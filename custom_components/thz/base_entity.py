@@ -61,15 +61,11 @@ class THZBaseEntity(Entity):
         # See: https://developers.home-assistant.io/docs/core/entity/#entity-naming
         self._attr_has_entity_name = True
         
-        # Following the TP-Link Router integration pattern with EntityDescription:
-        # When EntityDescription is set in subclass, HA will:
-        # 1. Use entity_description.key as translation_key
-        # 2. Look up translation in strings.json
-        # 3. Fall back to entity_description.name if translation not found
-        # 4. Combine with device name per has_entity_name=True
-        # Result: "THZ Room Temperature Day HC1" (translated) or "THZ p01RoomTempDayHC1" (fallback)
-        #
-        # For entities without EntityDescription, we set attributes directly:
+        # Following the TP-Link Router integration pattern:
+        # - Always set _attr_name to the entity name (fallback)
+        # - When translation_key is provided, also set _attr_translation_key
+        # - HA will look up translation using translation_key, falling back to name if not found
+        # - Result: HA displays "Device Name" + (translated name OR fallback name)
         self._attr_name = name
         if translation_key is not None:
             self._attr_translation_key = translation_key
