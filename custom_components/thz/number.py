@@ -76,7 +76,7 @@ class THZNumber(THZBaseEntity, NumberEntity):
             mode=NumberMode.BOX,  # Use box input instead of slider
         )
         
-        # Initialize base class with common properties
+        # Initialize base class with common properties and entity_description
         super().__init__(
             name=name,
             command=entry["command"],
@@ -85,6 +85,7 @@ class THZNumber(THZBaseEntity, NumberEntity):
             icon=entry.get("icon"),
             scan_interval=scan_interval,
             translation_key=translation_key,
+            entity_description=self.entity_description,
         )
         
         # Number-specific attributes
@@ -120,7 +121,7 @@ class THZNumber(THZBaseEntity, NumberEntity):
             # Use centralized codec for decoding
             value = THZValueCodec.decode_number(
                 value_bytes, 
-                self._attr_native_step, 
+                self.entity_description.native_step, 
                 self._decode_type
             )
             _LOGGER.debug("Decoded value for %s: %s", self._attr_name, value)
@@ -139,7 +140,7 @@ class THZNumber(THZBaseEntity, NumberEntity):
             # Use centralized codec for encoding
             value_bytes = THZValueCodec.encode_number(
                 value, 
-                self._attr_native_step, 
+                self.entity_description.native_step, 
                 self._decode_type
             )
             
