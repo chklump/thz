@@ -202,19 +202,21 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         _length: Length of the sensor data in bytes.
         _decode_type: Type used to decode the sensor data.
         _factor: Factor to apply to the decoded value.
+        _entity_name: Internal name used for logging and unique_id.
         _unit (str, optional): Unit of measurement for the sensor.
         _device_class (str, optional): Device class for the sensor.
         _icon (str, optional): Icon representing the sensor.
-        _translation_key (str, optional): Translation key for localization.
 
     Properties:
-        name (str | None): The name of the sensor.
         native_value (StateType | int | float | bool | str | None): The native value of the sensor.
         native_unit_of_measurement: The native unit of measurement for this sensor.
         device_class (str | None): The device class of the sensor.
         icon (str | None): The icon to use in the frontend.
-        translation_key (str | None): The translation key for this sensor.
         unique_id (str | None): A unique identifier for the sensor entity.
+        
+    Note:
+        Translation is handled via _attr_translation_key when available.
+        Setting _attr_name blocks translation, so we only set it when no translation is available.
     """
 
     def __init__(self, coordinator, entry, block, device_id) -> None:
@@ -227,7 +229,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
             device_id: The unique device identifier.
 
         Attributes:
-            _name (str): Name of the sensor.
+            _entity_name (str): Internal name of the sensor (for logging/unique_id).
             _block: Block associated with the sensor.
             _offset: Offset value from the configuration.
             _length: Length value from the configuration.
@@ -236,13 +238,16 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
             _unit (str, optional): Unit of measurement.
             _device_class (str, optional): Device class for the sensor.
             _icon (str, optional): Icon representing the sensor.
-            _translation_key (str, optional): Translation key for localization.
             _device_id: Device identifier for linking to device.
+            
+        Note:
+            When translation_key is available, only _attr_translation_key is set.
+            When no translation is available, _attr_name is set as fallback.
+            This is required because setting _attr_name blocks HA's translation lookup.
         """
         super().__init__(coordinator)
 
         e = normalize_entry(entry)
-        self._attr_name = e["name"]
         self._block = block
         self._offset = e["offset"]
         self._length = e["length"]
@@ -252,25 +257,25 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         self._device_class = e.get("device_class")
         self._state_class = e.get("state_class")
         self._icon = e.get("icon")
-        self._translation_key = e.get("translation_key")
         self._device_id = device_id
         
-        # Enable entity name translation only when translation_key is provided
-        self._attr_has_entity_name = True
+        # Store the name for later use in unique_id and visibility checks
+        self._entity_name = e["name"]
+        
+        # Handle translation: don't set _attr_name when translation_key is available
+        # Setting _attr_name blocks HA's translation lookup
+        translation_key = e.get("translation_key")
+        if translation_key is not None:
+            self._attr_translation_key = translation_key
+            self._attr_has_entity_name = True
+        else:
+            # No translation available: use name as fallback
+            self._attr_name = e["name"]
 
         # Set default visibility based on entity naming conventions
-        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(self._attr_name)
+        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(self._entity_name)
 
-    @property
-    def name(self) -> str | None:
-        """Return the name of the entity.
-        
-        When translation_key is True, return None to use translation key.
-        Otherwise, return the entity name for backward compatibility.
-        """
-        if self.translation_key is not None:
-            return None
-        return self._attr_name
+
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -295,7 +300,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
             if len(payload) < self._offset + self._length:
                 _LOGGER.warning(
                     "Payload too short for sensor %s: expected at least %d bytes, got %d",
-                    self._attr_name,
+                    self._entity_name,
                     self._offset + self._length,
                     len(payload),
                 )
@@ -304,7 +309,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
             return decode_value(raw_bytes, self._decode_type, self._factor)
         except (ValueError, IndexError, TypeError) as err:
             _LOGGER.error(
-                "Error decoding sensor %s: %s", self._attr_name, err, exc_info=True
+                "Error decoding sensor %s: %s", self._entity_name, err, exc_info=True
             )
             return None
 
@@ -352,15 +357,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         """
         return self._icon
 
-    @property
-    def translation_key(self) -> str | None:
-        """Return the translation key for this sensor, if available.
 
-        Returns:
-        -------
-            str | None: The translation key as a string, or None if not set.
-        """
-        return self._translation_key
 
     @property
     def unique_id(self) -> str | None:
@@ -372,7 +369,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         """
 
         return (
-            f"thz_{self._block}_{self._offset}_{self._attr_name.lower().replace(' ', '_')}"
+            f"thz_{self._block}_{self._offset}_{self._entity_name.lower().replace(' ', '_')}"
         )
 
     @property
