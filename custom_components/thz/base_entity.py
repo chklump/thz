@@ -59,16 +59,17 @@ class THZBaseEntity(Entity):
         
         # Per Home Assistant documentation, has_entity_name=True is MANDATORY for new integrations.
         # See: https://developers.home-assistant.io/docs/core/entity/#entity-naming
-        self._attr_has_entity_name = True
-        
-        # Following the TP-Link Router integration pattern:
-        # - Always set _attr_name to the entity name (fallback)
-        # - When translation_key is provided, also set _attr_translation_key
-        # - HA will look up translation using translation_key, falling back to name if not found
-        # - Result: HA displays "Device Name" + (translated name OR fallback name)
-        self._attr_name = name
+        # 
+        # CRITICAL: Home Assistant ignores translation_key when _attr_name is set!
+        # The fix: Only set _attr_translation_key (not _attr_name) when translation is available.
+        # When no translation: set _attr_name as fallback.
         if translation_key is not None:
             self._attr_translation_key = translation_key
+            self._attr_has_entity_name = True
+            # Do NOT set _attr_name - it blocks translation lookup!
+        else:
+            self._attr_name = name
+            # has_entity_name not set for legacy entities without translations
         
         # Generate unique ID if not provided
         self._attr_unique_id = (
@@ -78,7 +79,8 @@ class THZBaseEntity(Entity):
         # Debug log entity attributes
         _LOGGER.debug(
             "Entity %s initialized: has_entity_name=%s, name=%s, translation_key=%s",
-            name, self._attr_has_entity_name, self._attr_name, 
+            name, getattr(self, '_attr_has_entity_name', False), 
+            getattr(self, '_attr_name', None), 
             getattr(self, '_attr_translation_key', None)
         )
         
@@ -102,14 +104,13 @@ class THZBaseEntity(Entity):
         return f"thz_set_{command.lower()}_{name.lower().replace(' ', '_')}"
 
     # No property overrides needed!
-    # Following the TP-Link Router integration pattern:
-    # By setting both _attr_name (fallback) and _attr_translation_key,
-    # Home Assistant's Entity base class will:
-    # 1. Check _attr_translation_key attribute
-    # 2. Look up translation in strings.json
-    # 3. If found: use translated name, if not found: use _attr_name fallback
-    # 4. Combine with device name per has_entity_name=True
-    # Result: "THZ Room Temperature Day HC1" (or "THZ p01RoomTempDayHC1" as fallback)
+    # Home Assistant uses ONLY the _attr_* attributes for translation:
+    # - _attr_translation_key: triggers translation lookup in strings.json
+    # - _attr_name: fallback name when no translation_key is set
+    # - _attr_has_entity_name: must be True for entities with translations
+    # 
+    # IMPORTANT: Setting _attr_name blocks translation_key from working!
+    # Properties are NOT evaluated by HA's translation system.
 
     @property
     def entity_registry_enabled_default(self) -> bool:
