@@ -3,8 +3,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from dataclasses import dataclass
 
-from homeassistant.components.number import NumberEntity, NumberMode
+from homeassistant.components.number import NumberEntity, NumberMode, NumberEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -35,6 +36,8 @@ async def async_setup_entry(
 
 class THZNumber(THZBaseEntity, NumberEntity):
     """Representation of a THZ Number entity."""
+    
+    entity_description: NumberEntityDescription
 
     def __init__(
         self,
@@ -53,6 +56,26 @@ class THZNumber(THZBaseEntity, NumberEntity):
             device_id: The device identifier for linking to device.
             scan_interval: The scan interval in seconds for polling updates.
         """
+        # Create EntityDescription dynamically from register map entry
+        # This allows HA's EntityDescription pattern to handle translations properly
+        translation_key = get_translation_key(name)
+        
+        min_value = entry["min"]
+        max_value = entry["max"]
+        step = entry.get("step", 1)
+        
+        self.entity_description = NumberEntityDescription(
+            key=translation_key if translation_key else name.lower().replace(" ", "_"),
+            name=name,  # Fallback name if translation not found
+            icon=entry.get("icon"),
+            native_min_value=float(min_value) if min_value != "" else 0.0,
+            native_max_value=float(max_value) if max_value != "" else 100.0,
+            native_step=float(step) if step != "" else 1.0,
+            native_unit_of_measurement=entry.get("unit", ""),
+            device_class=entry.get("device_class"),
+            mode=NumberMode.BOX,  # Use box input instead of slider
+        )
+        
         # Initialize base class with common properties
         super().__init__(
             name=name,
@@ -61,20 +84,10 @@ class THZNumber(THZBaseEntity, NumberEntity):
             device_id=device_id,
             icon=entry.get("icon"),
             scan_interval=scan_interval,
-            translation_key=get_translation_key(name),
+            translation_key=translation_key,
         )
         
         # Number-specific attributes
-        min_value = entry["min"]
-        max_value = entry["max"]
-        step = entry.get("step", 1)
-        
-        self._attr_native_min_value = float(min_value) if min_value != "" else 0.0
-        self._attr_native_max_value = float(max_value) if max_value != "" else 100.0
-        self._attr_native_step = float(step) if step != "" else 1.0
-        self._attr_native_unit_of_measurement = entry.get("unit", "")
-        self._attr_device_class = entry.get("device_class")
-        self._attr_mode = NumberMode.BOX  # Use box input instead of slider
         self._decode_type = entry["decode_type"]
         self._attr_native_value = None
 
