@@ -99,8 +99,12 @@ class THZSchedule(Schedule):
             device: The THZDevice instance to interact with.
             icon: Optional icon for the entity.
             unique_id: Optional unique ID for the entity.
+
+        Note:
+            The original code called super().__init__(config, editable=True) but
+            'config' was never defined - this was a pre-existing bug. The Schedule
+            helper entity in HA doesn't require config in its constructor.
         """
-        # Schedule base class doesn't require config in newer HA versions
         super().__init__()
 
         self._attr_name = name

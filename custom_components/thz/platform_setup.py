@@ -53,7 +53,9 @@ async def async_setup_write_platform(
     write_interval = config_entry.data.get("write_interval", DEFAULT_UPDATE_INTERVAL)
 
     write_registers = write_manager.get_all_registers()
-    _LOGGER.debug("Loading %s platform with %d registers", len(write_registers), platform_type)
+    _LOGGER.debug(
+        "Loading %s platform with %d registers", platform_type, len(write_registers)
+    )
 
     entities = []
     for name, entry in write_registers.items():
