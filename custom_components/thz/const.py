@@ -31,6 +31,14 @@ DEFAULT_BAUDRATE = 115200
 DEFAULT_PORT = 2323
 DEFAULT_UPDATE_INTERVAL = 60  # in seconds
 
+# Write register offsets and lengths
+# These values are used when reading/writing individual parameters
+WRITE_REGISTER_OFFSET = 4  # Byte offset in response for parameter value
+WRITE_REGISTER_LENGTH = 2  # Number of bytes for most write parameters
+
+# Time conversion constants
+TIME_VALUE_UNSET = 0x80  # Sentinel value (128) indicating "no time" is set
+
 
 def should_hide_entity_by_default(entity_name: str) -> bool:
     """Determine if an entity should be hidden by default.

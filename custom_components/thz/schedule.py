@@ -152,7 +152,7 @@ class THZSchedule(Schedule):
             )
             await asyncio.sleep(
                 0.01
-            )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
+            )  # Short pause to ensure the device is ready
 
         # Schedule data format (from FHEM 7prog):
         # - raw_value[0]: start time (1 byte, 0-95 quarters)

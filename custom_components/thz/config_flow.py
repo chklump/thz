@@ -30,7 +30,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow für Stiebel Eltron THZ (LAN or USB)."""
+    """Config flow for Stiebel Eltron THZ (LAN or USB)."""
 
     VERSION = 1
 
@@ -89,9 +89,27 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input=None
     ) -> config_entries.ConfigFlowResult:
         """Input for IP connection."""
+        errors = {}
+        
         if user_input is not None:
-            self.connection_data = user_input
-            return await self.async_step_name()
+            # Validate IP address
+            host = user_input.get(CONF_HOST, "").strip()
+            port = user_input.get(CONF_PORT)
+            
+            # Basic IP validation
+            if not host:
+                errors[CONF_HOST] = "invalid_host"
+            elif not self._is_valid_ip_or_hostname(host):
+                errors[CONF_HOST] = "invalid_host"
+            
+            # Port validation
+            if port is None or not (1 <= port <= 65535):
+                errors[CONF_PORT] = "invalid_port"
+            
+            if not errors:
+                user_input[CONF_HOST] = host  # Use stripped version
+                self.connection_data = user_input
+                return await self.async_step_name()
 
         schema = vol.Schema(
             {
@@ -102,7 +120,35 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ),
             }
         )
-        return self.async_show_form(step_id="setup_ip", data_schema=schema)
+        return self.async_show_form(step_id="setup_ip", data_schema=schema, errors=errors)
+    
+    @staticmethod
+    def _is_valid_ip_or_hostname(host: str) -> bool:
+        """Validate IP address or hostname.
+        
+        Args:
+            host: The hostname or IP address to validate.
+            
+        Returns:
+            True if valid, False otherwise.
+        """
+        import re
+        import ipaddress
+        
+        # Try to parse as IP address
+        try:
+            ipaddress.ip_address(host)
+            return True
+        except ValueError:
+            pass
+        
+        # Check if it's a valid hostname
+        # Hostname can contain letters, numbers, dots, and hyphens
+        hostname_pattern = r'^[a-zA-Z0-9]([a-zA-Z0-9\-\.]{0,253}[a-zA-Z0-9])?$'
+        if re.match(hostname_pattern, host):
+            return True
+        
+        return False
 
     async def async_step_setup_usb(
         self, user_input: dict[str, Any] | None = None
@@ -125,7 +171,6 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
         return self.async_show_form(step_id="setup_usb", data_schema=schema)
 
-    # TODO Reconfigure Step richtig aufsetzen
     async def async_step_reconfigure(
         self, user_input: dict | None = None
     ) -> config_entries.ConfigFlowResult:
@@ -138,11 +183,31 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_abort(reason="invalid_entry_id")
 
         if user_input is not None:
-            level_name = user_input.get("log_level", "info").upper()
-            level = getattr(logging, level_name, logging.INFO)
-            logging.getLogger("custom_components.thz").setLevel(level)
-            # Update config entry with new values
-            self.hass.config_entries.async_update_entry(entry, data=user_input)
+            # Merge user input with existing data to preserve required fields
+            updated_data = dict(entry.data)
+            
+            # Extract and rebuild refresh_intervals from form inputs
+            refresh_intervals = {}
+            keys_to_remove = []
+            for key, value in user_input.items():
+                if key.startswith("refresh_"):
+                    block = key.replace("refresh_", "")
+                    refresh_intervals[block] = value
+                    keys_to_remove.append(key)
+            
+            # Remove the refresh_* keys from user_input as they're now in refresh_intervals
+            for key in keys_to_remove:
+                user_input.pop(key)
+            
+            # Update refresh_intervals if any were modified
+            if refresh_intervals:
+                updated_data["refresh_intervals"] = refresh_intervals
+            
+            # Update other fields
+            updated_data.update(user_input)
+            
+            # Update config entry with merged values
+            self.hass.config_entries.async_update_entry(entry, data=updated_data)
             # Reload integration to apply changes
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigured")
@@ -160,51 +225,65 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Generate form schema with defaults."""
         defaults = defaults or {}
 
-        ports = await self.get_ports()
         area_registry = ar.async_get(self.hass)
         areas = {area.id: area.name for area in area_registry.async_list_areas()}
         areas[""] = "-- No Area --"
 
-        return vol.Schema(
-            {
-                vol.Required(
-                    "port",
-                    default=defaults.get("port", ports[0]),
-                ): str,
-                vol.Required(
-                    "baudrate",
-                    default=defaults.get("baudrate", DEFAULT_BAUDRATE),
-                ): int,
-                vol.Required(
-                    "update_interval",
-                    default=defaults.get("update_interval", DEFAULT_UPDATE_INTERVAL),
-                ): int,
-                vol.Optional(
-                    "alias",
-                    default=defaults.get("alias", ""),
-                ): str,
-                vol.Optional(
-                    "area",
-                    default=defaults.get("area", ""),
-                ): vol.In(areas),
-            }
-        )
-    #TODO reconfigure fails with 
-    # 2026-01-06 20:55:18.564 ERROR (MainThread) [homeassistant.config_entries] Error setting up entry THZ (usb: /dev/ttyUSB0) for thz
-    # Traceback (most recent call last):
-    #   File "/usr/src/homeassistant/homeassistant/config_entries.py", line 761, in __async_setup_with_context
-    #     result = await component.async_setup_entry(hass, self)
-    #              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    #   File "/config/custom_components/thz/__init__.py", line 30, in async_setup_entry
-    #     conn_type = data["connection_type"]
-    #                 ~~~~^^^^^^^^^^^^^^^^^^^
-    # KeyError: 'connection_type'
+        conn_type = defaults.get(CONF_CONNECTION_TYPE, CONNECTION_USB)
+        schema_dict = {}
+        
+        # Connection-specific fields
+        if conn_type == CONNECTION_USB:
+            ports = await self.get_ports()
+            schema_dict[vol.Required(
+                CONF_DEVICE,
+                default=defaults.get(CONF_DEVICE, ports[0] if ports else "/dev/ttyUSB0"),
+            )] = vol.In(ports) if ports else str
+            schema_dict[vol.Required(
+                "Baudrate",
+                default=defaults.get("Baudrate", DEFAULT_BAUDRATE),
+            )] = int
+        else:  # IP connection
+            schema_dict[vol.Required(
+                CONF_HOST,
+                default=defaults.get(CONF_HOST, ""),
+            )] = str
+            schema_dict[vol.Required(
+                CONF_PORT,
+                default=defaults.get(CONF_PORT, DEFAULT_PORT),
+            )] = int
+        
+        # Common fields
+        schema_dict[vol.Optional(
+            "alias",
+            default=defaults.get("alias", ""),
+        )] = str
+        schema_dict[vol.Optional(
+            "area",
+            default=defaults.get("area", ""),
+        )] = vol.In(areas)
+        
+        # Refresh intervals for each block
+        refresh_intervals = defaults.get("refresh_intervals", {})
+        for block, interval in refresh_intervals.items():
+            schema_dict[vol.Optional(
+                f"refresh_{block}",
+                default=interval,
+            )] = vol.All(int, vol.Range(min=5, max=86400))
+        
+        # Write interval
+        schema_dict[vol.Optional(
+            "write_interval",
+            default=defaults.get("write_interval", DEFAULT_UPDATE_INTERVAL),
+        )] = vol.All(int, vol.Range(min=5, max=86400))
+
+        return vol.Schema(schema_dict)
 
     async def get_ports(self) -> list[str]:
         """Get available serial ports."""
         ports = await self.hass.async_add_executor_job(serial.tools.list_ports.comports)
         if ports:
-            ports = [p.device for p in ports]  # <-- Nur den Gerätepfad übernehmen
+            ports = [p.device for p in ports]  # Extract only the device path
         else:
             ports = ["/dev/ttyUSB0", "/dev/ttyACM0", "/dev/ttyAMA0"]
         return ports
@@ -212,7 +291,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_detect_blocks(
         self, user_input=None
     ) -> config_entries.ConfigFlowResult:
-        """Liest dynamisch verfügbare Blöcke aus der Wärmepumpe."""
+        """Dynamically read available blocks from the heat pump."""
         data = self.connection_data
         conn_type = data["connection_type"]
 
@@ -240,13 +319,13 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await device.async_initialize(self.hass)
 
             firmware = device.firmware_version
-            _LOGGER.info("Firmware erkannt: %s", firmware)
+            _LOGGER.info("Firmware detected: %s", firmware)
 
             blocks = device.available_reading_blocks
-            _LOGGER.info("Verfügbare Blöcke: %s", blocks)
+            _LOGGER.info("Available blocks: %s", blocks)
 
         except Exception:
-            _LOGGER.exception("Fehler beim Lesen der Firmware/Blöcke")
+            _LOGGER.exception("Error reading firmware/blocks")
             return self.async_abort(reason="cannot_detect_blocks")
 
         self.blocks = blocks
@@ -256,7 +335,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_refresh_blocks(
         self, user_input=None
     ) -> config_entries.ConfigFlowResult:
-        """Frage nach individuellen Refresh-Intervallen pro Block."""
+        """Ask for individual refresh intervals per block."""
         blocks = self.blocks
 
         if user_input is not None:
@@ -286,6 +365,6 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="refresh_blocks",
             data_schema=schema,
             description_placeholders={
-                "hint": "Aktualisierungsintervall je Block (Sekunden), write_interval für Schreibentitäten (number/switch/select/time)"
+                "hint": "Update interval per block (seconds), write_interval for write entities (number/switch/select/time)"
             },
         )

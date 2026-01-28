@@ -12,9 +12,16 @@ Key Components:
 The integration reads register mappings from the THZ device, decodes sensor values according
 to their metadata, and exposes them as Home Assistant sensor entities.
 """
-import logging
+from __future__ import annotations
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+import logging
+import struct
+
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -25,8 +32,6 @@ from .const import DOMAIN, should_hide_entity_by_default
 from .register_maps.register_map_manager import RegisterMapManager
 from .sensor_meta import SENSOR_META
 from .thz_device import THZDevice
-import math
-import struct
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,6 +63,7 @@ async def async_setup_entry(
 
     # Create sensors
     sensors = []
+    seen_sensor_names = set()  # Track sensor names to avoid duplicates
     all_registers = register_manager.get_all_registers()
     for block, entries in all_registers.items():
         # Get the coordinator for this block
@@ -69,16 +75,31 @@ async def async_setup_entry(
         block_hex = block.removeprefix("pxx")  # Remove "pxx" prefix
         block_bytes = bytes.fromhex(block_hex)
         for name, offset, length, decode_type, factor in entries:
-            meta = SENSOR_META.get(name.strip(), {})
+            # Strip whitespace and trailing colons from sensor name
+            sensor_name = name.strip().rstrip(':')
+            
+            # Skip duplicate sensor names - only create the first occurrence
+            if sensor_name in seen_sensor_names:
+                _LOGGER.debug(
+                    "Skipping duplicate sensor '%s' in block %s (already created)",
+                    sensor_name,
+                    block,
+                )
+                continue
+            
+            seen_sensor_names.add(sensor_name)
+            
+            meta = SENSOR_META.get(sensor_name, {})
             entry = {
-                "name": name.strip(),
-                "offset": offset // 2,  # Register-Offset in Bytes
+                "name": sensor_name,
+                "offset": offset // 2,  # Register offset in bytes
                 "length": (length + 1)
-                // 2,  # Register-Länge in Bytes; +1 um immer mindestens 1 Byte zu haben
+                // 2,  # Register length in bytes; +1 to always have at least 1 byte
                 "decode": decode_type,
                 "factor": factor,
                 "unit": meta.get("unit"),
                 "device_class": meta.get("device_class"),
+                "state_class": meta.get("state_class"),
                 "icon": meta.get("icon"),
                 "translation_key": meta.get("translation_key"),
             }
@@ -88,7 +109,7 @@ async def async_setup_entry(
     async_add_entities(sensors, True)
 
 
-def decode_value(raw: bytes, decode_type: str, factor: float = 1.0):
+def decode_value(raw: bytes, decode_type: str, factor: float = 1.0) -> int | float | bool | str:
     """Decode a raw byte value according to the specified decode type.
 
     Args:
@@ -115,11 +136,11 @@ def decode_value(raw: bytes, decode_type: str, factor: float = 1.0):
     if decode_type.startswith("bit"):
         bitnum = int(decode_type[3:])
         # _LOGGER.debug(f"Decode bit {bitnum} from raw {raw.hex()}")
-        return (raw[0] >> bitnum) & 0x01
+        return bool((raw[0] >> bitnum) & 0x01)
     if decode_type.startswith("nbit"):
         bitnum = int(decode_type[4:])
         # _LOGGER.debug(f"Decode bit {bitnum} from raw {raw.hex()}")
-        return not ((raw[0] >> bitnum) & 0x01)
+        return not bool((raw[0] >> bitnum) & 0x01)
     if decode_type == "esp_mant":
         # To mimic: sprintf("%.3f", unpack('f', pack('L', reverse(hex($value)))))
         # The FHEM code reverses bytes and unpacks, which is equivalent to big-endian
@@ -158,6 +179,7 @@ def normalize_entry(entry):  # um nach und nach Mapping zu erweitern
             "factor": factor,
             "unit": None,
             "device_class": None,
+            "state_class": None,
             "icon": None,
             "translation_key": None,
         }
@@ -180,19 +202,21 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         _length: Length of the sensor data in bytes.
         _decode_type: Type used to decode the sensor data.
         _factor: Factor to apply to the decoded value.
+        _entity_name: Internal name used for logging and unique_id.
         _unit (str, optional): Unit of measurement for the sensor.
         _device_class (str, optional): Device class for the sensor.
         _icon (str, optional): Icon representing the sensor.
-        _translation_key (str, optional): Translation key for localization.
 
     Properties:
-        name (str | None): The name of the sensor.
         native_value (StateType | int | float | bool | str | None): The native value of the sensor.
         native_unit_of_measurement: The native unit of measurement for this sensor.
         device_class (str | None): The device class of the sensor.
         icon (str | None): The icon to use in the frontend.
-        translation_key (str | None): The translation key for this sensor.
         unique_id (str | None): A unique identifier for the sensor entity.
+        
+    Note:
+        Translation is handled via _attr_translation_key when available.
+        Setting _attr_name blocks translation, so we only set it when no translation is available.
     """
 
     def __init__(self, coordinator, entry, block, device_id) -> None:
@@ -205,7 +229,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
             device_id: The unique device identifier.
 
         Attributes:
-            _name (str): Name of the sensor.
+            _entity_name (str): Internal name of the sensor (for logging/unique_id).
             _block: Block associated with the sensor.
             _offset: Offset value from the configuration.
             _length: Length value from the configuration.
@@ -214,13 +238,16 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
             _unit (str, optional): Unit of measurement.
             _device_class (str, optional): Device class for the sensor.
             _icon (str, optional): Icon representing the sensor.
-            _translation_key (str, optional): Translation key for localization.
             _device_id: Device identifier for linking to device.
+            
+        Note:
+            When translation_key is available, only _attr_translation_key is set.
+            When no translation is available, _attr_name is set as fallback.
+            This is required because setting _attr_name blocks HA's translation lookup.
         """
         super().__init__(coordinator)
 
         e = normalize_entry(entry)
-        self._name = e["name"]
         self._block = block
         self._offset = e["offset"]
         self._length = e["length"]
@@ -228,25 +255,32 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         self._factor = e["factor"]
         self._unit = e.get("unit")
         self._device_class = e.get("device_class")
+        self._state_class = e.get("state_class")
         self._icon = e.get("icon")
-        self._translation_key = e.get("translation_key")
         self._device_id = device_id
         
-        # Enable entity name translation when translation_key is provided
-        self._attr_has_entity_name = True
-        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(self._name)
+        # Store the name for later use in unique_id and visibility checks
+        self._entity_name = e["name"]
+        
+        # Handle translation: don't set _attr_name when translation_key is available
+        # Setting _attr_name blocks HA's translation lookup
+        translation_key = e.get("translation_key")
+        if translation_key is not None:
+            self._attr_translation_key = translation_key
+            self._attr_has_entity_name = True
+        else:
+            # No translation available: use name as fallback
+            self._attr_name = e["name"]
+
+        # Set default visibility based on entity naming conventions
+        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(self._entity_name)
+
+
 
     @property
-    def name(self) -> str | None:
-        """Return the name of the sensor, or None if translation_key is set.
-        
-        When translation_key is set, Home Assistant will use the translation
-        system to get the localized name. Return None in that case to allow
-        the translation system to work properly.
-        """
-        if self._translation_key:
-            return None
-        return self._name
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added to the registry."""
+        return self._attr_entity_registry_enabled_default
 
     @property
     def native_value(self) -> StateType | int | float | bool | str | None:
@@ -266,7 +300,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
             if len(payload) < self._offset + self._length:
                 _LOGGER.warning(
                     "Payload too short for sensor %s: expected at least %d bytes, got %d",
-                    self._name,
+                    self._entity_name,
                     self._offset + self._length,
                     len(payload),
                 )
@@ -275,7 +309,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
             return decode_value(raw_bytes, self._decode_type, self._factor)
         except (ValueError, IndexError, TypeError) as err:
             _LOGGER.error(
-                "Error decoding sensor %s: %s", self._name, err, exc_info=True
+                "Error decoding sensor %s: %s", self._entity_name, err, exc_info=True
             )
             return None
 
@@ -304,6 +338,16 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         return self._device_class
 
     @property
+    def state_class(self) -> SensorStateClass | None:
+        """Return the state class of the sensor.
+
+        Returns:
+        -------
+            SensorStateClass | None: The state class for long-term statistics, or None if not set.
+        """
+        return self._state_class
+
+    @property
     def icon(self) -> str | None:
         """Return the icon to use in the frontend.
 
@@ -313,15 +357,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         """
         return self._icon
 
-    @property
-    def translation_key(self) -> str | None:
-        """Return the translation key for this sensor, if available.
 
-        Returns:
-        -------
-            str | None: The translation key as a string, or None if not set.
-        """
-        return self._translation_key
 
     @property
     def unique_id(self) -> str | None:
@@ -333,7 +369,7 @@ class THZGenericSensor(CoordinatorEntity, SensorEntity):
         """
 
         return (
-            f"thz_{self._block}_{self._offset}_{self._name.lower().replace(' ', '_')}"
+            f"thz_{self._block}_{self._offset}_{self._entity_name.lower().replace(' ', '_')}"
         )
 
     @property

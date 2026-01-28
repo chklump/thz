@@ -26,11 +26,16 @@ ENTITY_TRANSLATION_KEYS = {
     "p01RoomTempDayHC2SummerMode": "room_temp_day_hc2_summer",
     "p02RoomTempNightHC2SummerMode": "room_temp_night_hc2_summer",
     "p03RoomTempStandbyHC2SummerMode": "room_temp_standby_hc2_summer",
-    # DHW temperatures
+    # DHW temperatures (write_map_206 format)
     "p04DHWsetTempDay": "dhw_temp_day",
     "p05DHWsetTempNight": "dhw_temp_night",
     "p06DHWsetTempStandby": "dhw_temp_standby",
     "p11DHWsetTempManual": "dhw_temp_manual",
+    # DHW temperatures (write_map_439_539 format - different naming)
+    "p04DHWsetDayTemp": "dhw_temp_day",
+    "p05DHWsetNightTemp": "dhw_temp_night",
+    "p06DHWsetStandbyTemp": "dhw_temp_standby",
+    "p11DHWsetManualTemp": "dhw_temp_manual",
     # Fan stages
     "p07FanStageDay": "fan_stage_day",
     "p08FanStageNight": "fan_stage_night",
@@ -61,14 +66,18 @@ ENTITY_TRANSLATION_KEYS = {
     "p29HystAsymmetry": "hysteresis_asymmetry",
     "p30integralComponent": "integral_component",
     "p31MaxBoostStages": "max_boost_stages",
+    "p31MaxBoosterStgHtg": "max_boost_stages",  # Alternative name
     "p32HystDHW": "hysteresis_dhw",
     # Booster settings
     "p33BoosterTimeoutDHW": "booster_timeout_dhw",
     "p34TempLimitBoostDHW": "temp_limit_boost_dhw",
+    "p34BoosterDHWTempAct": "temp_limit_boost_dhw",  # Alternative name
     "p79BoosterTimeoutHC": "booster_timeout_hc",
     # Pasteurization
     "p35PasteurisationInterval": "pasteurization_interval",
+    "p35PasteurisationTemp": "pasteurization_interval",  # Alternative name
     "p36MaxDurationDHWLoad": "max_duration_dhw_load",
+    "p36DHWMaxTime": "max_duration_dhw_load",  # Alternative name
     # Fan airflow settings
     "p37Fanstage1AirflowInlet": "fan_stage1_airflow_inlet",
     "p38Fanstage2AirflowInlet": "fan_stage2_airflow_inlet",
@@ -93,15 +102,121 @@ ENTITY_TRANSLATION_KEYS = {
     "p58SuppressTempCaptPumpStart": "suppress_temp_capt_pump_start",
     # Passive cooling
     "p75PassiveCooling": "passive_cooling",
+    "p75passiveCooling": "passive_cooling",  # Alternative casing
+    # Room and outdoor temperature
+    "p76RoomThermCorrection": "room_therm_correction",
     # Filter and temperature
     "p77OutTempFilterTime": "out_temp_filter_time",
+    "p77OutThermFilterTime": "out_temp_filter_time",  # Alternative name
     "p78DualModePoint": "dual_mode_point",
     # Solar
     "p80EnableSolar": "enable_solar",
     "p81DiffTempSolarLoading": "diff_temp_solar_loading",
     "p82DelayCompStartSolar": "delay_comp_start_solar",
+    "p83DHWsetSolarTemp": "dhw_temp_solar_mode",  # Solar DHW temperature
     "p84DHWTempSolarMode": "dhw_temp_solar_mode",
     "p84EnableDHWBuffer": "enable_dhw_buffer",
+    # Defrost and filter
+    "p85DefrStartThreshold": "defrost_start_threshold",
+    "p85MaxDefrostDur": "max_defrost_duration",
+    "p85FilterSpeed": "filter_speed",
+    "p86OutTempCorrection": "out_temp_correction",
+    # DHW economy mode
+    "p89DHWeco": "dhw_eco",
+    # Clock settings
+    "pClockDay": "clock_day",
+    "pClockHour": "clock_hour",
+    "pClockMinutes": "clock_minutes",
+    "pClockMonth": "clock_month",
+    "pClockYear": "clock_year",
+    # DHW program schedule
+    "progDHWEnable": "prog_dhw_enable",
+    "progDHWStartTime": "prog_dhw_start_time",
+    "progDHWEndTime": "prog_dhw_end_time",
+    "progDHWMonday": "prog_dhw_monday",
+    "progDHWTuesday": "prog_dhw_tuesday",
+    "progDHWWednesday": "prog_dhw_wednesday",
+    "progDHWThursday": "prog_dhw_thursday",
+    "progDHWFriday": "prog_dhw_friday",
+    "progDHWSaturday": "prog_dhw_saturday",
+    "progDHWSunday": "prog_dhw_sunday",
+    # Fan 1 program schedule
+    "progFAN1Enable": "prog_fan1_enable",
+    "progFAN1StartTime": "prog_fan1_start_time",
+    "progFAN1EndTime": "prog_fan1_end_time",
+    "progFAN1Monday": "prog_fan1_monday",
+    "progFAN1Tuesday": "prog_fan1_tuesday",
+    "progFAN1Wednesday": "prog_fan1_wednesday",
+    "progFAN1Thursday": "prog_fan1_thursday",
+    "progFAN1Friday": "prog_fan1_friday",
+    "progFAN1Saturday": "prog_fan1_saturday",
+    "progFAN1Sunday": "prog_fan1_sunday",
+    # Fan 2 program schedule
+    "progFAN2Enable": "prog_fan2_enable",
+    "progFAN2StartTime": "prog_fan2_start_time",
+    "progFAN2EndTime": "prog_fan2_end_time",
+    "progFAN2Monday": "prog_fan2_monday",
+    "progFAN2Tuesday": "prog_fan2_tuesday",
+    "progFAN2Wednesday": "prog_fan2_wednesday",
+    "progFAN2Thursday": "prog_fan2_thursday",
+    "progFAN2Friday": "prog_fan2_friday",
+    "progFAN2Saturday": "prog_fan2_saturday",
+    "progFAN2Sunday": "prog_fan2_sunday",
+    # HC1 program schedule
+    "progHC1Enable": "prog_hc1_enable",
+    "progHC1StartTime": "prog_hc1_start_time",
+    "progHC1EndTime": "prog_hc1_end_time",
+    "progHC1Monday": "prog_hc1_monday",
+    "progHC1Tuesday": "prog_hc1_tuesday",
+    "progHC1Wednesday": "prog_hc1_wednesday",
+    "progHC1Thursday": "prog_hc1_thursday",
+    "progHC1Friday": "prog_hc1_friday",
+    "progHC1Saturday": "prog_hc1_saturday",
+    "progHC1Sunday": "prog_hc1_sunday",
+    # HC2 program schedule
+    "progHC2Enable": "prog_hc2_enable",
+    "progHC2StartTime": "prog_hc2_start_time",
+    "progHC2EndTime": "prog_hc2_end_time",
+    "progHC2Monday": "prog_hc2_monday",
+    "progHC2Tuesday": "prog_hc2_tuesday",
+    "progHC2Wednesday": "prog_hc2_wednesday",
+    "progHC2Thursday": "prog_hc2_thursday",
+    "progHC2Friday": "prog_hc2_friday",
+    "progHC2Saturday": "prog_hc2_saturday",
+    "progHC2Sunday": "prog_hc2_sunday",
+    # Cooling settings (p99 extended parameters)
+    "p99CoolingHC1SetTemp": "cooling_hc1_set_temp",
+    "p99CoolingHC1Switch": "cooling_hc1_switch",
+    "p99CoolingHC1HysterFlowTemp": "cooling_hc1_hyster_flow_temp",
+    "p99CoolingHC1HysterRoomTemp": "cooling_hc1_hyster_room_temp",
+    "p99CoolingHC2SetTemp": "cooling_hc2_set_temp",
+    "p99CoolingHC2Switch": "cooling_hc2_switch",
+    "p99CoolingHC2HysterFlowTemp": "cooling_hc2_hyster_flow_temp",
+    "p99CoolingHC2HysterRoomTemp": "cooling_hc2_hyster_room_temp",
+    # Pump rates
+    "p99PumpRateDHW": "pump_rate_dhw",
+    "p99PumpRateHC": "pump_rate_hc",
+    # Maximum flow temperatures
+    "p99DHWmaxFlowTemp": "dhw_max_flow_temp",
+    "p99HC1maxFlowTemp": "hc1_max_flow_temp",
+    # Ventilation
+    "p99FanStageParty": "fan_stage_party",
+    "p99startUnschedVent": "start_unsched_vent",
+    # Frost protection
+    "p99FrostProtectionBoost": "frost_protection_boost",
+    "p99FrostProtectionCancel": "frost_protection_cancel",
+    # Holiday mode
+    "pHolidayBeginDay": "holiday_begin_day",
+    "pHolidayBeginMonth": "holiday_begin_month",
+    "pHolidayBeginYear": "holiday_begin_year",
+    "pHolidayBeginTime": "holiday_begin_time",
+    "pHolidayEndDay": "holiday_end_day",
+    "pHolidayEndMonth": "holiday_end_month",
+    "pHolidayEndYear": "holiday_end_year",
+    "pHolidayEndTime": "holiday_end_time",
+    # Other
+    "pOvenFireplace": "oven_fireplace",
+    "party-time": "party_time",
 }
 
 

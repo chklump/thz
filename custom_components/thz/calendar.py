@@ -183,7 +183,7 @@ class THZSchedule:
                 )
                 await asyncio.sleep(
                     0.01
-                )  # Kurze Pause, um sicherzustellen, dass das Gerät bereit ist
+                )  # Short pause to ensure the device is ready
 
             _LOGGER.debug("%s: raw_value=%s", self._name, raw_value.hex() if raw_value else raw_value)
             start_time_raw = int.from_bytes(raw_value[0:1], byteorder="little", signed=False)
@@ -262,6 +262,14 @@ class THZCalendar(CalendarEntity):
         
         # Hide calendar entities for program schedules by default
         self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
+
+    @property
+    def name(self) -> str | None:
+        """Return the name of the calendar entity.
+        
+        Always return the entity name to ensure descriptive names are displayed.
+        """
+        return self._attr_name
 
     @property
     def event(self) -> CalendarEvent | None:
