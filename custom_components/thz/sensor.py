@@ -33,7 +33,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN, should_hide_entity_by_default
 from .register_maps.register_map_manager import RegisterMapManager
 from .sensor_meta import SENSOR_META
-from .thz_device import THZDevice
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -7,7 +7,6 @@ and decoding values received from the device.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from .value_maps import SELECT_MAP
 

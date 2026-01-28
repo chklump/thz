@@ -231,8 +231,9 @@ class THZDevice:
         Automatically reconnects if connection is lost.
 
         Raises:
-            ConnectionError: If connection fails and reconnection is unsuccessful
-            RuntimeError: If device communication fails (handshake, timeout, invalid response)
+            ConnectionError: If connection fails and reconnection is unsuccessful.
+            RuntimeError: If device communication fails (handshake, timeout,
+                invalid response).
         """
         timeout = self.read_timeout
         data = bytearray()
@@ -241,27 +242,28 @@ class THZDevice:
 
         for attempt in range(max_retries + 1):
             try:
-                # Check connection health before sending (only if device was initialized)
+                # Check connection health before sending (only if initialized)
                 if self._initialized and not self._is_connection_alive():
-                    _LOGGER.warning("Connection not alive, attempting reconnect (attempt %d/%d)",
-                                  attempt + 1, max_retries + 1)
+                    _LOGGER.warning(
+                        "Connection not alive, attempting reconnect (attempt %d/%d)",
+                        attempt + 1, max_retries + 1
+                    )
                     self._reconnect()
 
                 # 1. Send greeting (0x02)
                 self._write_bytes(const.STARTOFTEXT)
-                # _LOGGER.info("Greeting sent (0x02)")
 
                 # 2. Expect 0x10 response
                 response = self._read_exact(1, timeout)
                 if response != const.DATALINKESCAPE:
-                    error_msg = f"Handshake 1 failed, received: {response.hex() if response else 'no data'}"
+                    resp_hex = response.hex() if response else 'no data'
+                    error_msg = f"Handshake 1 failed, received: {resp_hex}"
                     _LOGGER.error(error_msg)
                     raise RuntimeError(error_msg)
 
                 # 3. Send telegram
                 self._reset_input_buffer()
                 self._write_bytes(telegram)
-                # _LOGGER.info("Request sent: %s", telegram.hex())
 
                 # 4. Expect 0x10 0x02 response
                 # Note: Device may send 0x10 and 0x02 separately with a delay
@@ -271,15 +273,16 @@ class THZDevice:
                 if response == const.DATALINKESCAPE:
                     _LOGGER.debug("Received 0x10, waiting for 0x02...")
                     # Add delay for firmware 2.x as per Perl module
-                    # Note: time.sleep() is used here instead of asyncio.sleep() because
-                    # this method runs in an executor job (blocking context)
-                    if self._firmware_version and self._firmware_version.startswith("2"):
+                    # time.sleep() is used because this runs in executor (blocking)
+                    fw_ver = self._firmware_version
+                    if fw_ver and fw_ver.startswith("2"):
                         time.sleep(0.005)
                     second_byte = self._read_exact(1, timeout)
                     if second_byte == const.STARTOFTEXT:
                         response = const.DATALINKESCAPE + const.STARTOFTEXT
                     else:
-                        error_msg = f"Handshake 2 failed: received 0x10 then {second_byte.hex() if second_byte else 'no data'}"
+                        byte_hex = second_byte.hex() if second_byte else 'no data'
+                        error_msg = f"Handshake 2 failed: received 0x10 then {byte_hex}"
                         _LOGGER.error(error_msg)
                         raise RuntimeError(error_msg)
                 elif response == const.STARTOFTEXT:
@@ -288,7 +291,8 @@ class THZDevice:
                     response = const.DATALINKESCAPE + const.STARTOFTEXT  # Accept it
 
                 if response != const.DATALINKESCAPE + const.STARTOFTEXT:
-                    error_msg = f"Handshake 2 failed, received: {response.hex() if response else 'no data'}"
+                    resp_hex = response.hex() if response else 'no data'
+                    error_msg = f"Handshake 2 failed, received: {resp_hex}"
                     _LOGGER.error(error_msg)
                     raise RuntimeError(error_msg)
 
@@ -308,12 +312,14 @@ class THZDevice:
                             ):
                                 break
 
-                    # _LOGGER.info("Received raw data: %s", data.hex())
-
                     if not (
-                        len(data) >= 8 and data[-2:] == const.DATALINKESCAPE + const.ENDOFTEXT
+                        len(data) >= 8
+                        and data[-2:] == const.DATALINKESCAPE + const.ENDOFTEXT
                     ):
-                        error_msg = "No valid response received after data request - timeout or incomplete data"
+                        error_msg = (
+                            "No valid response received after data request - "
+                            "timeout or incomplete data"
+                        )
                         _LOGGER.error(error_msg)
                         raise RuntimeError(error_msg)
 
@@ -323,8 +329,10 @@ class THZDevice:
 
             except ConnectionError as e:
                 last_error = e
-                _LOGGER.error("Connection error in send_request (attempt %d/%d): %s",
-                            attempt + 1, max_retries + 1, e)
+                _LOGGER.error(
+                    "Connection error in send_request (attempt %d/%d): %s",
+                    attempt + 1, max_retries + 1, e
+                )
                 if attempt < max_retries:
                     # Try to reconnect for next attempt
                     try:
@@ -334,7 +342,9 @@ class THZDevice:
                         _LOGGER.error("Reconnect failed: %s", reconnect_error)
                         # Fall through to raise the original connection error
                 # Re-raise the connection error after max retries
-                raise ConnectionError(f"Connection failed after {max_retries + 1} attempts: {e}") from e
+                raise ConnectionError(
+                    f"Connection failed after {max_retries + 1} attempts: {e}"
+                ) from e
 
             except RuntimeError as e:
                 # Protocol/handshake errors - don't retry these

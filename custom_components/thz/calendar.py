@@ -19,7 +19,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import should_hide_entity_by_default
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
-from .time import quarters_to_time, time_to_quarters
+from .time import quarters_to_time
 
 
 _LOGGER = logging.getLogger(__name__)

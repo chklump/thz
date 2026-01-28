@@ -17,7 +17,6 @@ from .const import (
     WRITE_REGISTER_OFFSET,
     WRITE_REGISTER_LENGTH,
 )
-from .platform_setup import async_setup_write_platform
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 

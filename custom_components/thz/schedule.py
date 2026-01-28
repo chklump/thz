@@ -1,15 +1,12 @@
 """Schedule entity for THZ devices."""
-from datetime import timedelta
-# Set update interval to 10 minutes
-SCAN_INTERVAL = timedelta(minutes=120)
 
 import asyncio
 from dataclasses import dataclass
-from datetime import time
+from datetime import time, timedelta
 import logging
 
 from homeassistant.components.schedule import Schedule
-from homeassistant.config_entries import ConfigEntry, ConfigType
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -18,6 +15,9 @@ from .thz_device import THZDevice
 from .time import quarters_to_time, time_to_quarters
 
 _LOGGER = logging.getLogger(__name__)
+
+# Set update interval to 2 hours
+SCAN_INTERVAL = timedelta(minutes=120)
 
 
 @dataclass
