@@ -591,11 +591,111 @@
       },
       "prog_hc2_sunday": {
         "name": "HC2 Program Sunday"
+      },
+      "cooling_hc1_hyster_flow_temp": {
+        "name": "Kühlung HK1 Hysterese Vorlauftemperatur"
+      },
+      "cooling_hc1_hyster_room_temp": {
+        "name": "Kühlung HK1 Hysterese Raumtemperatur"
+      },
+      "cooling_hc1_set_temp": {
+        "name": "Kühlung HK1 Solltemperatur"
+      },
+      "cooling_hc2_hyster_flow_temp": {
+        "name": "Kühlung HK2 Hysterese Vorlauftemperatur"
+      },
+      "cooling_hc2_hyster_room_temp": {
+        "name": "Kühlung HK2 Hysterese Raumtemperatur"
+      },
+      "cooling_hc2_set_temp": {
+        "name": "Kühlung HK2 Solltemperatur"
+      },
+      "defrost_start_threshold": {
+        "name": "Abtau-Startschwelle"
+      },
+      "dhw_eco": {
+        "name": "Warmwasser Eco-Modus"
+      },
+      "dhw_max_flow_temp": {
+        "name": "Warmwasser Maximale Vorlauftemperatur"
+      },
+      "fan_stage_party": {
+        "name": "Lüfterstufe Party"
+      },
+      "filter_speed": {
+        "name": "Filtergeschwindigkeit"
+      },
+      "frost_protection_boost": {
+        "name": "Frostschutz Boost"
+      },
+      "frost_protection_cancel": {
+        "name": "Frostschutz Abbrechen"
+      },
+      "hc1_max_flow_temp": {
+        "name": "HK1 Maximale Vorlauftemperatur"
+      },
+      "holiday_begin_day": {
+        "name": "Urlaubsbeginn Tag"
+      },
+      "holiday_begin_month": {
+        "name": "Urlaubsbeginn Monat"
+      },
+      "holiday_begin_year": {
+        "name": "Urlaubsbeginn Jahr"
+      },
+      "holiday_end_day": {
+        "name": "Urlaubsende Tag"
+      },
+      "holiday_end_month": {
+        "name": "Urlaubsende Monat"
+      },
+      "holiday_end_year": {
+        "name": "Urlaubsende Jahr"
+      },
+      "max_defrost_duration": {
+        "name": "Maximale Abtaudauer"
+      },
+      "out_temp_correction": {
+        "name": "Außentemperatur Korrektur"
+      },
+      "oven_fireplace": {
+        "name": "Ofen/Kamin"
+      },
+      "pump_rate_dhw": {
+        "name": "Pumpenrate Warmwasser"
+      },
+      "pump_rate_hc": {
+        "name": "Pumpenrate Heizkreis"
+      },
+      "room_therm_correction": {
+        "name": "Raumthermostat Korrektur"
+      },
+      "start_unsched_vent": {
+        "name": "Ungeplante Lüftung starten"
       }
     },
     "select": {
       "op_mode": {
         "name": "Betriebsart"
+      }
+    },
+    "switch": {
+      "cooling_hc1_switch": {
+        "name": "Kühlung HK1 Schalter"
+      },
+      "cooling_hc2_switch": {
+        "name": "Kühlung HK2 Schalter"
+      }
+    },
+    "time": {
+      "holiday_begin_time": {
+        "name": "Urlaubsbeginn Zeit"
+      },
+      "holiday_end_time": {
+        "name": "Urlaubsende Zeit"
+      },
+      "party_time": {
+        "name": "Party Zeit"
       }
     }
   }
