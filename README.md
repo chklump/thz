@@ -12,7 +12,7 @@ The integration communicates with the heat pump using the serial protocol, suppo
 
 **Origin**: This integration is based on the FHEM-Module developed by Immi, adapted for Home Assistant with modern async architecture and full UI configuration support.
 
-V0.2 is a big release that fixes most of the known errors. A few tranlation strings are still missing and some sensor values are off either in unit or in size. I will fix that one by one.
+**V0.2 is a big release that fixes most of the known errors. A few tranlation strings are still missing and some sensor values are off either in unit or in size. I will fix that one by one.**
 
 ## Features
 
@@ -161,6 +161,7 @@ This means you are free to use, modify, and distribute this software under the t
 ---
 
 **Credits**: Based on the FHEM-Module by Immi. Thanks to the FHEM and Home Assistant community for their support and contributions.
+
 
 
 
