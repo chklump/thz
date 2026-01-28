@@ -97,11 +97,11 @@ class THZNumber(THZBaseEntity, NumberEntity):
         # Validate that we received data
         if not value_bytes:
             _LOGGER.warning(
-                "No data received for number %s, keeping previous value", self._attr_name
+                "No data received for number %s, keeping previous value", self._name
             )
             return
         
-        _LOGGER.debug("Received bytes for %s: %s", self._attr_name, value_bytes.hex())
+        _LOGGER.debug("Received bytes for %s: %s", self._name, value_bytes.hex())
         
         try:
             # Use centralized codec for decoding
@@ -110,17 +110,17 @@ class THZNumber(THZBaseEntity, NumberEntity):
                 self.entity_description.native_step, 
                 self._decode_type
             )
-            _LOGGER.debug("Decoded value for %s: %s", self._attr_name, value)
+            _LOGGER.debug("Decoded value for %s: %s", self._name, value)
             self._attr_native_value = value
         except (ValueError, IndexError, TypeError) as err:
             _LOGGER.error(
-                "Error decoding number %s: %s", self._attr_name, err, exc_info=True
+                "Error decoding number %s: %s", self._name, err, exc_info=True
             )
             # Keep previous value on error
 
     async def async_set_native_value(self, value: float) -> None:
         """Set new value for the number."""
-        _LOGGER.debug("Setting value for %s to %s", self._attr_name, value)
+        _LOGGER.debug("Setting value for %s to %s", self._name, value)
         
         try:
             # Use centralized codec for encoding
@@ -143,5 +143,5 @@ class THZNumber(THZBaseEntity, NumberEntity):
         except (ValueError, TypeError) as err:
             _LOGGER.error(
                 "Error encoding number %s value %s: %s", 
-                self._attr_name, value, err, exc_info=True
+                self._name, value, err, exc_info=True
             )

@@ -314,14 +314,6 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
         self._attr_unique_id = f"thz_schedule_time_{self._command.lower()}_{name.lower().replace(' ', '_')}_{time_type}"
 
     @property
-    def name(self) -> str | None:
-        """Return the name of the schedule time entity.
-        
-        Always return the entity name since time entities don't use translation keys.
-        """
-        return self._attr_name
-
-    @property
     def native_value(self):
         """Return the native value of the time."""
         return self._attr_native_value
@@ -350,7 +342,7 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
         self._attr_native_value = quarters_to_time(num)
         _LOGGER.debug(
             "Updated schedule time %s (%s): %s quarters -> %s", 
-            self._attr_name, self._time_type, num, self._attr_native_value
+            self._name, self._time_type, num, self._attr_native_value
         )
 
     async def async_set_native_value(self, value: str):
@@ -374,7 +366,7 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
         new_num = time_to_quarters(t_value)
         _LOGGER.debug(
             "Setting schedule time %s (%s) to %s (%s quarters)", 
-            self._attr_name, self._time_type, t_value, new_num
+            self._name, self._time_type, t_value, new_num
         )
 
         # Read the current schedule data (4 bytes total)

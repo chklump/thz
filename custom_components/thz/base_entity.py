@@ -28,7 +28,6 @@ class THZBaseEntity(Entity):
     """
 
     _attr_should_poll = True
-    #TODO initialze withe entity description?
     def __init__(
         self,
         name: str,
@@ -39,7 +38,6 @@ class THZBaseEntity(Entity):
         unique_id: str | None = None,
         scan_interval: int | None = None,
         translation_key: str | None = None,
-        entity_description: NumberEntityDescription | None = None,
     ) -> None:
         """Initialize base THZ entity.
         
@@ -52,7 +50,6 @@ class THZBaseEntity(Entity):
             unique_id: Optional unique ID (auto-generated if not provided).
             scan_interval: Update interval in seconds (uses DEFAULT_UPDATE_INTERVAL if not provided).
             translation_key: Optional translation key for localization.
-            entity_description: Optional entity description for the entity.
         """
         self._command = command
         self._device = device
