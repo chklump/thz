@@ -77,9 +77,10 @@ async def async_setup_entry(
 class THZSchedule(Schedule):
     """Schedule entity for THZ devices.
 
-    This class represents a schedule entity that can read and write schedule values from/to THZ devices.
-    It handles conversion between quarter-hour based time values used by the device and standard
-    time format used by Home Assistant.
+    This class represents a schedule entity that can read and write schedule
+    values from/to THZ devices. It handles conversion between quarter-hour
+    based time values used by the device and standard time format used by
+    Home Assistant.
     """
 
     def __init__(
@@ -99,15 +100,17 @@ class THZSchedule(Schedule):
             icon: Optional icon for the entity.
             unique_id: Optional unique ID for the entity.
         """
-        super().__init__(config, editable=True)
+        # Schedule base class doesn't require config in newer HA versions
+        super().__init__()
 
         self._attr_name = name
         self._command = command
         self.day_index = self._parse_day_from_name(name)  # e.g., 4 for Friday
         self._device = device
         self._attr_icon = icon or "mdi:clock"
+        unique_suffix = name.lower().replace(' ', '_')
         self._attr_unique_id = (
-            unique_id or f"thz_time_{command.lower()}_{name.lower().replace(' ', '_')}"
+            unique_id or f"thz_time_{command.lower()}_{unique_suffix}"
         )
         self._attr_native_value = None
 

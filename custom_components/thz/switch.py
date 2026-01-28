@@ -66,7 +66,7 @@ class THZSwitch(THZBaseEntity, SwitchEntity):
             scan_interval=scan_interval,
             translation_key=get_translation_key(name),
         )
-        
+
         # Switch-specific attributes
         self._is_on = False
 
@@ -80,7 +80,7 @@ class THZSwitch(THZBaseEntity, SwitchEntity):
         _LOGGER.debug(
             "Updating switch %s with command %s", self._name, self._command
         )
-        
+
         async with self._device.lock:
             value_bytes = await self.hass.async_add_executor_job(
                 self._device.read_value,
@@ -91,16 +91,16 @@ class THZSwitch(THZBaseEntity, SwitchEntity):
             )
             # Short pause to ensure the device is ready
             await asyncio.sleep(0.01)
-        
+
         # Validate that we received data
         if not value_bytes:
             _LOGGER.warning(
                 "No data received for switch %s, keeping previous value", self._name
             )
             return
-        
+
         _LOGGER.debug("Received bytes for %s: %s", self._name, value_bytes.hex())
-        
+
         try:
             # Use centralized codec for decoding
             self._is_on = THZValueCodec.decode_switch(value_bytes)
@@ -114,43 +114,43 @@ class THZSwitch(THZBaseEntity, SwitchEntity):
     async def turn_on(self, **kwargs: Any) -> None:
         """Turn on the switch by sending a command to the device."""
         _LOGGER.debug("Turning on switch %s", self._name)
-        
+
         try:
             # Use centralized codec for encoding
             value_bytes = THZValueCodec.encode_switch(True)
-            
+
             async with self._device.lock:
                 await self.hass.async_add_executor_job(
                     self._device.write_value,
                     bytes.fromhex(self._command),
                     value_bytes,
                 )
-            
+
             self._is_on = True
         except (ValueError, TypeError) as err:
             _LOGGER.error(
-                "Error encoding switch %s to turn on: %s", 
+                "Error encoding switch %s to turn on: %s",
                 self._name, err, exc_info=True
             )
 
     async def turn_off(self, **kwargs: Any) -> None:
         """Turn off the switch by sending a command to the device."""
         _LOGGER.debug("Turning off switch %s", self._name)
-        
+
         try:
             # Use centralized codec for encoding
             value_bytes = THZValueCodec.encode_switch(False)
-            
+
             async with self._device.lock:
                 await self.hass.async_add_executor_job(
                     self._device.write_value,
                     bytes.fromhex(self._command),
                     value_bytes,
                 )
-            
+
             self._is_on = False
         except (ValueError, TypeError) as err:
             _LOGGER.error(
-                "Error encoding switch %s to turn off: %s", 
+                "Error encoding switch %s to turn off: %s",
                 self._name, err, exc_info=True
             )

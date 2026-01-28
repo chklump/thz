@@ -18,7 +18,6 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up THZ from config entry."""
-
     log_level_str = config_entry.data.get("log_level", "info")
     _LOGGER.setLevel(getattr(logging, log_level_str.upper(), logging.INFO))
     _LOGGER.info("Log level set to: %s", log_level_str)
@@ -83,13 +82,15 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # 5. Prepare dict for storing all coordinators
     coordinators = {}
     refresh_intervals = config_entry.data.get("refresh_intervals", {})
-    
-    # If refresh_intervals is empty or missing, populate with defaults for all available blocks
+
+    # If refresh_intervals is empty or missing, populate with defaults
+    # for all available blocks
     if not refresh_intervals:
         available_blocks = device.available_reading_blocks
         if available_blocks:
             _LOGGER.warning(
-                "No refresh_intervals found in config, using default interval of %s seconds for %d blocks",
+                "No refresh_intervals found in config, using default "
+                "interval of %s seconds for %d blocks",
                 DEFAULT_UPDATE_INTERVAL,
                 len(available_blocks)
             )
@@ -99,18 +100,20 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             }
         else:
             _LOGGER.error(
-                "No available reading blocks found on device and no refresh_intervals in config"
+                "No available reading blocks found on device "
+                "and no refresh_intervals in config"
             )
             # Continue with empty dict - no coordinators or sensors will be created
     else:
         _LOGGER.debug(
             "Creating coordinators with refresh intervals: %s", refresh_intervals
         )
-    
+
     # Create a coordinator for each block with its own interval
     for block, interval in refresh_intervals.items():
         _LOGGER.debug(
-            "Creating coordinator for block %s with interval %s seconds", block, interval
+            "Creating coordinator for block %s with interval %s seconds",
+            block, interval
         )
         coordinator = DataUpdateCoordinator(
             hass,
@@ -139,7 +142,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     )
 
     # Re-enable any entities that were previously disabled by the integration
-    # This ensures the current code's visibility settings take precedence over cached registry state
+    # This ensures the current code's visibility settings take precedence
+    # over cached registry state
     await _async_enable_integration_disabled_entities(hass, config_entry)
 
     return True
@@ -147,23 +151,25 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
 async def _async_cleanup_orphaned_entities(hass: HomeAssistant) -> None:
     """Remove orphaned THZ entities from the entity registry.
-    
+
     Orphaned entities are those with platform="thz" but config_entry_id=None.
     These can occur when the integration is deleted but HA doesn't fully clean up
     the entity registry entries, leaving "ghost" entities with broken names.
     """
     entity_reg = er.async_get(hass)
     orphaned_count = 0
-    
+
     # Get all entities and filter for orphaned THZ entities
     for entity in list(entity_reg.entities.values()):
         if entity.platform == "thz" and entity.config_entry_id is None:
             entity_reg.async_remove(entity.entity_id)
             _LOGGER.debug("Removed orphaned THZ entity: %s", entity.entity_id)
             orphaned_count += 1
-    
+
     if orphaned_count > 0:
-        _LOGGER.info("Cleaned up %d orphaned THZ entities from registry", orphaned_count)
+        _LOGGER.info(
+            "Cleaned up %d orphaned THZ entities from registry", orphaned_count
+        )
 
 
 async def _async_enable_integration_disabled_entities(
@@ -173,7 +179,7 @@ async def _async_enable_integration_disabled_entities(
 
     This function ensures the entity registry reflects the current code's visibility
     logic, overriding any cached state from previous code versions.
-    
+
     It handles both directions:
     - Re-enables entities that should be visible but are cached as disabled
     - Disables entities that should be hidden but are cached as enabled
@@ -184,18 +190,18 @@ async def _async_enable_integration_disabled_entities(
     enabled_count = 0
     disabled_count = 0
     name_count = 0
-    
+
     for entity in entities:
         # Get the entity's original name to check visibility
         entity_name = entity.original_name or ""
         should_hide = should_hide_entity_by_default(entity_name)
-        
+
         # Sync visibility state
         if should_hide:
             # Entity should be hidden - disable if not already disabled by integration
             if entity.disabled_by != er.RegistryEntryDisabler.INTEGRATION:
                 entity_reg.async_update_entity(
-                    entity.entity_id, 
+                    entity.entity_id,
                     disabled_by=er.RegistryEntryDisabler.INTEGRATION
                 )
                 _LOGGER.debug("Disabled entity %s (should be hidden)", entity.entity_id)
@@ -204,15 +210,20 @@ async def _async_enable_integration_disabled_entities(
             # Entity should be visible - enable if disabled by integration
             if entity.disabled_by == er.RegistryEntryDisabler.INTEGRATION:
                 entity_reg.async_update_entity(entity.entity_id, disabled_by=None)
-                _LOGGER.debug("Re-enabled entity %s (should be visible)", entity.entity_id)
+                _LOGGER.debug(
+                    "Re-enabled entity %s (should be visible)", entity.entity_id
+                )
                 enabled_count += 1
-        
-        # Sync entity name - clear any cached name override to use current code's name
+
+        # Sync entity name - clear any cached name override
+        # to use current code's name
         if entity.name is not None:
             entity_reg.async_update_entity(entity.entity_id, name=None)
-            _LOGGER.debug("Reset entity name for %s to use original_name", entity.entity_id)
+            _LOGGER.debug(
+                "Reset entity name for %s to use original_name", entity.entity_id
+            )
             name_count += 1
-    
+
     if enabled_count > 0 or disabled_count > 0 or name_count > 0:
         _LOGGER.info(
             "Entity registry sync: enabled %d, disabled %d, reset %d names",
@@ -251,7 +262,7 @@ async def async_remove_config_entry_device(
     hass: HomeAssistant, config_entry: ConfigEntry, device_entry: dr.DeviceEntry
 ) -> bool:
     """Remove a config entry from a device.
-    
+
     This is called when a user manually removes a device from the UI.
     Return False to prevent removal if there's an issue.
     """
@@ -260,21 +271,21 @@ async def async_remove_config_entry_device(
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Handle removal of an entry.
-    
+
     This is called when the config entry is completely removed (not just unloaded).
     Clean up all entity registry entries to ensure a fresh start on re-setup.
     """
     # Get entity registry
     entity_reg = er.async_get(hass)
-    
+
     # Get all entities for this config entry
     entities = er.async_entries_for_config_entry(entity_reg, entry.entry_id)
-    
+
     # Remove all entities associated with this config entry
     for entity in entities:
         entity_reg.async_remove(entity.entity_id)
         _LOGGER.debug("Removed entity %s from registry", entity.entity_id)
-    
+
     _LOGGER.info(
         "Removed %d entities from registry for config entry %s",
         len(entities),

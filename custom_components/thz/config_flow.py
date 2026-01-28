@@ -1,4 +1,10 @@
-import logging  # noqa: D100
+"""Config flow for THZ integration.
+
+This module provides the configuration flow for setting up THZ heat pump
+connections via USB serial or network (ser2net).
+"""
+
+import logging
 from typing import Any
 
 import serial.tools.list_ports
@@ -90,22 +96,22 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> config_entries.ConfigFlowResult:
         """Input for IP connection."""
         errors = {}
-        
+
         if user_input is not None:
             # Validate IP address
             host = user_input.get(CONF_HOST, "").strip()
             port = user_input.get(CONF_PORT)
-            
+
             # Basic IP validation
             if not host:
                 errors[CONF_HOST] = "invalid_host"
             elif not self._is_valid_ip_or_hostname(host):
                 errors[CONF_HOST] = "invalid_host"
-            
+
             # Port validation
             if port is None or not (1 <= port <= 65535):
                 errors[CONF_PORT] = "invalid_port"
-            
+
             if not errors:
                 user_input[CONF_HOST] = host  # Use stripped version
                 self.connection_data = user_input
@@ -121,33 +127,33 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             }
         )
         return self.async_show_form(step_id="setup_ip", data_schema=schema, errors=errors)
-    
+
     @staticmethod
     def _is_valid_ip_or_hostname(host: str) -> bool:
         """Validate IP address or hostname.
-        
+
         Args:
             host: The hostname or IP address to validate.
-            
+
         Returns:
             True if valid, False otherwise.
         """
         import re
         import ipaddress
-        
+
         # Try to parse as IP address
         try:
             ipaddress.ip_address(host)
             return True
         except ValueError:
             pass
-        
+
         # Check if it's a valid hostname
         # Hostname can contain letters, numbers, dots, and hyphens
         hostname_pattern = r'^[a-zA-Z0-9]([a-zA-Z0-9\-\.]{0,253}[a-zA-Z0-9])?$'
         if re.match(hostname_pattern, host):
             return True
-        
+
         return False
 
     async def async_step_setup_usb(
@@ -185,7 +191,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             # Merge user input with existing data to preserve required fields
             updated_data = dict(entry.data)
-            
+
             # Extract and rebuild refresh_intervals from form inputs
             refresh_intervals = {}
             keys_to_remove = []
@@ -194,18 +200,18 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     block = key.replace("refresh_", "")
                     refresh_intervals[block] = value
                     keys_to_remove.append(key)
-            
+
             # Remove the refresh_* keys from user_input as they're now in refresh_intervals
             for key in keys_to_remove:
                 user_input.pop(key)
-            
+
             # Update refresh_intervals if any were modified
             if refresh_intervals:
                 updated_data["refresh_intervals"] = refresh_intervals
-            
+
             # Update other fields
             updated_data.update(user_input)
-            
+
             # Update config entry with merged values
             self.hass.config_entries.async_update_entry(entry, data=updated_data)
             # Reload integration to apply changes
@@ -231,7 +237,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         conn_type = defaults.get(CONF_CONNECTION_TYPE, CONNECTION_USB)
         schema_dict = {}
-        
+
         # Connection-specific fields
         if conn_type == CONNECTION_USB:
             ports = await self.get_ports()
@@ -252,7 +258,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_PORT,
                 default=defaults.get(CONF_PORT, DEFAULT_PORT),
             )] = int
-        
+
         # Common fields
         schema_dict[vol.Optional(
             "alias",
@@ -262,7 +268,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             "area",
             default=defaults.get("area", ""),
         )] = vol.In(areas)
-        
+
         # Refresh intervals for each block
         refresh_intervals = defaults.get("refresh_intervals", {})
         for block, interval in refresh_intervals.items():
@@ -270,7 +276,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 f"refresh_{block}",
                 default=interval,
             )] = vol.All(int, vol.Range(min=5, max=86400))
-        
+
         # Write interval
         schema_dict[vol.Optional(
             "write_interval",
@@ -354,7 +360,7 @@ class THZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             schema_dict[vol.Optional(f"refresh_{block}", default=600)] = vol.All(
                 int, vol.Range(min=5, max=86400)
             )
-        
+
         # Add write interval for number/switch/select/time entities
         schema_dict[vol.Optional("write_interval", default=DEFAULT_UPDATE_INTERVAL)] = vol.All(
             int, vol.Range(min=5, max=86400)

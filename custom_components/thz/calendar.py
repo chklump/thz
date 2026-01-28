@@ -1,7 +1,15 @@
+"""Calendar entity for THZ heat pump schedules.
+
+This module provides calendar entities that visualize heating program schedules
+(DHW, HC1, HC2, FAN) as recurring calendar events in Home Assistant.
+"""
+
 import asyncio
-import tzlocal, zoneinfo
 from datetime import datetime, time, timedelta
 import logging
+
+import tzlocal
+import zoneinfo
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.config_entries import ConfigEntry
@@ -34,6 +42,16 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
+    """Set up THZ calendar entities from a config entry.
+
+    Creates calendar entities for schedule-type registers to display
+    heating program schedules as recurring calendar events.
+
+    Args:
+        hass: The Home Assistant instance.
+        config_entry: The configuration entry for this integration.
+        async_add_entities: Callback to add entities to Home Assistant.
+    """
     entities = []
     schedules = []
     write_manager: RegisterMapManagerWrite = hass.data["thz"]["write_manager"]
@@ -70,13 +88,18 @@ async def async_setup_entry(
 
         # Skip if device times could not be retrieved
         if start_time is None or end_time is None:
-            _LOGGER.warning("Skipping event creation for %s: start_time or end_time is None", schedule.name)
+            _LOGGER.warning(
+                "Skipping event creation for %s: start_time or end_time is None",
+                schedule.name
+            )
             continue
 
         # Repeat each event weekly for 52 weeks
         weekly_events = []
         for week in range(52):
-            event_start, event_end = calculate_event_times(schedule, start_time, end_time)
+            event_start, event_end = calculate_event_times(
+                schedule, start_time, end_time
+            )
             if event_start is None or event_end is None:
                 continue
             event_start = (event_start[0] + timedelta(weeks=week), event_start[1])
@@ -104,12 +127,20 @@ async def async_setup_entry(
                 entity.schedules.extend(weekly_events)
                 entities[-1] = entity
             else:
-                _LOGGER.warning("No base entity found for schedule %s, skipping.", schedule.name)
+                _LOGGER.warning(
+                    "No base entity found for schedule %s, skipping.", schedule.name
+                )
 
     async_add_entities(entities, True)
 
 
 class THZSchedule:
+    """Represents a schedule slot for THZ heating programs.
+
+    This class holds schedule configuration and provides methods to read
+    schedule times from the device.
+    """
+
     def __init__(
         self,
         name: str,
@@ -120,35 +151,44 @@ class THZSchedule:
         icon: str | None = None,
         unique_id: str | None = None,
     ) -> None:
+        """Initialize a THZ schedule slot.
+
+        Args:
+            name: The name of the schedule.
+            command: The hex command for device communication.
+            device: The THZ device instance.
+            start_time: Initial start time (usually None, fetched later).
+            end_time: Initial end time (usually None, fetched later).
+            icon: Optional icon for the schedule.
+            unique_id: Optional unique identifier.
+        """
         self._name = name
         self._command = command
-        self.day_index = self._parse_day_from_name(name)  # e.g., 4 for Friday
+        self.day_index = self._parse_day_from_name(name)
         self._device = device
         self._start_time = start_time
         self._end_time = end_time
         self._icon = icon or "mdi:clock"
+        unique_suffix = name.lower().replace(' ', '_')
         self._attr_unique_id = (
-            unique_id or f"thz_time_{command.lower()}_{name.lower().replace(' ', '_')}"
+            unique_id or f"thz_time_{command.lower()}_{unique_suffix}"
         )
         self._attr_native_value = None
-        # To get the schedule times, you must await the async function in an async context
-        # Example usage in an async method:
-        # self._start_time, self._end_time = await self.get_schedule_times_from_device()
-        # For __init__, consider initializing with None or fetching times later in an async setup
+        # Times are fetched asynchronously after initialization
         self._start_time = None
         self._end_time = None
 
-   
+
     @property
     def icon(self) -> str:
         """Return the icon for this schedule."""
         return self._icon
-    
+
     @property
     def unique_id(self) -> str | None:
         """Return the unique ID for this schedule."""
         return self._attr_unique_id
-    
+
     @property
     def name(self) -> str:
         """Return the name of the schedule."""
@@ -181,14 +221,22 @@ class THZSchedule:
                 raw_value = self._device.read_value(
                     bytes.fromhex(self._command), "get", 4, 4
                 )
-                await asyncio.sleep(
-                    0.01
-                )  # Short pause to ensure the device is ready
+                await asyncio.sleep(0.01)  # Short pause for device readiness
 
-            _LOGGER.debug("%s: raw_value=%s", self._name, raw_value.hex() if raw_value else raw_value)
-            start_time_raw = int.from_bytes(raw_value[0:1], byteorder="little", signed=False)
-            end_time_raw = int.from_bytes(raw_value[1:2], byteorder="little", signed=False)
-            _LOGGER.debug("%s: start_time_raw=%s, end_time_raw=%s", self._name, start_time_raw, end_time_raw)
+            _LOGGER.debug(
+                "%s: raw_value=%s",
+                self._name, raw_value.hex() if raw_value else raw_value
+            )
+            start_time_raw = int.from_bytes(
+                raw_value[0:1], byteorder="little", signed=False
+            )
+            end_time_raw = int.from_bytes(
+                raw_value[1:2], byteorder="little", signed=False
+            )
+            _LOGGER.debug(
+                "%s: start_time_raw=%s, end_time_raw=%s",
+                self._name, start_time_raw, end_time_raw
+            )
             start_time = quarters_to_time(start_time_raw)
             end_time = quarters_to_time(end_time_raw)
             return start_time, end_time
@@ -197,10 +245,19 @@ class THZSchedule:
             return None, None
 
 
-
 def calculate_event_times(
     schedule: THZSchedule, start_time: time, end_time: time
 ) -> tuple[tuple[datetime, str], tuple[datetime, str]]:
+    """Calculate event start and end times for a schedule.
+
+    Args:
+        schedule: The schedule slot to calculate times for.
+        start_time: The schedule start time.
+        end_time: The schedule end time.
+
+    Returns:
+        A tuple of ((start_datetime, tz_name), (end_datetime, tz_name)).
+    """
     local_tz = tzlocal.get_localzone()
     tz_name = str(local_tz)
     event_start = start_time
@@ -222,6 +279,8 @@ def calculate_event_times(
 
 
 class THZCalendar(CalendarEntity):
+    """Calendar entity displaying THZ heating program schedules."""
+
     def __init__(
         self,
         name: str,
@@ -231,14 +290,15 @@ class THZCalendar(CalendarEntity):
         unique_id: str | None = None,
         local_tz_name: str | None = None,
     ) -> None:
-        """Initialize the THZ Schedule entity.
+        """Initialize the THZ Calendar entity.
 
         Args:
             name: The name of the entity.
-            command: The command/register associated with this entity.
+            schedules: List of schedule dictionaries with start/end times.
             device: The THZDevice instance to interact with.
             icon: Optional icon for the entity.
             unique_id: Optional unique ID for the entity.
+            local_tz_name: Optional local timezone name.
         """
         self._attr_name = name
         self._device = device
@@ -251,29 +311,37 @@ class THZCalendar(CalendarEntity):
         # Always populate cache with local_tz_name and 'UTC'
         try:
             if self._local_tz_name and self._local_tz_name not in self._zoneinfo_cache:
-                self._zoneinfo_cache[self._local_tz_name] = zoneinfo.ZoneInfo(self._local_tz_name)
+                self._zoneinfo_cache[self._local_tz_name] = zoneinfo.ZoneInfo(
+                    self._local_tz_name
+                )
         except Exception as e:
-            _LOGGER.warning("Could not add local_tz_name '%s' to zoneinfo_cache: %s", self._local_tz_name, e)
+            _LOGGER.warning(
+                "Could not add local_tz_name '%s' to zoneinfo_cache: %s",
+                self._local_tz_name, e
+            )
         try:
             if 'UTC' not in self._zoneinfo_cache:
                 self._zoneinfo_cache['UTC'] = zoneinfo.ZoneInfo('UTC')
         except Exception as e:
             _LOGGER.error("Could not add 'UTC' to zoneinfo_cache: %s", e)
-        
+
         # Hide calendar entities for program schedules by default
-        self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
+        self._attr_entity_registry_enabled_default = (
+            not should_hide_entity_by_default(name)
+        )
 
     @property
     def name(self) -> str | None:
-        """Return the name of the calendar entity.
-        
-        Always return the entity name to ensure descriptive names are displayed.
-        """
+        """Return the name of the calendar entity."""
         return self._attr_name
 
     @property
     def event(self) -> CalendarEvent | None:
-        # Return the next event (next occurrence)
+        """Return the next upcoming calendar event.
+
+        Returns:
+            The next CalendarEvent, or None if no upcoming event.
+        """
         # Use the timezone of the first event, or UTC if none
         tz_name = None
         for sched in self._schedules:
@@ -282,21 +350,26 @@ class THZCalendar(CalendarEntity):
                 break
         if tz_name is None or tz_name == "local":
             tz_name = self._local_tz_name
-        
+
         tzinfo = self._zoneinfo_cache[tz_name]
 
         now = datetime.now(tzinfo)
         for sched in self._schedules:
             # Find the next occurrence in the future
-            base_start = sched["start"][0] if isinstance(sched["start"], tuple) else sched["start"]
-            base_end = sched["end"][0] if isinstance(sched["end"], tuple) else sched["end"]
+            start_tuple = sched["start"]
+            end_tuple = sched["end"]
+            base_start = start_tuple[0] if isinstance(start_tuple, tuple) else start_tuple
+            base_end = end_tuple[0] if isinstance(end_tuple, tuple) else end_tuple
             # Make base_start and base_end timezone-aware if naive
             if base_start.tzinfo is None:
                 base_start = base_start.replace(tzinfo=tzinfo)
             if base_end.tzinfo is None:
                 base_end = base_end.replace(tzinfo=tzinfo)
             # Calculate how many weeks ahead
-            weeks_ahead = ((now - base_start).days // 7) + 1 if now > base_start else 0
+            if now > base_start:
+                weeks_ahead = ((now - base_start).days // 7) + 1
+            else:
+                weeks_ahead = 0
             next_start = base_start + timedelta(weeks=weeks_ahead)
             next_end = base_end + timedelta(weeks=weeks_ahead)
             # Attach tzinfo for CalendarEvent (redundant, but safe)
@@ -315,7 +388,16 @@ class THZCalendar(CalendarEntity):
     async def async_get_events(
         self, hass: HomeAssistant, start_date: datetime, end_date: datetime
     ) -> list[CalendarEvent]:
-        # Dynamically generate all weekly events in the requested range
+        """Return calendar events within a date range.
+
+        Args:
+            hass: The Home Assistant instance.
+            start_date: Start of the date range.
+            end_date: End of the date range.
+
+        Returns:
+            List of CalendarEvent objects within the specified range.
+        """
         events = []
         for sched in self._schedules:
             base_start = sched["start"]
@@ -336,7 +418,7 @@ class THZCalendar(CalendarEntity):
                 current_start += timedelta(weeks=1)
                 current_end += timedelta(weeks=1)
         return events
-    
+
     @property
     def schedules(self) -> list[dict]:
         """Return the list of schedules."""

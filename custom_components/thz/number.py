@@ -63,12 +63,12 @@ class THZNumber(THZBaseEntity, NumberEntity):
             scan_interval=scan_interval,
             translation_key=get_translation_key(name),
         )
-        
+
         # Number-specific attributes
         min_value = entry["min"]
         max_value = entry["max"]
         step = entry.get("step", 1)
-        
+
         self._attr_native_min_value = float(min_value) if min_value != "" else 0.0
         self._attr_native_max_value = float(max_value) if max_value != "" else 100.0
         self._attr_native_step = float(step) if step != "" else 1.0
@@ -93,21 +93,21 @@ class THZNumber(THZBaseEntity, NumberEntity):
                 WRITE_REGISTER_OFFSET,
                 WRITE_REGISTER_LENGTH,
             )
-        
+
         # Validate that we received data
         if not value_bytes:
             _LOGGER.warning(
                 "No data received for number %s, keeping previous value", self._name
             )
             return
-        
+
         _LOGGER.debug("Received bytes for %s: %s", self._name, value_bytes.hex())
-        
+
         try:
             # Use centralized codec for decoding
             value = THZValueCodec.decode_number(
-                value_bytes, 
-                self.entity_description.native_step, 
+                value_bytes,
+                self.entity_description.native_step,
                 self._decode_type
             )
             _LOGGER.debug("Decoded value for %s: %s", self._name, value)
@@ -121,15 +121,15 @@ class THZNumber(THZBaseEntity, NumberEntity):
     async def async_set_native_value(self, value: float) -> None:
         """Set new value for the number."""
         _LOGGER.debug("Setting value for %s to %s", self._name, value)
-        
+
         try:
             # Use centralized codec for encoding
             value_bytes = THZValueCodec.encode_number(
-                value, 
-                self.entity_description.native_step, 
+                value,
+                self.entity_description.native_step,
                 self._decode_type
             )
-            
+
             async with self._device.lock:
                 await self.hass.async_add_executor_job(
                     self._device.write_value,
@@ -138,10 +138,10 @@ class THZNumber(THZBaseEntity, NumberEntity):
                 )
                 # Short pause to ensure the device is ready
                 await asyncio.sleep(0.01)
-            
+
             self._attr_native_value = value
         except (ValueError, TypeError) as err:
             _LOGGER.error(
-                "Error encoding number %s value %s: %s", 
+                "Error encoding number %s value %s: %s",
                 self._name, value, err, exc_info=True
             )

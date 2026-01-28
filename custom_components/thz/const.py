@@ -42,28 +42,28 @@ TIME_VALUE_UNSET = 0x80  # Sentinel value (128) indicating "no time" is set
 
 def should_hide_entity_by_default(entity_name: str) -> bool:
     """Determine if an entity should be hidden by default.
-    
+
     Entities are hidden if they:
     - Are related to HC2 (heating circuit 2)
     - Are time plan/program schedules
     - Are advanced technical parameters that most users don't need
-    
+
     Args:
         entity_name: The name of the entity to check.
-        
+
     Returns:
         True if the entity should be hidden by default, False otherwise.
     """
     name_lower = entity_name.lower()
-    
+
     # Hide all HC2-related entities
     if "hc2" in name_lower:
         return True
-    
+
     # Hide all time plan/program entities
     if name_lower.startswith("program"):
         return True
-    
+
     # Hide advanced technical parameters
     # These are parameters p13-p99 which are technical settings
     # that most users don't need to adjust
@@ -76,13 +76,13 @@ def should_hide_entity_by_default(entity_name: str) -> bool:
                 digit_str += char
             else:
                 break
-        
+
         if digit_str:
             param_num = int(digit_str)
             # Hide technical parameters p13 and above (gradient, hysteresis, etc.)
             if param_num >= 13:
                 return True
-    
+
     # Hide specific advanced/technical sensors
     advanced_keywords = [
         "gradient",
@@ -95,9 +95,9 @@ def should_hide_entity_by_default(entity_name: str) -> bool:
         "pasteurisation",
         "asymmetry",
     ]
-    
+
     for keyword in advanced_keywords:
         if keyword in name_lower:
             return True
-    
+
     return False
