@@ -140,9 +140,9 @@ class TestTHZDeviceCaching:
         device._cache[block] = (time.time() - 100, data)
         
         # Should not return expired data (with 60 second duration)
-        result = device.read_block_cached(block, cache_duration=60)
-        # Without actual connection, should return empty bytes
-        assert result == b""
+        # Without actual connection, should raise an exception
+        with pytest.raises((ConnectionError, RuntimeError)):
+            device.read_block_cached(block, cache_duration=60)
 
 
 class TestTHZDeviceProtocol:
