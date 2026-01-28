@@ -75,7 +75,6 @@ class BaseRegisterMapManager:
         entry_type: type,
     ) -> None:
         """Initialize the register map manager for a given firmware version."""
-
         self.firmware_version = firmware_version
         self._package = __package__
         self._base_map = self._load_map(base_map_name, map_attr, entry_type)
@@ -191,7 +190,6 @@ class RegisterMapManager(BaseRegisterMapManager):
 
     def __init__(self, firmware_version: str) -> None:
         """Initialize the register map manager for a given firmware version."""
-
         super().__init__(
             firmware_version,
             base_map_name="register_map_all",

@@ -66,10 +66,10 @@ class THZSelect(THZBaseEntity, SelectEntity):
             scan_interval=scan_interval,
             translation_key=get_translation_key(name),
         )
-        
+
         # Select-specific attributes
         self._decode_type = entry.get("decode_type")
-        
+
         # Set available options based on decode_type
         if self._decode_type and self._decode_type in SELECT_MAP:
             self._attr_options = list(SELECT_MAP[self._decode_type].values())
@@ -79,10 +79,10 @@ class THZSelect(THZBaseEntity, SelectEntity):
         else:
             self._attr_options = []
             _LOGGER.warning(
-                "No options found for select %s with decode_type %s", 
+                "No options found for select %s with decode_type %s",
                 name, self._decode_type
             )
-        
+
         self._attr_current_option = None
 
     @property
@@ -100,20 +100,20 @@ class THZSelect(THZBaseEntity, SelectEntity):
                 WRITE_REGISTER_OFFSET,
                 WRITE_REGISTER_LENGTH,
             )
-        
+
         # Validate that we received data
         if not value_bytes:
             _LOGGER.warning(
                 "No data received for select %s, keeping previous value", self._name
             )
             return
-        
+
         _LOGGER.debug(
             "Received bytes for %s: %s",
             self._name,
             value_bytes.hex()
         )
-        
+
         try:
             # Use centralized codec for decoding
             option = THZValueCodec.decode_select(value_bytes, self._decode_type)
@@ -135,12 +135,12 @@ class THZSelect(THZBaseEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         """Set the selected option."""
         _LOGGER.debug("Setting %s to option %s", self._name, option)
-        
+
         try:
             # Use centralized codec for encoding
             value_bytes = THZValueCodec.encode_select(option, self._decode_type)
             _LOGGER.debug("Encoded value bytes: %s", value_bytes.hex())
-            
+
             async with self._device.lock:
                 await self.hass.async_add_executor_job(
                     self._device.write_value,
@@ -149,10 +149,10 @@ class THZSelect(THZBaseEntity, SelectEntity):
                 )
                 # Short pause to ensure the device is ready
                 await asyncio.sleep(0.01)
-            
+
             self._attr_current_option = option
         except (ValueError, TypeError) as err:
             _LOGGER.error(
-                "Error encoding select %s to option %s: %s", 
+                "Error encoding select %s to option %s: %s",
                 self._name, option, err, exc_info=True
             )

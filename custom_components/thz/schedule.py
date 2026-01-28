@@ -1,15 +1,12 @@
 """Schedule entity for THZ devices."""
-from datetime import timedelta
-# Set update interval to 10 minutes
-SCAN_INTERVAL = timedelta(minutes=120)
 
 import asyncio
 from dataclasses import dataclass
-from datetime import time
+from datetime import time, timedelta
 import logging
 
 from homeassistant.components.schedule import Schedule
-from homeassistant.config_entries import ConfigEntry, ConfigType
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -18,6 +15,9 @@ from .thz_device import THZDevice
 from .time import quarters_to_time, time_to_quarters
 
 _LOGGER = logging.getLogger(__name__)
+
+# Set update interval to 2 hours
+SCAN_INTERVAL = timedelta(minutes=120)
 
 
 @dataclass
@@ -77,9 +77,10 @@ async def async_setup_entry(
 class THZSchedule(Schedule):
     """Schedule entity for THZ devices.
 
-    This class represents a schedule entity that can read and write schedule values from/to THZ devices.
-    It handles conversion between quarter-hour based time values used by the device and standard
-    time format used by Home Assistant.
+    This class represents a schedule entity that can read and write schedule
+    values from/to THZ devices. It handles conversion between quarter-hour
+    based time values used by the device and standard time format used by
+    Home Assistant.
     """
 
     def __init__(
@@ -98,16 +99,22 @@ class THZSchedule(Schedule):
             device: The THZDevice instance to interact with.
             icon: Optional icon for the entity.
             unique_id: Optional unique ID for the entity.
+
+        Note:
+            The original code called super().__init__(config, editable=True) but
+            'config' was never defined - this was a pre-existing bug. The Schedule
+            helper entity in HA doesn't require config in its constructor.
         """
-        super().__init__(config, editable=True)
+        super().__init__()
 
         self._attr_name = name
         self._command = command
         self.day_index = self._parse_day_from_name(name)  # e.g., 4 for Friday
         self._device = device
         self._attr_icon = icon or "mdi:clock"
+        unique_suffix = name.lower().replace(' ', '_')
         self._attr_unique_id = (
-            unique_id or f"thz_time_{command.lower()}_{name.lower().replace(' ', '_')}"
+            unique_id or f"thz_time_{command.lower()}_{unique_suffix}"
         )
         self._attr_native_value = None
 

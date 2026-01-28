@@ -1,0 +1,24 @@
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "D",     # pydocstyle
+    "F",     # pyflakes
+]
+ignore = [
+    "D203",  # 1 blank line required before class docstring (conflicts with D211)
+    "D212",  # Multi-line docstring summary should start at the first line (we use D213 style)
+    "D400",  # First line should end with a period
+    "D401",  # First line should be in imperative mood
+    "D415",  # First line should end with punctuation
+]
+
+[tool.ruff.lint.per-file-ignores]
+"custom_components/thz/register_maps/*.py" = ["D100", "D104"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

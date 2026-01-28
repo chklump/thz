@@ -22,7 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 
 class THZBaseEntity(Entity):
     """Base class for all THZ write entities (number, switch, select, time).
-    
+
     This class provides common properties and initialization logic shared
     across all THZ entity types that communicate with write registers.
     """
@@ -40,7 +40,7 @@ class THZBaseEntity(Entity):
         translation_key: str | None = None,
     ) -> None:
         """Initialize base THZ entity.
-        
+
         Args:
             name: The display name of the entity.
             command: The hex command string for device communication.
@@ -55,10 +55,10 @@ class THZBaseEntity(Entity):
         self._device = device
         self._device_id = device_id
         self._attr_icon = icon or "mdi:eye"
-        
+
         # Per Home Assistant documentation, has_entity_name=True is MANDATORY for new integrations.
         # See: https://developers.home-assistant.io/docs/core/entity/#entity-naming
-        # 
+        #
         # CRITICAL: Home Assistant ignores translation_key when _attr_name is set!
         # The fix: Only set _attr_translation_key (not _attr_name) when translation is available.
         # When no translation: set _attr_name as fallback.
@@ -69,34 +69,34 @@ class THZBaseEntity(Entity):
         else:
             self._attr_name = name
             # has_entity_name not set for legacy entities without translations
-        
+
         # Generate unique ID if not provided
         self._attr_unique_id = (
             unique_id or self._generate_unique_id(command, name)
         )
-        
+
         # Debug log entity attributes
         _LOGGER.debug(
             "Entity %s initialized: has_entity_name=%s, name=%s, translation_key=%s",
-            name, getattr(self, '_attr_has_entity_name', False), 
-            getattr(self, '_attr_name', None), 
+            name, getattr(self, '_attr_has_entity_name', False),
+            getattr(self, '_attr_name', None),
             getattr(self, '_attr_translation_key', None)
         )
-        
+
         # Configure update interval
         interval = scan_interval if scan_interval is not None else DEFAULT_UPDATE_INTERVAL
         self.SCAN_INTERVAL = timedelta(seconds=interval)
-        
+
         # Set default visibility based on entity naming conventions
         self._attr_entity_registry_enabled_default = not should_hide_entity_by_default(name)
 
     def _generate_unique_id(self, command: str, name: str) -> str:
         """Generate a unique identifier for the entity.
-        
+
         Args:
             command: The command hex string.
             name: The entity name.
-            
+
         Returns:
             A unique identifier string.
         """
@@ -107,7 +107,7 @@ class THZBaseEntity(Entity):
     # - _attr_translation_key: triggers translation lookup in strings.json
     # - _attr_name: fallback name when no translation_key is set
     # - _attr_has_entity_name: must be True for entities with translations
-    # 
+    #
     # IMPORTANT: Setting _attr_name blocks translation_key from working!
     # Properties are NOT evaluated by HA's translation system.
 

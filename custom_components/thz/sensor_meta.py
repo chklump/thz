@@ -2,7 +2,7 @@
 
 This module defines the SENSOR_META dictionary, which maps sensor names to their metadata.
 Each entry contains information such as data offset, length, decoding method, scaling factor,
-units, device class, state class, icon, and translation key (where applicable). This metadata 
+units, device class, state class, icon, and translation key (where applicable). This metadata
 is used to interpret raw sensor data from THZ devices for integration with Home Assistant.
 
 Example metadata fields:

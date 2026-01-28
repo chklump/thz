@@ -17,7 +17,6 @@ from .const import (
     WRITE_REGISTER_OFFSET,
     WRITE_REGISTER_LENGTH,
 )
-from .platform_setup import async_setup_write_platform
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -90,7 +89,7 @@ def quarters_to_time(num: int) -> time | None:
     """
     if num == TIME_VALUE_UNSET:
         return None
-    
+
     # Validate range and clamp if necessary
     if num < 0 or num > 95:
         _LOGGER.warning(
@@ -99,7 +98,7 @@ def quarters_to_time(num: int) -> time | None:
             num
         )
         num = max(0, min(95, num))
-    
+
     quarters = num % 4
     hour = (num - quarters) // 4
     _LOGGER.debug("Converting %s to time: %s:%s", num, hour, quarters * 15)
@@ -151,13 +150,13 @@ async def async_setup_entry(
     write_manager: RegisterMapManagerWrite = hass.data[DOMAIN]["write_manager"]
     device: THZDevice = hass.data[DOMAIN]["device"]
     device_id = hass.data[DOMAIN]["device_id"]
-    
+
     from .const import DEFAULT_UPDATE_INTERVAL
     write_interval = config_entry.data.get("write_interval", DEFAULT_UPDATE_INTERVAL)
-    
+
     write_registers = write_manager.get_all_registers()
     _LOGGER.debug("Loading time platform with %d registers", len(write_registers))
-    
+
     entities = []
     for name, entry in write_registers.items():
         if entry["type"] in ("time", "schedule"):
@@ -167,7 +166,7 @@ async def async_setup_entry(
             )
             new_entities = _create_time_entities(name, entry, device, device_id, write_interval)
             entities.extend(new_entities if isinstance(new_entities, list) else [new_entities])
-    
+
     _LOGGER.info("Created %d time entities", len(entities))
     async_add_entities(entities, True)
 
@@ -178,11 +177,11 @@ class THZTime(THZBaseEntity, TimeEntity):
     """Time entity for THZ devices."""
 
     def __init__(
-        self, 
-        name: str, 
-        entry: dict, 
-        device: THZDevice, 
-        device_id: str, 
+        self,
+        name: str,
+        entry: dict,
+        device: THZDevice,
+        device_id: str,
         scan_interval: int | None = None
     ) -> None:
         """Initialize a THZ time entity.
@@ -204,16 +203,16 @@ class THZTime(THZBaseEntity, TimeEntity):
             scan_interval=scan_interval,
             translation_key=None,  # TODO add translation keys for time entities
         )
-        
+
         # Override has_entity_name for time entities (always False for backward compatibility)
         self._attr_has_entity_name = True
-        
+
         self._attr_native_value = None
 
     @property
     def name(self) -> str | None:
         """Return the name of the time entity.
-        
+
         Always return the entity name since time entities don't use translation keys.
         """
         return self._attr_name
@@ -235,7 +234,7 @@ class THZTime(THZBaseEntity, TimeEntity):
             )
             # Short pause to ensure the device is ready
             await asyncio.sleep(0.01)
-        
+
         # Time values are stored as single bytes (0-95 quarters)
         num = value_bytes[0]
         self._attr_native_value = quarters_to_time(num)
@@ -249,22 +248,22 @@ class THZTime(THZBaseEntity, TimeEntity):
         else:
             hour, minute = map(int, value.split(":"))
             t_value = time(hour, minute)
-        
+
         num = time_to_quarters(t_value)
         _LOGGER.debug("Setting time %s to %s (%s quarters)", self._attr_name, t_value, num)
-        
+
         # Write as 2 bytes to match the protocol's read format (offset=4, length=2)
         # even though only the first byte contains the meaningful time value (0-95 quarters).
         # Second byte is set to 0 as it appears to be unused by the device.
         num_bytes = bytes([num, 0])
-        
+
         async with self._device.lock:
             await self.hass.async_add_executor_job(
                 self._device.write_value, bytes.fromhex(self._command), num_bytes
             )
             # Short pause to ensure the device is ready
             await asyncio.sleep(0.01)
-        
+
         self._attr_native_value = t_value
 
 
@@ -274,11 +273,11 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
     """Time entity for THZ schedule start/end times."""
 
     def __init__(
-        self, 
-        name: str, 
-        entry: dict, 
-        device: THZDevice, 
-        device_id: str, 
+        self,
+        name: str,
+        entry: dict,
+        device: THZDevice,
+        device_id: str,
         time_type: str,
         scan_interval: int | None = None
     ) -> None:
@@ -303,13 +302,13 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
             scan_interval=scan_interval,
             translation_key=None,  # TODO add translation keys for time entities
         )
-        
+
         # Override has_entity_name for time entities (always False for backward compatibility)
         self._attr_has_entity_name = True
-        
+
         self._time_type = time_type
         self._attr_native_value = None
-        
+
         # Override unique_id to include time_type
         self._attr_unique_id = f"thz_schedule_time_{self._command.lower()}_{name.lower().replace(' ', '_')}_{time_type}"
 
@@ -341,7 +340,7 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
 
         self._attr_native_value = quarters_to_time(num)
         _LOGGER.debug(
-            "Updated schedule time %s (%s): %s quarters -> %s", 
+            "Updated schedule time %s (%s): %s quarters -> %s",
             self._name, self._time_type, num, self._attr_native_value
         )
 
@@ -365,7 +364,7 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
 
         new_num = time_to_quarters(t_value)
         _LOGGER.debug(
-            "Setting schedule time %s (%s) to %s (%s quarters)", 
+            "Setting schedule time %s (%s) to %s (%s quarters)",
             self._name, self._time_type, t_value, new_num
         )
 
@@ -385,8 +384,8 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
         # Write the modified schedule back
         async with self._device.lock:
             await self.hass.async_add_executor_job(
-                self._device.write_value, 
-                bytes.fromhex(self._command), 
+                self._device.write_value,
+                bytes.fromhex(self._command),
                 bytes(schedule_bytes)
             )
             # Short pause to ensure the device is ready

@@ -222,10 +222,10 @@ ENTITY_TRANSLATION_KEYS = {
 
 def get_translation_key(entity_name: str) -> str | None:
     """Get the translation key for an entity name.
-    
+
     Args:
         entity_name: The internal entity name from write_map.
-    
+
     Returns:
         The translation key if found, otherwise None.
     """
