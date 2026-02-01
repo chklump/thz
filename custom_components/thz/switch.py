@@ -78,7 +78,7 @@ class THZSwitch(THZBaseEntity, SwitchEntity):
     async def async_update(self) -> None:
         """Update the switch state by reading the current value from the device."""
         _LOGGER.debug(
-            "Updating switch %s with command %s", self._name, self._command
+            "Updating switch %s with command %s", self.name, self._command
         )
 
         async with self._device.lock:
@@ -95,25 +95,25 @@ class THZSwitch(THZBaseEntity, SwitchEntity):
         # Validate that we received data
         if not value_bytes:
             _LOGGER.warning(
-                "No data received for switch %s, keeping previous value", self._name
+                "No data received for switch %s, keeping previous value", self.name
             )
             return
 
-        _LOGGER.debug("Received bytes for %s: %s", self._name, value_bytes.hex())
+        _LOGGER.debug("Received bytes for %s: %s", self.name, value_bytes.hex())
 
         try:
             # Use centralized codec for decoding
             self._is_on = THZValueCodec.decode_switch(value_bytes)
-            _LOGGER.debug("Decoded switch state for %s: %s", self._name, self._is_on)
+            _LOGGER.debug("Decoded switch state for %s: %s", self.name, self._is_on)
         except (ValueError, IndexError, TypeError) as err:
             _LOGGER.error(
-                "Error decoding switch %s: %s", self._name, err, exc_info=True
+                "Error decoding switch %s: %s", self.name, err, exc_info=True
             )
             # Keep previous value on error
 
     async def turn_on(self, **kwargs: Any) -> None:
         """Turn on the switch by sending a command to the device."""
-        _LOGGER.debug("Turning on switch %s", self._name)
+        _LOGGER.debug("Turning on switch %s", self.name)
 
         try:
             # Use centralized codec for encoding
@@ -130,12 +130,12 @@ class THZSwitch(THZBaseEntity, SwitchEntity):
         except (ValueError, TypeError) as err:
             _LOGGER.error(
                 "Error encoding switch %s to turn on: %s",
-                self._name, err, exc_info=True
+                self.name, err, exc_info=True
             )
 
     async def turn_off(self, **kwargs: Any) -> None:
         """Turn off the switch by sending a command to the device."""
-        _LOGGER.debug("Turning off switch %s", self._name)
+        _LOGGER.debug("Turning off switch %s", self.name)
 
         try:
             # Use centralized codec for encoding
@@ -152,5 +152,5 @@ class THZSwitch(THZBaseEntity, SwitchEntity):
         except (ValueError, TypeError) as err:
             _LOGGER.error(
                 "Error encoding switch %s to turn off: %s",
-                self._name, err, exc_info=True
+                self.name, err, exc_info=True
             )

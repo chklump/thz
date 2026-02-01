@@ -104,13 +104,13 @@ class THZSelect(THZBaseEntity, SelectEntity):
         # Validate that we received data
         if not value_bytes:
             _LOGGER.warning(
-                "No data received for select %s, keeping previous value", self._name
+                "No data received for select %s, keeping previous value", self.name
             )
             return
 
         _LOGGER.debug(
             "Received bytes for %s: %s",
-            self._name,
+            self.name,
             value_bytes.hex()
         )
 
@@ -120,21 +120,21 @@ class THZSelect(THZBaseEntity, SelectEntity):
             if option:
                 self._attr_current_option = option
                 _LOGGER.debug(
-                    "Decoded option for %s: %s", self._name, option
+                    "Decoded option for %s: %s", self.name, option
                 )
             else:
                 _LOGGER.warning(
-                    "Could not map value to option for %s", self._name
+                    "Could not map value to option for %s", self.name
                 )
         except (ValueError, IndexError, TypeError) as err:
             _LOGGER.error(
-                "Error decoding select %s: %s", self._name, err, exc_info=True
+                "Error decoding select %s: %s", self.name, err, exc_info=True
             )
             # Keep previous value on error
 
     async def async_select_option(self, option: str) -> None:
         """Set the selected option."""
-        _LOGGER.debug("Setting %s to option %s", self._name, option)
+        _LOGGER.debug("Setting %s to option %s", self.name, option)
 
         try:
             # Use centralized codec for encoding
@@ -154,5 +154,5 @@ class THZSelect(THZBaseEntity, SelectEntity):
         except (ValueError, TypeError) as err:
             _LOGGER.error(
                 "Error encoding select %s to option %s: %s",
-                self._name, option, err, exc_info=True
+                self.name, option, err, exc_info=True
             )

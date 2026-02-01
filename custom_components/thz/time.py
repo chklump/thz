@@ -341,7 +341,7 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
         self._attr_native_value = quarters_to_time(num)
         _LOGGER.debug(
             "Updated schedule time %s (%s): %s quarters -> %s",
-            self._name, self._time_type, num, self._attr_native_value
+            self.name, self._time_type, num, self._attr_native_value
         )
 
     async def async_set_native_value(self, value: str):
@@ -365,7 +365,7 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
         new_num = time_to_quarters(t_value)
         _LOGGER.debug(
             "Setting schedule time %s (%s) to %s (%s quarters)",
-            self._name, self._time_type, t_value, new_num
+            self.name, self._time_type, t_value, new_num
         )
 
         # Read the current schedule data (4 bytes total)

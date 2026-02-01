@@ -97,36 +97,36 @@ class THZNumber(THZBaseEntity, NumberEntity):
         # Validate that we received data
         if not value_bytes:
             _LOGGER.warning(
-                "No data received for number %s, keeping previous value", self._name
+                "No data received for number %s, keeping previous value", self.name
             )
             return
 
-        _LOGGER.debug("Received bytes for %s: %s", self._name, value_bytes.hex())
+        _LOGGER.debug("Received bytes for %s: %s", self.name, value_bytes.hex())
 
         try:
             # Use centralized codec for decoding
             value = THZValueCodec.decode_number(
                 value_bytes,
-                self.entity_description.native_step,
+                self._attr_native_step,
                 self._decode_type
             )
-            _LOGGER.debug("Decoded value for %s: %s", self._name, value)
+            _LOGGER.debug("Decoded value for %s: %s", self.name, value)
             self._attr_native_value = value
         except (ValueError, IndexError, TypeError) as err:
             _LOGGER.error(
-                "Error decoding number %s: %s", self._name, err, exc_info=True
+                "Error decoding number %s: %s", self.name, err, exc_info=True
             )
             # Keep previous value on error
 
     async def async_set_native_value(self, value: float) -> None:
         """Set new value for the number."""
-        _LOGGER.debug("Setting value for %s to %s", self._name, value)
+        _LOGGER.debug("Setting value for %s to %s", self.name, value)
 
         try:
             # Use centralized codec for encoding
             value_bytes = THZValueCodec.encode_number(
                 value,
-                self.entity_description.native_step,
+                self._attr_native_step,
                 self._decode_type
             )
 
@@ -143,5 +143,5 @@ class THZNumber(THZBaseEntity, NumberEntity):
         except (ValueError, TypeError) as err:
             _LOGGER.error(
                 "Error encoding number %s value %s: %s",
-                self._name, value, err, exc_info=True
+                self.name, value, err, exc_info=True
             )
