@@ -17,6 +17,7 @@ from .const import (
     WRITE_REGISTER_OFFSET,
     WRITE_REGISTER_LENGTH,
 )
+from .entity_translations import get_translation_key
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -201,7 +202,7 @@ class THZTime(THZBaseEntity, TimeEntity):
             device_id=device_id,
             icon=entry.get("icon", "mdi:clock"),
             scan_interval=scan_interval,
-            translation_key=None,  # TODO add translation keys for time entities
+            translation_key=get_translation_key(name),
         )
 
         # Override has_entity_name for time entities (always False for backward compatibility)
@@ -300,7 +301,7 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
             device_id=device_id,
             icon=entry.get("icon", "mdi:calendar-clock"),
             scan_interval=scan_interval,
-            translation_key=None,  # TODO add translation keys for time entities
+            translation_key=get_translation_key(name),
         )
 
         # Override has_entity_name for time entities (always False for backward compatibility)
