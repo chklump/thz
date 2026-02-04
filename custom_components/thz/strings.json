@@ -710,6 +710,47 @@
       "party_time": {
         "name": "Party Time"
       }
+    },
+    "sensor": {
+      "current_cop": {
+        "name": "Current COP"
+      },
+      "daily_cop_dhw": {
+        "name": "Daily COP DHW"
+      },
+      "daily_cop_hc": {
+        "name": "Daily COP Heating"
+      },
+      "daily_cop_total": {
+        "name": "Daily COP Total"
+      },
+      "lifetime_cop_dhw": {
+        "name": "Lifetime COP DHW"
+      },
+      "lifetime_cop_hc": {
+        "name": "Lifetime COP Heating"
+      },
+      "lifetime_cop_total": {
+        "name": "Lifetime COP Total"
+      },
+      "monthly_cop_dhw": {
+        "name": "Monthly COP DHW"
+      },
+      "monthly_cop_hc": {
+        "name": "Monthly COP Heating"
+      },
+      "monthly_cop_total": {
+        "name": "Monthly COP Total"
+      },
+      "yearly_cop_dhw": {
+        "name": "Yearly COP DHW"
+      },
+      "yearly_cop_hc": {
+        "name": "Yearly COP Heating"
+      },
+      "yearly_cop_total": {
+        "name": "Yearly COP Total"
+      }
     }
   }
 }

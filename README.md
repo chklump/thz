@@ -43,6 +43,32 @@ To provide a cleaner initial setup experience, the following entity types are hi
 4. Click "Show disabled entities" at the bottom
 5. Enable any entities you need
 
+### COP (Coefficient of Performance) Sensors
+
+For firmware versions that support energy monitoring (e.g., 4.39), the integration automatically provides COP sensors:
+
+#### Automatically Created Sensors
+
+- **Current COP**: Real-time COP based on instantaneous power measurements
+- **Daily COP DHW**: Daily COP for domestic hot water
+- **Daily COP Heating**: Daily COP for heating circuit
+- **Daily COP Total**: Combined daily COP (DHW + Heating)
+- **Monthly COP DHW**: Monthly COP for domestic hot water
+- **Monthly COP Heating**: Monthly COP for heating circuit
+- **Monthly COP Total**: Combined monthly COP (DHW + Heating)
+- **Yearly COP DHW**: Yearly COP for domestic hot water
+- **Yearly COP Heating**: Yearly COP for heating circuit
+- **Yearly COP Total**: Combined yearly COP (DHW + Heating)
+- **Lifetime COP DHW**: Overall COP for DHW since installation
+- **Lifetime COP Heating**: Overall COP for heating since installation
+- **Lifetime COP Total**: Combined lifetime COP (DHW + Heating)
+
+**Note**: COP (Coefficient of Performance) is calculated as Heat Output ÷ Electrical Input. A COP of 3.0 means the heat pump produces 3 kW of heat for every 1 kW of electricity consumed. 
+
+Monthly and Yearly COP sensors automatically reset at the start of each month/year and track the performance for that period. They persist their state across Home Assistant restarts.
+
+COP sensors require energy sensors to be available on your device, typically present in firmware 4.39 and higher.
+
 ### Planned Features
 
 - 🔄 Improve Schedule handling

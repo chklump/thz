@@ -193,6 +193,45 @@
       },
       "hc_booster_stage": {
         "name": "Heating Circuit Booster Stage"
+      },
+      "current_cop": {
+        "name": "Aktueller COP"
+      },
+      "daily_cop_dhw": {
+        "name": "Täglicher COP Warmwasser"
+      },
+      "daily_cop_hc": {
+        "name": "Täglicher COP Heizung"
+      },
+      "daily_cop_total": {
+        "name": "Täglicher COP Gesamt"
+      },
+      "monthly_cop_dhw": {
+        "name": "Monatlicher COP Warmwasser"
+      },
+      "monthly_cop_hc": {
+        "name": "Monatlicher COP Heizung"
+      },
+      "monthly_cop_total": {
+        "name": "Monatlicher COP Gesamt"
+      },
+      "yearly_cop_dhw": {
+        "name": "Jährlicher COP Warmwasser"
+      },
+      "yearly_cop_hc": {
+        "name": "Jährlicher COP Heizung"
+      },
+      "yearly_cop_total": {
+        "name": "Jährlicher COP Gesamt"
+      },
+      "lifetime_cop_dhw": {
+        "name": "Lebensdauer COP Warmwasser"
+      },
+      "lifetime_cop_hc": {
+        "name": "Lebensdauer COP Heizung"
+      },
+      "lifetime_cop_total": {
+        "name": "Lebensdauer COP Gesamt"
       }
     },
     "number": {
