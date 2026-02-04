@@ -732,6 +732,24 @@
       },
       "lifetime_cop_total": {
         "name": "Lifetime COP Total"
+      },
+      "monthly_cop_dhw": {
+        "name": "Monthly COP DHW"
+      },
+      "monthly_cop_hc": {
+        "name": "Monthly COP Heating"
+      },
+      "monthly_cop_total": {
+        "name": "Monthly COP Total"
+      },
+      "yearly_cop_dhw": {
+        "name": "Yearly COP DHW"
+      },
+      "yearly_cop_hc": {
+        "name": "Yearly COP Heating"
+      },
+      "yearly_cop_total": {
+        "name": "Yearly COP Total"
       }
     }
   }

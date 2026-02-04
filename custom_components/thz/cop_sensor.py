@@ -6,6 +6,8 @@ COP is calculated as: COP = Heat Output / Electrical Input
 The following COP sensors are provided:
 - CurrentCOP: Instantaneous COP based on current power values (actualPower_Qc / actualPower_Pel)
 - DailyCOP: Daily COP based on daily energy values
+- MonthlyCOP: Monthly average COP calculated from daily values
+- YearlyCOP: Yearly average COP calculated from daily values
 - LifetimeCOP: Overall COP based on total energy values
 
 Separate COP values are calculated for:
@@ -16,6 +18,7 @@ Separate COP values are calculated for:
 
 from __future__ import annotations
 
+from datetime import datetime
 import logging
 from typing import Any
 
@@ -23,6 +26,7 @@ from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
+    RestoreSensor,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
@@ -86,6 +90,8 @@ async def async_setup_cop_sensors(
         cop_sensors.extend(
             [
                 THZDailyCOPSensor(coordinators, device_id, "daily_cop_dhw", "DHW"),
+                THZMonthlyCOPSensor(hass, coordinators, device_id, "monthly_cop_dhw", "DHW"),
+                THZYearlyCOPSensor(hass, coordinators, device_id, "yearly_cop_dhw", "DHW"),
                 THZLifetimeCOPSensor(
                     coordinators, device_id, "lifetime_cop_dhw", "DHW"
                 ),
@@ -96,6 +102,8 @@ async def async_setup_cop_sensors(
         cop_sensors.extend(
             [
                 THZDailyCOPSensor(coordinators, device_id, "daily_cop_hc", "HC"),
+                THZMonthlyCOPSensor(hass, coordinators, device_id, "monthly_cop_hc", "HC"),
+                THZYearlyCOPSensor(hass, coordinators, device_id, "yearly_cop_hc", "HC"),
                 THZLifetimeCOPSensor(coordinators, device_id, "lifetime_cop_hc", "HC"),
             ]
         )
@@ -104,6 +112,8 @@ async def async_setup_cop_sensors(
         cop_sensors.extend(
             [
                 THZDailyCOPSensor(coordinators, device_id, "daily_cop_total", "Total"),
+                THZMonthlyCOPSensor(hass, coordinators, device_id, "monthly_cop_total", "Total"),
+                THZYearlyCOPSensor(hass, coordinators, device_id, "yearly_cop_total", "Total"),
                 THZLifetimeCOPSensor(
                     coordinators, device_id, "lifetime_cop_total", "Total"
                 ),
@@ -488,6 +498,300 @@ class THZLifetimeCOPSensor(CoordinatorEntity, SensorEntity):
                 except (ValueError, TypeError):
                     return None
 
+        return None
+
+    @property
+    def device_info(self):
+        """Return device information to link this entity with the device."""
+        return {
+            "identifiers": {(DOMAIN, self._device_id)},
+        }
+
+
+class THZMonthlyCOPSensor(CoordinatorEntity, RestoreSensor):
+    """Sensor for monthly COP based on energy values tracked over the month.
+
+    This sensor tracks the COP for the current month by storing the energy
+    values at the start of the month and calculating COP based on the delta.
+    """
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        coordinators: dict[str, Any],
+        device_id: str,
+        name: str,
+        cop_type: str,
+    ) -> None:
+        """Initialize the monthly COP sensor."""
+        self._coordinators = coordinators
+        primary_coordinator = next(iter(coordinators.values()))
+        super().__init__(primary_coordinator)
+
+        self.hass = hass
+        self._device_id = device_id
+        self._cop_type = cop_type
+
+        # State tracking
+        self._month_start_heat = None
+        self._month_start_elec = None
+        self._current_month = datetime.now().month
+
+        if cop_type == "DHW":
+            self._attr_name = "Monthly COP DHW"
+            self._attr_unique_id = f"thz_{device_id}_monthly_cop_dhw"
+            self._attr_translation_key = "monthly_cop_dhw"
+            self._heat_sensor = "sHeatDHWTotal"
+            self._elec_sensor = "sElectrDHWTotal"
+        elif cop_type == "HC":
+            self._attr_name = "Monthly COP Heating"
+            self._attr_unique_id = f"thz_{device_id}_monthly_cop_hc"
+            self._attr_translation_key = "monthly_cop_hc"
+            self._heat_sensor = "sHeatHCTotal"
+            self._elec_sensor = "sElectrHCTotal"
+        else:  # Total
+            self._attr_name = "Monthly COP Total"
+            self._attr_unique_id = f"thz_{device_id}_monthly_cop_total"
+            self._attr_translation_key = "monthly_cop_total"
+            self._heat_sensor = None
+            self._elec_sensor = None
+
+        self._attr_device_class = SensorDeviceClass.POWER_FACTOR
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:calendar-month"
+        self._attr_native_unit_of_measurement = None
+        self._attr_suggested_display_precision = 2
+        self._attr_has_entity_name = True
+
+    async def async_added_to_hass(self) -> None:
+        """Handle entity being added to Home Assistant."""
+        await super().async_added_to_hass()
+
+        # Restore previous state
+        last_state = await self.async_get_last_state()
+        last_sensor_data = await self.async_get_last_sensor_data()
+
+        if last_state and last_sensor_data:
+            self._month_start_heat = last_sensor_data.native_value
+            if last_state.attributes:
+                self._month_start_elec = last_state.attributes.get("month_start_elec")
+                self._current_month = last_state.attributes.get(
+                    "current_month", datetime.now().month
+                )
+
+    @property
+    def native_value(self) -> StateType | float | None:
+        """Return the native value of the sensor (monthly COP)."""
+        current_month = datetime.now().month
+
+        # Check if we need to reset for new month
+        if current_month != self._current_month:
+            self._current_month = current_month
+            self._month_start_heat = None
+            self._month_start_elec = None
+
+        # Get current energy values
+        if self._cop_type == "Total":
+            heat_dhw = self._get_sensor_value("sHeatDHWTotal")
+            heat_hc = self._get_sensor_value("sHeatHCTotal")
+            elec_dhw = self._get_sensor_value("sElectrDHWTotal")
+            elec_hc = self._get_sensor_value("sElectrHCTotal")
+
+            if all(v is not None for v in [heat_dhw, heat_hc, elec_dhw, elec_hc]):
+                current_heat = heat_dhw + heat_hc
+                current_elec = elec_dhw + elec_hc
+            else:
+                return None
+        else:
+            current_heat = self._get_sensor_value(self._heat_sensor)
+            current_elec = self._get_sensor_value(self._elec_sensor)
+
+        if current_heat is None or current_elec is None:
+            return None
+
+        # Initialize start values if not set
+        if self._month_start_heat is None:
+            self._month_start_heat = current_heat
+            self._month_start_elec = current_elec
+            return 0.0  # No data yet for this month
+
+        # Calculate monthly COP
+        heat_delta = current_heat - self._month_start_heat
+        elec_delta = current_elec - self._month_start_elec
+
+        if elec_delta > 0 and heat_delta >= 0:
+            cop = heat_delta / elec_delta
+            if 0 <= cop <= 10:
+                return round(cop, 2)
+
+        return None
+
+    @property
+    def extra_state_attributes(self):
+        """Return extra state attributes."""
+        return {
+            "month_start_heat": self._month_start_heat,
+            "month_start_elec": self._month_start_elec,
+            "current_month": self._current_month,
+        }
+
+    def _get_sensor_value(self, sensor_name: str) -> float | None:
+        """Get the current value of a sensor by name."""
+        for state in self.hass.states.async_all():
+            if state.domain == "sensor" and state.entity_id.endswith(
+                sensor_name.lower()
+            ):
+                try:
+                    return float(state.state)
+                except (ValueError, TypeError):
+                    return None
+        return None
+
+    @property
+    def device_info(self):
+        """Return device information to link this entity with the device."""
+        return {
+            "identifiers": {(DOMAIN, self._device_id)},
+        }
+
+
+class THZYearlyCOPSensor(CoordinatorEntity, RestoreSensor):
+    """Sensor for yearly COP based on energy values tracked over the year.
+
+    This sensor tracks the COP for the current year by storing the energy
+    values at the start of the year and calculating COP based on the delta.
+    """
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        coordinators: dict[str, Any],
+        device_id: str,
+        name: str,
+        cop_type: str,
+    ) -> None:
+        """Initialize the yearly COP sensor."""
+        self._coordinators = coordinators
+        primary_coordinator = next(iter(coordinators.values()))
+        super().__init__(primary_coordinator)
+
+        self.hass = hass
+        self._device_id = device_id
+        self._cop_type = cop_type
+
+        # State tracking
+        self._year_start_heat = None
+        self._year_start_elec = None
+        self._current_year = datetime.now().year
+
+        if cop_type == "DHW":
+            self._attr_name = "Yearly COP DHW"
+            self._attr_unique_id = f"thz_{device_id}_yearly_cop_dhw"
+            self._attr_translation_key = "yearly_cop_dhw"
+            self._heat_sensor = "sHeatDHWTotal"
+            self._elec_sensor = "sElectrDHWTotal"
+        elif cop_type == "HC":
+            self._attr_name = "Yearly COP Heating"
+            self._attr_unique_id = f"thz_{device_id}_yearly_cop_hc"
+            self._attr_translation_key = "yearly_cop_hc"
+            self._heat_sensor = "sHeatHCTotal"
+            self._elec_sensor = "sElectrHCTotal"
+        else:  # Total
+            self._attr_name = "Yearly COP Total"
+            self._attr_unique_id = f"thz_{device_id}_yearly_cop_total"
+            self._attr_translation_key = "yearly_cop_total"
+            self._heat_sensor = None
+            self._elec_sensor = None
+
+        self._attr_device_class = SensorDeviceClass.POWER_FACTOR
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:calendar"
+        self._attr_native_unit_of_measurement = None
+        self._attr_suggested_display_precision = 2
+        self._attr_has_entity_name = True
+
+    async def async_added_to_hass(self) -> None:
+        """Handle entity being added to Home Assistant."""
+        await super().async_added_to_hass()
+
+        # Restore previous state
+        last_state = await self.async_get_last_state()
+        last_sensor_data = await self.async_get_last_sensor_data()
+
+        if last_state and last_sensor_data:
+            self._year_start_heat = last_sensor_data.native_value
+            if last_state.attributes:
+                self._year_start_elec = last_state.attributes.get("year_start_elec")
+                self._current_year = last_state.attributes.get(
+                    "current_year", datetime.now().year
+                )
+
+    @property
+    def native_value(self) -> StateType | float | None:
+        """Return the native value of the sensor (yearly COP)."""
+        current_year = datetime.now().year
+
+        # Check if we need to reset for new year
+        if current_year != self._current_year:
+            self._current_year = current_year
+            self._year_start_heat = None
+            self._year_start_elec = None
+
+        # Get current energy values
+        if self._cop_type == "Total":
+            heat_dhw = self._get_sensor_value("sHeatDHWTotal")
+            heat_hc = self._get_sensor_value("sHeatHCTotal")
+            elec_dhw = self._get_sensor_value("sElectrDHWTotal")
+            elec_hc = self._get_sensor_value("sElectrHCTotal")
+
+            if all(v is not None for v in [heat_dhw, heat_hc, elec_dhw, elec_hc]):
+                current_heat = heat_dhw + heat_hc
+                current_elec = elec_dhw + elec_hc
+            else:
+                return None
+        else:
+            current_heat = self._get_sensor_value(self._heat_sensor)
+            current_elec = self._get_sensor_value(self._elec_sensor)
+
+        if current_heat is None or current_elec is None:
+            return None
+
+        # Initialize start values if not set
+        if self._year_start_heat is None:
+            self._year_start_heat = current_heat
+            self._year_start_elec = current_elec
+            return 0.0  # No data yet for this year
+
+        # Calculate yearly COP
+        heat_delta = current_heat - self._year_start_heat
+        elec_delta = current_elec - self._year_start_elec
+
+        if elec_delta > 0 and heat_delta >= 0:
+            cop = heat_delta / elec_delta
+            if 0 <= cop <= 10:
+                return round(cop, 2)
+
+        return None
+
+    @property
+    def extra_state_attributes(self):
+        """Return extra state attributes."""
+        return {
+            "year_start_heat": self._year_start_heat,
+            "year_start_elec": self._year_start_elec,
+            "current_year": self._current_year,
+        }
+
+    def _get_sensor_value(self, sensor_name: str) -> float | None:
+        """Get the current value of a sensor by name."""
+        for state in self.hass.states.async_all():
+            if state.domain == "sensor" and state.entity_id.endswith(
+                sensor_name.lower()
+            ):
+                try:
+                    return float(state.state)
+                except (ValueError, TypeError):
+                    return None
         return None
 
     @property
