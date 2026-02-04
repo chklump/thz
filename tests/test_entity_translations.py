@@ -227,7 +227,13 @@ class TestGetTranslationKey:
                 assert "-" not in translation_key, f"Translation key {translation_key} contains hyphen"
     
     def test_all_program_keys_count(self):
-        """Test that we have exactly 120 program translation keys."""
+        """Test that we have exactly 120 base program translation keys.
+        
+        This validates the base program keys only (without _start/_end suffixes).
+        Total program-related keys: 120 base + 120 _start + 120 _end = 360 keys.
+        Structure: 4 program types × 30 entities each = 120 base keys
+        - Each type has: 7 individual days × 3 slots + 3 day ranges × 3 slots = 30 keys
+        """
         program_keys = [k for k in ENTITY_TRANSLATION_KEYS.keys() if k.startswith("program")]
-        # 4 program types × 30 entities each = 120 total
+        # 4 program types × 30 entities each = 120 total base keys
         assert len(program_keys) == 120, f"Expected 120 program keys, found {len(program_keys)}"

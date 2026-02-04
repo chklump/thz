@@ -290,12 +290,17 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
 
         Args:
             name: The display name of the time entity (e.g., "programHC1_Mo_0 Start").
-            base_name: The base name without Start/End suffix for translation lookup.
+            base_name: The base register name for translation lookup (e.g., "programHC1_Mo_0").
+                This is used to construct the translation key as base_translation_key + "_start" or "_end".
             entry: The register entry dict containing configuration.
             device: THZ device instance.
             device_id: The device identifier for linking to device.
             time_type: Either "start" or "end".
             scan_interval: The scan interval in seconds for polling updates.
+            
+        Example:
+            For base_name="programHC1_Mo_0" and time_type="start", the translation key
+            becomes "programhc1_mo_0_start" which resolves to "HC1 Program Monday 1 Start".
         """
         # Get the base translation key and add _start or _end suffix
         base_translation_key = get_translation_key(base_name)
