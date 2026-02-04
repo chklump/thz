@@ -20,13 +20,13 @@ from __future__ import annotations
 
 from datetime import datetime
 import logging
+import struct
 from typing import Any
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
-    RestoreSensor,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
@@ -35,9 +35,36 @@ from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .sensor import decode_value
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def decode_value(raw: bytes, decode_type: str, factor: float = 1.0) -> int | float | bool | str:
+    """Decode a raw byte value according to the specified decode type.
+
+    Args:
+        raw: The raw bytes to decode.
+        decode_type: The type of decoding to apply.
+        factor: The divisor for "hex2int" decoding. Defaults to 1.0.
+
+    Returns:
+        The decoded value, type depends on decode_type.
+    """
+    if decode_type == "hex2int":
+        return int.from_bytes(raw, byteorder="big", signed=True) / factor
+    if decode_type == "hex":
+        return int.from_bytes(raw, byteorder="big")
+    if decode_type.startswith("bit"):
+        bitnum = int(decode_type[3:])
+        return bool((raw[0] >> bitnum) & 0x01)
+    if decode_type.startswith("nbit"):
+        bitnum = int(decode_type[4:])
+        return not bool((raw[0] >> bitnum) & 0x01)
+    if decode_type == "esp_mant":
+        mant = struct.unpack('>f', raw)[0]
+        return round(mant, 3)
+    
+    return raw.hex()
 
 
 async def async_setup_cop_sensors(
@@ -508,7 +535,7 @@ class THZLifetimeCOPSensor(CoordinatorEntity, SensorEntity):
         }
 
 
-class THZMonthlyCOPSensor(CoordinatorEntity, RestoreSensor):
+class THZMonthlyCOPSensor(CoordinatorEntity, SensorEntity):
     """Sensor for monthly COP based on energy values tracked over the month.
 
     This sensor tracks the COP for the current month by storing the energy
@@ -562,22 +589,6 @@ class THZMonthlyCOPSensor(CoordinatorEntity, RestoreSensor):
         self._attr_native_unit_of_measurement = None
         self._attr_suggested_display_precision = 2
         self._attr_has_entity_name = True
-
-    async def async_added_to_hass(self) -> None:
-        """Handle entity being added to Home Assistant."""
-        await super().async_added_to_hass()
-
-        # Restore previous state
-        last_state = await self.async_get_last_state()
-        last_sensor_data = await self.async_get_last_sensor_data()
-
-        if last_state and last_sensor_data:
-            self._month_start_heat = last_sensor_data.native_value
-            if last_state.attributes:
-                self._month_start_elec = last_state.attributes.get("month_start_elec")
-                self._current_month = last_state.attributes.get(
-                    "current_month", datetime.now().month
-                )
 
     @property
     def native_value(self) -> StateType | float | None:
@@ -655,7 +666,7 @@ class THZMonthlyCOPSensor(CoordinatorEntity, RestoreSensor):
         }
 
 
-class THZYearlyCOPSensor(CoordinatorEntity, RestoreSensor):
+class THZYearlyCOPSensor(CoordinatorEntity, SensorEntity):
     """Sensor for yearly COP based on energy values tracked over the year.
 
     This sensor tracks the COP for the current year by storing the energy
@@ -709,22 +720,6 @@ class THZYearlyCOPSensor(CoordinatorEntity, RestoreSensor):
         self._attr_native_unit_of_measurement = None
         self._attr_suggested_display_precision = 2
         self._attr_has_entity_name = True
-
-    async def async_added_to_hass(self) -> None:
-        """Handle entity being added to Home Assistant."""
-        await super().async_added_to_hass()
-
-        # Restore previous state
-        last_state = await self.async_get_last_state()
-        last_sensor_data = await self.async_get_last_sensor_data()
-
-        if last_state and last_sensor_data:
-            self._year_start_heat = last_sensor_data.native_value
-            if last_state.attributes:
-                self._year_start_elec = last_state.attributes.get("year_start_elec")
-                self._current_year = last_state.attributes.get(
-                    "current_year", datetime.now().year
-                )
 
     @property
     def native_value(self) -> StateType | float | None:
