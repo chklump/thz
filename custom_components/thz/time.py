@@ -17,6 +17,7 @@ from .const import (
     WRITE_REGISTER_OFFSET,
     WRITE_REGISTER_LENGTH,
 )
+from .entity_translations import get_translation_key
 from .register_maps.register_map_manager import RegisterMapManagerWrite
 from .thz_device import THZDevice
 
@@ -111,9 +112,11 @@ def _create_time_entities(name, entry, device, device_id, write_interval):
     """Factory function to create time entities, handling schedule types specially."""
     if entry["type"] == "schedule":
         # Create both start and end time entities for schedule type
+        # Pass the base name to both so they can look up the base translation key
         return [
             THZScheduleTime(
                 name=f"{name} Start",
+                base_name=name,
                 entry=entry,
                 device=device,
                 device_id=device_id,
@@ -122,6 +125,7 @@ def _create_time_entities(name, entry, device, device_id, write_interval):
             ),
             THZScheduleTime(
                 name=f"{name} End",
+                base_name=name,
                 entry=entry,
                 device=device,
                 device_id=device_id,
@@ -201,7 +205,7 @@ class THZTime(THZBaseEntity, TimeEntity):
             device_id=device_id,
             icon=entry.get("icon", "mdi:clock"),
             scan_interval=scan_interval,
-            translation_key=None,  # TODO add translation keys for time entities
+            translation_key=get_translation_key(name),
         )
 
         # Override has_entity_name for time entities (always False for backward compatibility)
@@ -275,6 +279,7 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
     def __init__(
         self,
         name: str,
+        base_name: str,
         entry: dict,
         device: THZDevice,
         device_id: str,
@@ -284,15 +289,27 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
         """Initialize a THZ schedule time entity.
 
         Args:
-            name: The name of the time entity.
+            name: The display name of the time entity (e.g., "programHC1_Mo_0 Start").
+            base_name: The base register name for translation lookup (e.g., "programHC1_Mo_0").
+                This is used to construct the translation key as base_translation_key + "_start" or "_end".
             entry: The register entry dict containing configuration.
             device: THZ device instance.
             device_id: The device identifier for linking to device.
             time_type: Either "start" or "end".
             scan_interval: The scan interval in seconds for polling updates.
+            
+        Example:
+            For base_name="programHC1_Mo_0" and time_type="start", the translation key
+            becomes "programhc1_mo_0_start" which resolves to "HC1 Program Monday 1 Start".
         """
+        # Get the base translation key and add _start or _end suffix
+        base_translation_key = get_translation_key(base_name)
+        if base_translation_key:
+            translation_key = f"{base_translation_key}_{time_type}"
+        else:
+            translation_key = None
+        
         # Initialize base class with common properties
-        # Note: Time entities don't use translation keys, so we pass None
         super().__init__(
             name=name,
             command=entry["command"],
@@ -300,7 +317,7 @@ class THZScheduleTime(THZBaseEntity, TimeEntity):
             device_id=device_id,
             icon=entry.get("icon", "mdi:calendar-clock"),
             scan_interval=scan_interval,
-            translation_key=None,  # TODO add translation keys for time entities
+            translation_key=translation_key,
         )
 
         # Override has_entity_name for time entities (always False for backward compatibility)
