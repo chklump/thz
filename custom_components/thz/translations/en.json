@@ -713,362 +713,1082 @@
       "programhc1_mo_0": {
         "name": "HC1 Program Monday 1"
       },
+      "programhc1_mo_0_start": {
+        "name": "HC1 Program Monday 1 Start"
+      },
+      "programhc1_mo_0_end": {
+        "name": "HC1 Program Monday 1 End"
+      },
       "programhc1_mo_1": {
         "name": "HC1 Program Monday 2"
+      },
+      "programhc1_mo_1_start": {
+        "name": "HC1 Program Monday 2 Start"
+      },
+      "programhc1_mo_1_end": {
+        "name": "HC1 Program Monday 2 End"
       },
       "programhc1_mo_2": {
         "name": "HC1 Program Monday 3"
       },
+      "programhc1_mo_2_start": {
+        "name": "HC1 Program Monday 3 Start"
+      },
+      "programhc1_mo_2_end": {
+        "name": "HC1 Program Monday 3 End"
+      },
       "programhc1_tu_0": {
         "name": "HC1 Program Tuesday 1"
+      },
+      "programhc1_tu_0_start": {
+        "name": "HC1 Program Tuesday 1 Start"
+      },
+      "programhc1_tu_0_end": {
+        "name": "HC1 Program Tuesday 1 End"
       },
       "programhc1_tu_1": {
         "name": "HC1 Program Tuesday 2"
       },
+      "programhc1_tu_1_start": {
+        "name": "HC1 Program Tuesday 2 Start"
+      },
+      "programhc1_tu_1_end": {
+        "name": "HC1 Program Tuesday 2 End"
+      },
       "programhc1_tu_2": {
         "name": "HC1 Program Tuesday 3"
+      },
+      "programhc1_tu_2_start": {
+        "name": "HC1 Program Tuesday 3 Start"
+      },
+      "programhc1_tu_2_end": {
+        "name": "HC1 Program Tuesday 3 End"
       },
       "programhc1_we_0": {
         "name": "HC1 Program Wednesday 1"
       },
+      "programhc1_we_0_start": {
+        "name": "HC1 Program Wednesday 1 Start"
+      },
+      "programhc1_we_0_end": {
+        "name": "HC1 Program Wednesday 1 End"
+      },
       "programhc1_we_1": {
         "name": "HC1 Program Wednesday 2"
+      },
+      "programhc1_we_1_start": {
+        "name": "HC1 Program Wednesday 2 Start"
+      },
+      "programhc1_we_1_end": {
+        "name": "HC1 Program Wednesday 2 End"
       },
       "programhc1_we_2": {
         "name": "HC1 Program Wednesday 3"
       },
+      "programhc1_we_2_start": {
+        "name": "HC1 Program Wednesday 3 Start"
+      },
+      "programhc1_we_2_end": {
+        "name": "HC1 Program Wednesday 3 End"
+      },
       "programhc1_th_0": {
         "name": "HC1 Program Thursday 1"
+      },
+      "programhc1_th_0_start": {
+        "name": "HC1 Program Thursday 1 Start"
+      },
+      "programhc1_th_0_end": {
+        "name": "HC1 Program Thursday 1 End"
       },
       "programhc1_th_1": {
         "name": "HC1 Program Thursday 2"
       },
+      "programhc1_th_1_start": {
+        "name": "HC1 Program Thursday 2 Start"
+      },
+      "programhc1_th_1_end": {
+        "name": "HC1 Program Thursday 2 End"
+      },
       "programhc1_th_2": {
         "name": "HC1 Program Thursday 3"
+      },
+      "programhc1_th_2_start": {
+        "name": "HC1 Program Thursday 3 Start"
+      },
+      "programhc1_th_2_end": {
+        "name": "HC1 Program Thursday 3 End"
       },
       "programhc1_fr_0": {
         "name": "HC1 Program Friday 1"
       },
+      "programhc1_fr_0_start": {
+        "name": "HC1 Program Friday 1 Start"
+      },
+      "programhc1_fr_0_end": {
+        "name": "HC1 Program Friday 1 End"
+      },
       "programhc1_fr_1": {
         "name": "HC1 Program Friday 2"
+      },
+      "programhc1_fr_1_start": {
+        "name": "HC1 Program Friday 2 Start"
+      },
+      "programhc1_fr_1_end": {
+        "name": "HC1 Program Friday 2 End"
       },
       "programhc1_fr_2": {
         "name": "HC1 Program Friday 3"
       },
+      "programhc1_fr_2_start": {
+        "name": "HC1 Program Friday 3 Start"
+      },
+      "programhc1_fr_2_end": {
+        "name": "HC1 Program Friday 3 End"
+      },
       "programhc1_sa_0": {
         "name": "HC1 Program Saturday 1"
+      },
+      "programhc1_sa_0_start": {
+        "name": "HC1 Program Saturday 1 Start"
+      },
+      "programhc1_sa_0_end": {
+        "name": "HC1 Program Saturday 1 End"
       },
       "programhc1_sa_1": {
         "name": "HC1 Program Saturday 2"
       },
+      "programhc1_sa_1_start": {
+        "name": "HC1 Program Saturday 2 Start"
+      },
+      "programhc1_sa_1_end": {
+        "name": "HC1 Program Saturday 2 End"
+      },
       "programhc1_sa_2": {
         "name": "HC1 Program Saturday 3"
+      },
+      "programhc1_sa_2_start": {
+        "name": "HC1 Program Saturday 3 Start"
+      },
+      "programhc1_sa_2_end": {
+        "name": "HC1 Program Saturday 3 End"
       },
       "programhc1_so_0": {
         "name": "HC1 Program Sunday 1"
       },
+      "programhc1_so_0_start": {
+        "name": "HC1 Program Sunday 1 Start"
+      },
+      "programhc1_so_0_end": {
+        "name": "HC1 Program Sunday 1 End"
+      },
       "programhc1_so_1": {
         "name": "HC1 Program Sunday 2"
+      },
+      "programhc1_so_1_start": {
+        "name": "HC1 Program Sunday 2 Start"
+      },
+      "programhc1_so_1_end": {
+        "name": "HC1 Program Sunday 2 End"
       },
       "programhc1_so_2": {
         "name": "HC1 Program Sunday 3"
       },
-      "programhc1_mo-fr_0": {
+      "programhc1_so_2_start": {
+        "name": "HC1 Program Sunday 3 Start"
+      },
+      "programhc1_so_2_end": {
+        "name": "HC1 Program Sunday 3 End"
+      },
+      "programhc1_mo_fr_0": {
         "name": "HC1 Program Mon-Fri 1"
       },
-      "programhc1_mo-fr_1": {
+      "programhc1_mo_fr_0_start": {
+        "name": "HC1 Program Mon-Fri 1 Start"
+      },
+      "programhc1_mo_fr_0_end": {
+        "name": "HC1 Program Mon-Fri 1 End"
+      },
+      "programhc1_mo_fr_1": {
         "name": "HC1 Program Mon-Fri 2"
       },
-      "programhc1_mo-fr_2": {
+      "programhc1_mo_fr_1_start": {
+        "name": "HC1 Program Mon-Fri 2 Start"
+      },
+      "programhc1_mo_fr_1_end": {
+        "name": "HC1 Program Mon-Fri 2 End"
+      },
+      "programhc1_mo_fr_2": {
         "name": "HC1 Program Mon-Fri 3"
       },
-      "programhc1_sa-so_0": {
+      "programhc1_mo_fr_2_start": {
+        "name": "HC1 Program Mon-Fri 3 Start"
+      },
+      "programhc1_mo_fr_2_end": {
+        "name": "HC1 Program Mon-Fri 3 End"
+      },
+      "programhc1_sa_so_0": {
         "name": "HC1 Program Sat-Sun 1"
       },
-      "programhc1_sa-so_1": {
+      "programhc1_sa_so_0_start": {
+        "name": "HC1 Program Sat-Sun 1 Start"
+      },
+      "programhc1_sa_so_0_end": {
+        "name": "HC1 Program Sat-Sun 1 End"
+      },
+      "programhc1_sa_so_1": {
         "name": "HC1 Program Sat-Sun 2"
       },
-      "programhc1_sa-so_2": {
+      "programhc1_sa_so_1_start": {
+        "name": "HC1 Program Sat-Sun 2 Start"
+      },
+      "programhc1_sa_so_1_end": {
+        "name": "HC1 Program Sat-Sun 2 End"
+      },
+      "programhc1_sa_so_2": {
         "name": "HC1 Program Sat-Sun 3"
       },
-      "programhc1_mo-so_0": {
+      "programhc1_sa_so_2_start": {
+        "name": "HC1 Program Sat-Sun 3 Start"
+      },
+      "programhc1_sa_so_2_end": {
+        "name": "HC1 Program Sat-Sun 3 End"
+      },
+      "programhc1_mo_so_0": {
         "name": "HC1 Program All Week 1"
       },
-      "programhc1_mo-so_1": {
+      "programhc1_mo_so_0_start": {
+        "name": "HC1 Program All Week 1 Start"
+      },
+      "programhc1_mo_so_0_end": {
+        "name": "HC1 Program All Week 1 End"
+      },
+      "programhc1_mo_so_1": {
         "name": "HC1 Program All Week 2"
       },
-      "programhc1_mo-so_2": {
+      "programhc1_mo_so_1_start": {
+        "name": "HC1 Program All Week 2 Start"
+      },
+      "programhc1_mo_so_1_end": {
+        "name": "HC1 Program All Week 2 End"
+      },
+      "programhc1_mo_so_2": {
         "name": "HC1 Program All Week 3"
+      },
+      "programhc1_mo_so_2_start": {
+        "name": "HC1 Program All Week 3 Start"
+      },
+      "programhc1_mo_so_2_end": {
+        "name": "HC1 Program All Week 3 End"
       },
       "programhc2_mo_0": {
         "name": "HC2 Program Monday 1"
       },
+      "programhc2_mo_0_start": {
+        "name": "HC2 Program Monday 1 Start"
+      },
+      "programhc2_mo_0_end": {
+        "name": "HC2 Program Monday 1 End"
+      },
       "programhc2_mo_1": {
         "name": "HC2 Program Monday 2"
+      },
+      "programhc2_mo_1_start": {
+        "name": "HC2 Program Monday 2 Start"
+      },
+      "programhc2_mo_1_end": {
+        "name": "HC2 Program Monday 2 End"
       },
       "programhc2_mo_2": {
         "name": "HC2 Program Monday 3"
       },
+      "programhc2_mo_2_start": {
+        "name": "HC2 Program Monday 3 Start"
+      },
+      "programhc2_mo_2_end": {
+        "name": "HC2 Program Monday 3 End"
+      },
       "programhc2_tu_0": {
         "name": "HC2 Program Tuesday 1"
+      },
+      "programhc2_tu_0_start": {
+        "name": "HC2 Program Tuesday 1 Start"
+      },
+      "programhc2_tu_0_end": {
+        "name": "HC2 Program Tuesday 1 End"
       },
       "programhc2_tu_1": {
         "name": "HC2 Program Tuesday 2"
       },
+      "programhc2_tu_1_start": {
+        "name": "HC2 Program Tuesday 2 Start"
+      },
+      "programhc2_tu_1_end": {
+        "name": "HC2 Program Tuesday 2 End"
+      },
       "programhc2_tu_2": {
         "name": "HC2 Program Tuesday 3"
+      },
+      "programhc2_tu_2_start": {
+        "name": "HC2 Program Tuesday 3 Start"
+      },
+      "programhc2_tu_2_end": {
+        "name": "HC2 Program Tuesday 3 End"
       },
       "programhc2_we_0": {
         "name": "HC2 Program Wednesday 1"
       },
+      "programhc2_we_0_start": {
+        "name": "HC2 Program Wednesday 1 Start"
+      },
+      "programhc2_we_0_end": {
+        "name": "HC2 Program Wednesday 1 End"
+      },
       "programhc2_we_1": {
         "name": "HC2 Program Wednesday 2"
+      },
+      "programhc2_we_1_start": {
+        "name": "HC2 Program Wednesday 2 Start"
+      },
+      "programhc2_we_1_end": {
+        "name": "HC2 Program Wednesday 2 End"
       },
       "programhc2_we_2": {
         "name": "HC2 Program Wednesday 3"
       },
+      "programhc2_we_2_start": {
+        "name": "HC2 Program Wednesday 3 Start"
+      },
+      "programhc2_we_2_end": {
+        "name": "HC2 Program Wednesday 3 End"
+      },
       "programhc2_th_0": {
         "name": "HC2 Program Thursday 1"
+      },
+      "programhc2_th_0_start": {
+        "name": "HC2 Program Thursday 1 Start"
+      },
+      "programhc2_th_0_end": {
+        "name": "HC2 Program Thursday 1 End"
       },
       "programhc2_th_1": {
         "name": "HC2 Program Thursday 2"
       },
+      "programhc2_th_1_start": {
+        "name": "HC2 Program Thursday 2 Start"
+      },
+      "programhc2_th_1_end": {
+        "name": "HC2 Program Thursday 2 End"
+      },
       "programhc2_th_2": {
         "name": "HC2 Program Thursday 3"
+      },
+      "programhc2_th_2_start": {
+        "name": "HC2 Program Thursday 3 Start"
+      },
+      "programhc2_th_2_end": {
+        "name": "HC2 Program Thursday 3 End"
       },
       "programhc2_fr_0": {
         "name": "HC2 Program Friday 1"
       },
+      "programhc2_fr_0_start": {
+        "name": "HC2 Program Friday 1 Start"
+      },
+      "programhc2_fr_0_end": {
+        "name": "HC2 Program Friday 1 End"
+      },
       "programhc2_fr_1": {
         "name": "HC2 Program Friday 2"
+      },
+      "programhc2_fr_1_start": {
+        "name": "HC2 Program Friday 2 Start"
+      },
+      "programhc2_fr_1_end": {
+        "name": "HC2 Program Friday 2 End"
       },
       "programhc2_fr_2": {
         "name": "HC2 Program Friday 3"
       },
+      "programhc2_fr_2_start": {
+        "name": "HC2 Program Friday 3 Start"
+      },
+      "programhc2_fr_2_end": {
+        "name": "HC2 Program Friday 3 End"
+      },
       "programhc2_sa_0": {
         "name": "HC2 Program Saturday 1"
+      },
+      "programhc2_sa_0_start": {
+        "name": "HC2 Program Saturday 1 Start"
+      },
+      "programhc2_sa_0_end": {
+        "name": "HC2 Program Saturday 1 End"
       },
       "programhc2_sa_1": {
         "name": "HC2 Program Saturday 2"
       },
+      "programhc2_sa_1_start": {
+        "name": "HC2 Program Saturday 2 Start"
+      },
+      "programhc2_sa_1_end": {
+        "name": "HC2 Program Saturday 2 End"
+      },
       "programhc2_sa_2": {
         "name": "HC2 Program Saturday 3"
+      },
+      "programhc2_sa_2_start": {
+        "name": "HC2 Program Saturday 3 Start"
+      },
+      "programhc2_sa_2_end": {
+        "name": "HC2 Program Saturday 3 End"
       },
       "programhc2_so_0": {
         "name": "HC2 Program Sunday 1"
       },
+      "programhc2_so_0_start": {
+        "name": "HC2 Program Sunday 1 Start"
+      },
+      "programhc2_so_0_end": {
+        "name": "HC2 Program Sunday 1 End"
+      },
       "programhc2_so_1": {
         "name": "HC2 Program Sunday 2"
+      },
+      "programhc2_so_1_start": {
+        "name": "HC2 Program Sunday 2 Start"
+      },
+      "programhc2_so_1_end": {
+        "name": "HC2 Program Sunday 2 End"
       },
       "programhc2_so_2": {
         "name": "HC2 Program Sunday 3"
       },
-      "programhc2_mo-fr_0": {
+      "programhc2_so_2_start": {
+        "name": "HC2 Program Sunday 3 Start"
+      },
+      "programhc2_so_2_end": {
+        "name": "HC2 Program Sunday 3 End"
+      },
+      "programhc2_mo_fr_0": {
         "name": "HC2 Program Mon-Fri 1"
       },
-      "programhc2_mo-fr_1": {
+      "programhc2_mo_fr_0_start": {
+        "name": "HC2 Program Mon-Fri 1 Start"
+      },
+      "programhc2_mo_fr_0_end": {
+        "name": "HC2 Program Mon-Fri 1 End"
+      },
+      "programhc2_mo_fr_1": {
         "name": "HC2 Program Mon-Fri 2"
       },
-      "programhc2_mo-fr_2": {
+      "programhc2_mo_fr_1_start": {
+        "name": "HC2 Program Mon-Fri 2 Start"
+      },
+      "programhc2_mo_fr_1_end": {
+        "name": "HC2 Program Mon-Fri 2 End"
+      },
+      "programhc2_mo_fr_2": {
         "name": "HC2 Program Mon-Fri 3"
       },
-      "programhc2_sa-so_0": {
+      "programhc2_mo_fr_2_start": {
+        "name": "HC2 Program Mon-Fri 3 Start"
+      },
+      "programhc2_mo_fr_2_end": {
+        "name": "HC2 Program Mon-Fri 3 End"
+      },
+      "programhc2_sa_so_0": {
         "name": "HC2 Program Sat-Sun 1"
       },
-      "programhc2_sa-so_1": {
+      "programhc2_sa_so_0_start": {
+        "name": "HC2 Program Sat-Sun 1 Start"
+      },
+      "programhc2_sa_so_0_end": {
+        "name": "HC2 Program Sat-Sun 1 End"
+      },
+      "programhc2_sa_so_1": {
         "name": "HC2 Program Sat-Sun 2"
       },
-      "programhc2_sa-so_2": {
+      "programhc2_sa_so_1_start": {
+        "name": "HC2 Program Sat-Sun 2 Start"
+      },
+      "programhc2_sa_so_1_end": {
+        "name": "HC2 Program Sat-Sun 2 End"
+      },
+      "programhc2_sa_so_2": {
         "name": "HC2 Program Sat-Sun 3"
       },
-      "programhc2_mo-so_0": {
+      "programhc2_sa_so_2_start": {
+        "name": "HC2 Program Sat-Sun 3 Start"
+      },
+      "programhc2_sa_so_2_end": {
+        "name": "HC2 Program Sat-Sun 3 End"
+      },
+      "programhc2_mo_so_0": {
         "name": "HC2 Program All Week 1"
       },
-      "programhc2_mo-so_1": {
+      "programhc2_mo_so_0_start": {
+        "name": "HC2 Program All Week 1 Start"
+      },
+      "programhc2_mo_so_0_end": {
+        "name": "HC2 Program All Week 1 End"
+      },
+      "programhc2_mo_so_1": {
         "name": "HC2 Program All Week 2"
       },
-      "programhc2_mo-so_2": {
+      "programhc2_mo_so_1_start": {
+        "name": "HC2 Program All Week 2 Start"
+      },
+      "programhc2_mo_so_1_end": {
+        "name": "HC2 Program All Week 2 End"
+      },
+      "programhc2_mo_so_2": {
         "name": "HC2 Program All Week 3"
+      },
+      "programhc2_mo_so_2_start": {
+        "name": "HC2 Program All Week 3 Start"
+      },
+      "programhc2_mo_so_2_end": {
+        "name": "HC2 Program All Week 3 End"
       },
       "programdhw_mo_0": {
         "name": "DHW Program Monday 1"
       },
+      "programdhw_mo_0_start": {
+        "name": "DHW Program Monday 1 Start"
+      },
+      "programdhw_mo_0_end": {
+        "name": "DHW Program Monday 1 End"
+      },
       "programdhw_mo_1": {
         "name": "DHW Program Monday 2"
+      },
+      "programdhw_mo_1_start": {
+        "name": "DHW Program Monday 2 Start"
+      },
+      "programdhw_mo_1_end": {
+        "name": "DHW Program Monday 2 End"
       },
       "programdhw_mo_2": {
         "name": "DHW Program Monday 3"
       },
+      "programdhw_mo_2_start": {
+        "name": "DHW Program Monday 3 Start"
+      },
+      "programdhw_mo_2_end": {
+        "name": "DHW Program Monday 3 End"
+      },
       "programdhw_tu_0": {
         "name": "DHW Program Tuesday 1"
+      },
+      "programdhw_tu_0_start": {
+        "name": "DHW Program Tuesday 1 Start"
+      },
+      "programdhw_tu_0_end": {
+        "name": "DHW Program Tuesday 1 End"
       },
       "programdhw_tu_1": {
         "name": "DHW Program Tuesday 2"
       },
+      "programdhw_tu_1_start": {
+        "name": "DHW Program Tuesday 2 Start"
+      },
+      "programdhw_tu_1_end": {
+        "name": "DHW Program Tuesday 2 End"
+      },
       "programdhw_tu_2": {
         "name": "DHW Program Tuesday 3"
+      },
+      "programdhw_tu_2_start": {
+        "name": "DHW Program Tuesday 3 Start"
+      },
+      "programdhw_tu_2_end": {
+        "name": "DHW Program Tuesday 3 End"
       },
       "programdhw_we_0": {
         "name": "DHW Program Wednesday 1"
       },
+      "programdhw_we_0_start": {
+        "name": "DHW Program Wednesday 1 Start"
+      },
+      "programdhw_we_0_end": {
+        "name": "DHW Program Wednesday 1 End"
+      },
       "programdhw_we_1": {
         "name": "DHW Program Wednesday 2"
+      },
+      "programdhw_we_1_start": {
+        "name": "DHW Program Wednesday 2 Start"
+      },
+      "programdhw_we_1_end": {
+        "name": "DHW Program Wednesday 2 End"
       },
       "programdhw_we_2": {
         "name": "DHW Program Wednesday 3"
       },
+      "programdhw_we_2_start": {
+        "name": "DHW Program Wednesday 3 Start"
+      },
+      "programdhw_we_2_end": {
+        "name": "DHW Program Wednesday 3 End"
+      },
       "programdhw_th_0": {
         "name": "DHW Program Thursday 1"
+      },
+      "programdhw_th_0_start": {
+        "name": "DHW Program Thursday 1 Start"
+      },
+      "programdhw_th_0_end": {
+        "name": "DHW Program Thursday 1 End"
       },
       "programdhw_th_1": {
         "name": "DHW Program Thursday 2"
       },
+      "programdhw_th_1_start": {
+        "name": "DHW Program Thursday 2 Start"
+      },
+      "programdhw_th_1_end": {
+        "name": "DHW Program Thursday 2 End"
+      },
       "programdhw_th_2": {
         "name": "DHW Program Thursday 3"
+      },
+      "programdhw_th_2_start": {
+        "name": "DHW Program Thursday 3 Start"
+      },
+      "programdhw_th_2_end": {
+        "name": "DHW Program Thursday 3 End"
       },
       "programdhw_fr_0": {
         "name": "DHW Program Friday 1"
       },
+      "programdhw_fr_0_start": {
+        "name": "DHW Program Friday 1 Start"
+      },
+      "programdhw_fr_0_end": {
+        "name": "DHW Program Friday 1 End"
+      },
       "programdhw_fr_1": {
         "name": "DHW Program Friday 2"
+      },
+      "programdhw_fr_1_start": {
+        "name": "DHW Program Friday 2 Start"
+      },
+      "programdhw_fr_1_end": {
+        "name": "DHW Program Friday 2 End"
       },
       "programdhw_fr_2": {
         "name": "DHW Program Friday 3"
       },
+      "programdhw_fr_2_start": {
+        "name": "DHW Program Friday 3 Start"
+      },
+      "programdhw_fr_2_end": {
+        "name": "DHW Program Friday 3 End"
+      },
       "programdhw_sa_0": {
         "name": "DHW Program Saturday 1"
+      },
+      "programdhw_sa_0_start": {
+        "name": "DHW Program Saturday 1 Start"
+      },
+      "programdhw_sa_0_end": {
+        "name": "DHW Program Saturday 1 End"
       },
       "programdhw_sa_1": {
         "name": "DHW Program Saturday 2"
       },
+      "programdhw_sa_1_start": {
+        "name": "DHW Program Saturday 2 Start"
+      },
+      "programdhw_sa_1_end": {
+        "name": "DHW Program Saturday 2 End"
+      },
       "programdhw_sa_2": {
         "name": "DHW Program Saturday 3"
+      },
+      "programdhw_sa_2_start": {
+        "name": "DHW Program Saturday 3 Start"
+      },
+      "programdhw_sa_2_end": {
+        "name": "DHW Program Saturday 3 End"
       },
       "programdhw_so_0": {
         "name": "DHW Program Sunday 1"
       },
+      "programdhw_so_0_start": {
+        "name": "DHW Program Sunday 1 Start"
+      },
+      "programdhw_so_0_end": {
+        "name": "DHW Program Sunday 1 End"
+      },
       "programdhw_so_1": {
         "name": "DHW Program Sunday 2"
+      },
+      "programdhw_so_1_start": {
+        "name": "DHW Program Sunday 2 Start"
+      },
+      "programdhw_so_1_end": {
+        "name": "DHW Program Sunday 2 End"
       },
       "programdhw_so_2": {
         "name": "DHW Program Sunday 3"
       },
-      "programdhw_mo-fr_0": {
+      "programdhw_so_2_start": {
+        "name": "DHW Program Sunday 3 Start"
+      },
+      "programdhw_so_2_end": {
+        "name": "DHW Program Sunday 3 End"
+      },
+      "programdhw_mo_fr_0": {
         "name": "DHW Program Mon-Fri 1"
       },
-      "programdhw_mo-fr_1": {
+      "programdhw_mo_fr_0_start": {
+        "name": "DHW Program Mon-Fri 1 Start"
+      },
+      "programdhw_mo_fr_0_end": {
+        "name": "DHW Program Mon-Fri 1 End"
+      },
+      "programdhw_mo_fr_1": {
         "name": "DHW Program Mon-Fri 2"
       },
-      "programdhw_mo-fr_2": {
+      "programdhw_mo_fr_1_start": {
+        "name": "DHW Program Mon-Fri 2 Start"
+      },
+      "programdhw_mo_fr_1_end": {
+        "name": "DHW Program Mon-Fri 2 End"
+      },
+      "programdhw_mo_fr_2": {
         "name": "DHW Program Mon-Fri 3"
       },
-      "programdhw_sa-so_0": {
+      "programdhw_mo_fr_2_start": {
+        "name": "DHW Program Mon-Fri 3 Start"
+      },
+      "programdhw_mo_fr_2_end": {
+        "name": "DHW Program Mon-Fri 3 End"
+      },
+      "programdhw_sa_so_0": {
         "name": "DHW Program Sat-Sun 1"
       },
-      "programdhw_sa-so_1": {
+      "programdhw_sa_so_0_start": {
+        "name": "DHW Program Sat-Sun 1 Start"
+      },
+      "programdhw_sa_so_0_end": {
+        "name": "DHW Program Sat-Sun 1 End"
+      },
+      "programdhw_sa_so_1": {
         "name": "DHW Program Sat-Sun 2"
       },
-      "programdhw_sa-so_2": {
+      "programdhw_sa_so_1_start": {
+        "name": "DHW Program Sat-Sun 2 Start"
+      },
+      "programdhw_sa_so_1_end": {
+        "name": "DHW Program Sat-Sun 2 End"
+      },
+      "programdhw_sa_so_2": {
         "name": "DHW Program Sat-Sun 3"
       },
-      "programdhw_mo-so_0": {
+      "programdhw_sa_so_2_start": {
+        "name": "DHW Program Sat-Sun 3 Start"
+      },
+      "programdhw_sa_so_2_end": {
+        "name": "DHW Program Sat-Sun 3 End"
+      },
+      "programdhw_mo_so_0": {
         "name": "DHW Program All Week 1"
       },
-      "programdhw_mo-so_1": {
+      "programdhw_mo_so_0_start": {
+        "name": "DHW Program All Week 1 Start"
+      },
+      "programdhw_mo_so_0_end": {
+        "name": "DHW Program All Week 1 End"
+      },
+      "programdhw_mo_so_1": {
         "name": "DHW Program All Week 2"
       },
-      "programdhw_mo-so_2": {
+      "programdhw_mo_so_1_start": {
+        "name": "DHW Program All Week 2 Start"
+      },
+      "programdhw_mo_so_1_end": {
+        "name": "DHW Program All Week 2 End"
+      },
+      "programdhw_mo_so_2": {
         "name": "DHW Program All Week 3"
+      },
+      "programdhw_mo_so_2_start": {
+        "name": "DHW Program All Week 3 Start"
+      },
+      "programdhw_mo_so_2_end": {
+        "name": "DHW Program All Week 3 End"
       },
       "programfan_mo_0": {
         "name": "Fan Program Monday 1"
       },
+      "programfan_mo_0_start": {
+        "name": "Fan Program Monday 1 Start"
+      },
+      "programfan_mo_0_end": {
+        "name": "Fan Program Monday 1 End"
+      },
       "programfan_mo_1": {
         "name": "Fan Program Monday 2"
+      },
+      "programfan_mo_1_start": {
+        "name": "Fan Program Monday 2 Start"
+      },
+      "programfan_mo_1_end": {
+        "name": "Fan Program Monday 2 End"
       },
       "programfan_mo_2": {
         "name": "Fan Program Monday 3"
       },
+      "programfan_mo_2_start": {
+        "name": "Fan Program Monday 3 Start"
+      },
+      "programfan_mo_2_end": {
+        "name": "Fan Program Monday 3 End"
+      },
       "programfan_tu_0": {
         "name": "Fan Program Tuesday 1"
+      },
+      "programfan_tu_0_start": {
+        "name": "Fan Program Tuesday 1 Start"
+      },
+      "programfan_tu_0_end": {
+        "name": "Fan Program Tuesday 1 End"
       },
       "programfan_tu_1": {
         "name": "Fan Program Tuesday 2"
       },
+      "programfan_tu_1_start": {
+        "name": "Fan Program Tuesday 2 Start"
+      },
+      "programfan_tu_1_end": {
+        "name": "Fan Program Tuesday 2 End"
+      },
       "programfan_tu_2": {
         "name": "Fan Program Tuesday 3"
+      },
+      "programfan_tu_2_start": {
+        "name": "Fan Program Tuesday 3 Start"
+      },
+      "programfan_tu_2_end": {
+        "name": "Fan Program Tuesday 3 End"
       },
       "programfan_we_0": {
         "name": "Fan Program Wednesday 1"
       },
+      "programfan_we_0_start": {
+        "name": "Fan Program Wednesday 1 Start"
+      },
+      "programfan_we_0_end": {
+        "name": "Fan Program Wednesday 1 End"
+      },
       "programfan_we_1": {
         "name": "Fan Program Wednesday 2"
+      },
+      "programfan_we_1_start": {
+        "name": "Fan Program Wednesday 2 Start"
+      },
+      "programfan_we_1_end": {
+        "name": "Fan Program Wednesday 2 End"
       },
       "programfan_we_2": {
         "name": "Fan Program Wednesday 3"
       },
+      "programfan_we_2_start": {
+        "name": "Fan Program Wednesday 3 Start"
+      },
+      "programfan_we_2_end": {
+        "name": "Fan Program Wednesday 3 End"
+      },
       "programfan_th_0": {
         "name": "Fan Program Thursday 1"
+      },
+      "programfan_th_0_start": {
+        "name": "Fan Program Thursday 1 Start"
+      },
+      "programfan_th_0_end": {
+        "name": "Fan Program Thursday 1 End"
       },
       "programfan_th_1": {
         "name": "Fan Program Thursday 2"
       },
+      "programfan_th_1_start": {
+        "name": "Fan Program Thursday 2 Start"
+      },
+      "programfan_th_1_end": {
+        "name": "Fan Program Thursday 2 End"
+      },
       "programfan_th_2": {
         "name": "Fan Program Thursday 3"
+      },
+      "programfan_th_2_start": {
+        "name": "Fan Program Thursday 3 Start"
+      },
+      "programfan_th_2_end": {
+        "name": "Fan Program Thursday 3 End"
       },
       "programfan_fr_0": {
         "name": "Fan Program Friday 1"
       },
+      "programfan_fr_0_start": {
+        "name": "Fan Program Friday 1 Start"
+      },
+      "programfan_fr_0_end": {
+        "name": "Fan Program Friday 1 End"
+      },
       "programfan_fr_1": {
         "name": "Fan Program Friday 2"
+      },
+      "programfan_fr_1_start": {
+        "name": "Fan Program Friday 2 Start"
+      },
+      "programfan_fr_1_end": {
+        "name": "Fan Program Friday 2 End"
       },
       "programfan_fr_2": {
         "name": "Fan Program Friday 3"
       },
+      "programfan_fr_2_start": {
+        "name": "Fan Program Friday 3 Start"
+      },
+      "programfan_fr_2_end": {
+        "name": "Fan Program Friday 3 End"
+      },
       "programfan_sa_0": {
         "name": "Fan Program Saturday 1"
+      },
+      "programfan_sa_0_start": {
+        "name": "Fan Program Saturday 1 Start"
+      },
+      "programfan_sa_0_end": {
+        "name": "Fan Program Saturday 1 End"
       },
       "programfan_sa_1": {
         "name": "Fan Program Saturday 2"
       },
+      "programfan_sa_1_start": {
+        "name": "Fan Program Saturday 2 Start"
+      },
+      "programfan_sa_1_end": {
+        "name": "Fan Program Saturday 2 End"
+      },
       "programfan_sa_2": {
         "name": "Fan Program Saturday 3"
+      },
+      "programfan_sa_2_start": {
+        "name": "Fan Program Saturday 3 Start"
+      },
+      "programfan_sa_2_end": {
+        "name": "Fan Program Saturday 3 End"
       },
       "programfan_so_0": {
         "name": "Fan Program Sunday 1"
       },
+      "programfan_so_0_start": {
+        "name": "Fan Program Sunday 1 Start"
+      },
+      "programfan_so_0_end": {
+        "name": "Fan Program Sunday 1 End"
+      },
       "programfan_so_1": {
         "name": "Fan Program Sunday 2"
+      },
+      "programfan_so_1_start": {
+        "name": "Fan Program Sunday 2 Start"
+      },
+      "programfan_so_1_end": {
+        "name": "Fan Program Sunday 2 End"
       },
       "programfan_so_2": {
         "name": "Fan Program Sunday 3"
       },
-      "programfan_mo-fr_0": {
+      "programfan_so_2_start": {
+        "name": "Fan Program Sunday 3 Start"
+      },
+      "programfan_so_2_end": {
+        "name": "Fan Program Sunday 3 End"
+      },
+      "programfan_mo_fr_0": {
         "name": "Fan Program Mon-Fri 1"
       },
-      "programfan_mo-fr_1": {
+      "programfan_mo_fr_0_start": {
+        "name": "Fan Program Mon-Fri 1 Start"
+      },
+      "programfan_mo_fr_0_end": {
+        "name": "Fan Program Mon-Fri 1 End"
+      },
+      "programfan_mo_fr_1": {
         "name": "Fan Program Mon-Fri 2"
       },
-      "programfan_mo-fr_2": {
+      "programfan_mo_fr_1_start": {
+        "name": "Fan Program Mon-Fri 2 Start"
+      },
+      "programfan_mo_fr_1_end": {
+        "name": "Fan Program Mon-Fri 2 End"
+      },
+      "programfan_mo_fr_2": {
         "name": "Fan Program Mon-Fri 3"
       },
-      "programfan_sa-so_0": {
+      "programfan_mo_fr_2_start": {
+        "name": "Fan Program Mon-Fri 3 Start"
+      },
+      "programfan_mo_fr_2_end": {
+        "name": "Fan Program Mon-Fri 3 End"
+      },
+      "programfan_sa_so_0": {
         "name": "Fan Program Sat-Sun 1"
       },
-      "programfan_sa-so_1": {
+      "programfan_sa_so_0_start": {
+        "name": "Fan Program Sat-Sun 1 Start"
+      },
+      "programfan_sa_so_0_end": {
+        "name": "Fan Program Sat-Sun 1 End"
+      },
+      "programfan_sa_so_1": {
         "name": "Fan Program Sat-Sun 2"
       },
-      "programfan_sa-so_2": {
+      "programfan_sa_so_1_start": {
+        "name": "Fan Program Sat-Sun 2 Start"
+      },
+      "programfan_sa_so_1_end": {
+        "name": "Fan Program Sat-Sun 2 End"
+      },
+      "programfan_sa_so_2": {
         "name": "Fan Program Sat-Sun 3"
       },
-      "programfan_mo-so_0": {
+      "programfan_sa_so_2_start": {
+        "name": "Fan Program Sat-Sun 3 Start"
+      },
+      "programfan_sa_so_2_end": {
+        "name": "Fan Program Sat-Sun 3 End"
+      },
+      "programfan_mo_so_0": {
         "name": "Fan Program All Week 1"
       },
-      "programfan_mo-so_1": {
+      "programfan_mo_so_0_start": {
+        "name": "Fan Program All Week 1 Start"
+      },
+      "programfan_mo_so_0_end": {
+        "name": "Fan Program All Week 1 End"
+      },
+      "programfan_mo_so_1": {
         "name": "Fan Program All Week 2"
       },
-      "programfan_mo-so_2": {
+      "programfan_mo_so_1_start": {
+        "name": "Fan Program All Week 2 Start"
+      },
+      "programfan_mo_so_1_end": {
+        "name": "Fan Program All Week 2 End"
+      },
+      "programfan_mo_so_2": {
         "name": "Fan Program All Week 3"
+      },
+      "programfan_mo_so_2_start": {
+        "name": "Fan Program All Week 3 Start"
+      },
+      "programfan_mo_so_2_end": {
+        "name": "Fan Program All Week 3 End"
       }
     }
   }

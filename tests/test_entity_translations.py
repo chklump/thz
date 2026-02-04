@@ -141,32 +141,93 @@ class TestGetTranslationKey:
         # Passive cooling case variation
         assert get_translation_key("p75PassiveCooling") == get_translation_key("p75passiveCooling")
     
-    def test_program_hc1_keys(self):
-        """Test HC1 program schedule keys."""
-        assert get_translation_key("programHC1_Mo_0") == "programhc1_mo_0"
-        assert get_translation_key("programHC1_Mo_1") == "programhc1_mo_1"
-        assert get_translation_key("programHC1_Fr_2") == "programhc1_fr_2"
-        assert get_translation_key("programHC1_Mo-Fr_0") == "programhc1_mo-fr_0"
-        assert get_translation_key("programHC1_Sa-So_1") == "programhc1_sa-so_1"
-        assert get_translation_key("programHC1_Mo-So_2") == "programhc1_mo-so_2"
+    def test_program_hc1_all_keys(self):
+        """Test all HC1 program schedule keys exist and are valid."""
+        days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "So"]
+        day_ranges = ["Mo-Fr", "Sa-So", "Mo-So"]
+        slots = [0, 1, 2]
+        
+        # Test individual days
+        for day in days:
+            for slot in slots:
+                key = f"programHC1_{day}_{slot}"
+                translation_key = get_translation_key(key)
+                assert translation_key is not None, f"Missing translation for {key}"
+                assert translation_key.startswith("programhc1_"), f"Invalid translation key format: {translation_key}"
+                # Verify no hyphens in translation key
+                assert "-" not in translation_key, f"Translation key {translation_key} contains hyphen"
+        
+        # Test day ranges
+        for day_range in day_ranges:
+            for slot in slots:
+                key = f"programHC1_{day_range}_{slot}"
+                translation_key = get_translation_key(key)
+                assert translation_key is not None, f"Missing translation for {key}"
+                # Verify hyphens are converted to underscores
+                assert "-" not in translation_key, f"Translation key {translation_key} contains hyphen"
     
-    def test_program_hc2_keys(self):
-        """Test HC2 program schedule keys."""
-        assert get_translation_key("programHC2_Mo_0") == "programhc2_mo_0"
-        assert get_translation_key("programHC2_Tu_1") == "programhc2_tu_1"
-        assert get_translation_key("programHC2_We_2") == "programhc2_we_2"
-        assert get_translation_key("programHC2_Mo-Fr_0") == "programhc2_mo-fr_0"
+    def test_program_hc2_all_keys(self):
+        """Test all HC2 program schedule keys exist and are valid."""
+        days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "So"]
+        day_ranges = ["Mo-Fr", "Sa-So", "Mo-So"]
+        slots = [0, 1, 2]
+        
+        for day in days:
+            for slot in slots:
+                key = f"programHC2_{day}_{slot}"
+                translation_key = get_translation_key(key)
+                assert translation_key is not None, f"Missing translation for {key}"
+                assert "-" not in translation_key, f"Translation key {translation_key} contains hyphen"
+        
+        for day_range in day_ranges:
+            for slot in slots:
+                key = f"programHC2_{day_range}_{slot}"
+                translation_key = get_translation_key(key)
+                assert translation_key is not None, f"Missing translation for {key}"
+                assert "-" not in translation_key, f"Translation key {translation_key} contains hyphen"
     
-    def test_program_dhw_keys(self):
-        """Test DHW program schedule keys."""
-        assert get_translation_key("programDHW_Mo_0") == "programdhw_mo_0"
-        assert get_translation_key("programDHW_Th_1") == "programdhw_th_1"
-        assert get_translation_key("programDHW_Sa_2") == "programdhw_sa_2"
-        assert get_translation_key("programDHW_Sa-So_0") == "programdhw_sa-so_0"
+    def test_program_dhw_all_keys(self):
+        """Test all DHW program schedule keys exist and are valid."""
+        days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "So"]
+        day_ranges = ["Mo-Fr", "Sa-So", "Mo-So"]
+        slots = [0, 1, 2]
+        
+        for day in days:
+            for slot in slots:
+                key = f"programDHW_{day}_{slot}"
+                translation_key = get_translation_key(key)
+                assert translation_key is not None, f"Missing translation for {key}"
+                assert "-" not in translation_key, f"Translation key {translation_key} contains hyphen"
+        
+        for day_range in day_ranges:
+            for slot in slots:
+                key = f"programDHW_{day_range}_{slot}"
+                translation_key = get_translation_key(key)
+                assert translation_key is not None, f"Missing translation for {key}"
+                assert "-" not in translation_key, f"Translation key {translation_key} contains hyphen"
     
-    def test_program_fan_keys(self):
-        """Test Fan program schedule keys."""
-        assert get_translation_key("programFan_Mo_0") == "programfan_mo_0"
-        assert get_translation_key("programFan_So_1") == "programfan_so_1"
-        assert get_translation_key("programFan_Fr_2") == "programfan_fr_2"
-        assert get_translation_key("programFan_Mo-So_0") == "programfan_mo-so_0"
+    def test_program_fan_all_keys(self):
+        """Test all Fan program schedule keys exist and are valid."""
+        days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "So"]
+        day_ranges = ["Mo-Fr", "Sa-So", "Mo-So"]
+        slots = [0, 1, 2]
+        
+        for day in days:
+            for slot in slots:
+                key = f"programFan_{day}_{slot}"
+                translation_key = get_translation_key(key)
+                assert translation_key is not None, f"Missing translation for {key}"
+                assert "-" not in translation_key, f"Translation key {translation_key} contains hyphen"
+        
+        for day_range in day_ranges:
+            for slot in slots:
+                key = f"programFan_{day_range}_{slot}"
+                translation_key = get_translation_key(key)
+                assert translation_key is not None, f"Missing translation for {key}"
+                assert "-" not in translation_key, f"Translation key {translation_key} contains hyphen"
+    
+    def test_all_program_keys_count(self):
+        """Test that we have exactly 120 program translation keys."""
+        program_keys = [k for k in ENTITY_TRANSLATION_KEYS.keys() if k.startswith("program")]
+        # 4 program types × 30 entities each = 120 total
+        assert len(program_keys) == 120, f"Expected 120 program keys, found {len(program_keys)}"
