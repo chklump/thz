@@ -41,6 +41,10 @@ _LOGGER = logging.getLogger(__name__)
 
 def decode_value(raw: bytes, decode_type: str, factor: float = 1.0) -> int | float | bool | str:
     """Decode a raw byte value according to the specified decode type.
+    
+    Note: This is duplicated from sensor.py to avoid circular imports.
+    The decode_value function is needed here for power sensor decoding,
+    but sensor.py imports async_setup_cop_sensors from this module.
 
     Args:
         raw: The raw bytes to decode.
@@ -270,8 +274,8 @@ class THZCurrentCOPSensor(CoordinatorEntity, SensorEntity):
             payload = self.coordinator.data
 
             # Extract actualPower_Qc (thermal power output) at offset 94, length 8 bytes
-            if len(payload) < 102:
-                _LOGGER.debug("Payload too short for power sensors: %d bytes", len(payload))
+            if len(payload) < 110:
+                _LOGGER.debug("Payload too short for power sensors: %d bytes, need 110", len(payload))
                 return None
 
             qc_bytes = payload[94:102]  # 8 bytes for esp_mant
@@ -563,6 +567,9 @@ class THZMonthlyCOPSensor(CoordinatorEntity, SensorEntity):
         self._month_start_heat = None
         self._month_start_elec = None
         self._current_month = datetime.now().month
+        
+        # Cache for entity IDs to avoid repeated lookups
+        self._entity_cache = {}
 
         if cop_type == "DHW":
             self._attr_name = "Monthly COP DHW"
@@ -624,7 +631,7 @@ class THZMonthlyCOPSensor(CoordinatorEntity, SensorEntity):
         if self._month_start_heat is None:
             self._month_start_heat = current_heat
             self._month_start_elec = current_elec
-            return 0.0  # No data yet for this month
+            return None  # No data yet for this month
 
         # Calculate monthly COP
         heat_delta = current_heat - self._month_start_heat
@@ -646,17 +653,17 @@ class THZMonthlyCOPSensor(CoordinatorEntity, SensorEntity):
             "current_month": self._current_month,
         }
 
-    def _get_sensor_value(self, sensor_name: str) -> float | None:
-        """Get the current value of a sensor by name."""
-        for state in self.hass.states.async_all():
-            if state.domain == "sensor" and state.entity_id.endswith(
-                sensor_name.lower()
-            ):
-                try:
-                    return float(state.state)
-                except (ValueError, TypeError):
-                    return None
-        return None
+# PLACEHOLDER
+# PLACEHOLDER
+# PLACEHOLDER
+# PLACEHOLDER
+# PLACEHOLDER
+# PLACEHOLDER
+# PLACEHOLDER
+# PLACEHOLDER
+# PLACEHOLDER
+# PLACEHOLDER
+# PLACEHOLDER
 
     @property
     def device_info(self):
@@ -694,6 +701,9 @@ class THZYearlyCOPSensor(CoordinatorEntity, SensorEntity):
         self._year_start_heat = None
         self._year_start_elec = None
         self._current_year = datetime.now().year
+        
+        # Cache for entity IDs to avoid repeated lookups
+        self._entity_cache = {}
 
         if cop_type == "DHW":
             self._attr_name = "Yearly COP DHW"
@@ -755,7 +765,7 @@ class THZYearlyCOPSensor(CoordinatorEntity, SensorEntity):
         if self._year_start_heat is None:
             self._year_start_heat = current_heat
             self._year_start_elec = current_elec
-            return 0.0  # No data yet for this year
+            return None  # No data yet for this year
 
         # Calculate yearly COP
         heat_delta = current_heat - self._year_start_heat
