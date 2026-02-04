@@ -140,3 +140,33 @@ class TestGetTranslationKey:
         assert get_translation_key("p05DHWsetTempNight") == get_translation_key("p05DHWsetNightTemp")
         # Passive cooling case variation
         assert get_translation_key("p75PassiveCooling") == get_translation_key("p75passiveCooling")
+    
+    def test_program_hc1_keys(self):
+        """Test HC1 program schedule keys."""
+        assert get_translation_key("programHC1_Mo_0") == "programhc1_mo_0"
+        assert get_translation_key("programHC1_Mo_1") == "programhc1_mo_1"
+        assert get_translation_key("programHC1_Fr_2") == "programhc1_fr_2"
+        assert get_translation_key("programHC1_Mo-Fr_0") == "programhc1_mo-fr_0"
+        assert get_translation_key("programHC1_Sa-So_1") == "programhc1_sa-so_1"
+        assert get_translation_key("programHC1_Mo-So_2") == "programhc1_mo-so_2"
+    
+    def test_program_hc2_keys(self):
+        """Test HC2 program schedule keys."""
+        assert get_translation_key("programHC2_Mo_0") == "programhc2_mo_0"
+        assert get_translation_key("programHC2_Tu_1") == "programhc2_tu_1"
+        assert get_translation_key("programHC2_We_2") == "programhc2_we_2"
+        assert get_translation_key("programHC2_Mo-Fr_0") == "programhc2_mo-fr_0"
+    
+    def test_program_dhw_keys(self):
+        """Test DHW program schedule keys."""
+        assert get_translation_key("programDHW_Mo_0") == "programdhw_mo_0"
+        assert get_translation_key("programDHW_Th_1") == "programdhw_th_1"
+        assert get_translation_key("programDHW_Sa_2") == "programdhw_sa_2"
+        assert get_translation_key("programDHW_Sa-So_0") == "programdhw_sa-so_0"
+    
+    def test_program_fan_keys(self):
+        """Test Fan program schedule keys."""
+        assert get_translation_key("programFan_Mo_0") == "programfan_mo_0"
+        assert get_translation_key("programFan_So_1") == "programfan_so_1"
+        assert get_translation_key("programFan_Fr_2") == "programfan_fr_2"
+        assert get_translation_key("programFan_Mo-So_0") == "programfan_mo-so_0"
